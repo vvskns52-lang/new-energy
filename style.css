@@ -3567,29 +3567,378 @@ input[type="range"]::-webkit-slider-thumb:hover {
 }
 
 
-/* --- 반응형 --- */
+/* ==========================================
+   도입부 기후 위기 타임머신 모듈 스타일
+   ========================================== */
+.climate-timemachine {
+    margin-bottom: 1.5rem;
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    border: 1.5px solid rgba(59, 130, 246, 0.25);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.04);
+}
+
+.ct-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1.2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px dashed #e2e8f0;
+}
+
+.ct-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: #dbeafe;
+    color: #1e40af;
+    font-size: 0.75rem;
+    font-weight: 800;
+    padding: 0.25rem 0.6rem;
+    border-radius: 20px;
+    margin-bottom: 0.4rem;
+}
+
+.ct-title-group h3 {
+    font-size: 1.15rem;
+    color: #0f172a;
+    font-weight: 800;
+    margin-bottom: 0.25rem;
+}
+
+.ct-desc {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.ct-toggle-bar {
+    display: flex;
+    gap: 0.5rem;
+    background: #e2e8f0;
+    padding: 0.3rem;
+    border-radius: 12px;
+}
+
+.ct-btn {
+    border: none;
+    padding: 0.6rem 1rem;
+    border-radius: 9px;
+    font-size: 0.82rem;
+    font-weight: 800;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    transition: all 0.25s ease;
+    color: #64748b;
+    background: none;
+}
+
+.ct-btn.ct-fossil.active {
+    background: #ef4444;
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.ct-btn.ct-green.active {
+    background: #10b981;
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.ct-visual-card {
+    border-radius: 14px;
+    padding: 1.2rem;
+    transition: all 0.35s ease;
+}
+
+.ct-visual-card.fossil-mode {
+    background: linear-gradient(135deg, #fff5f5 0%, #fed7d7 100%);
+    border: 1px solid #feb2b2;
+}
+
+.ct-visual-card.green-mode {
+    background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+    border: 1px solid #86efac;
+}
+
+.ct-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-weight: 800;
+    font-size: 0.85rem;
+    padding: 0.35rem 0.8rem;
+    border-radius: 20px;
+    margin-bottom: 1rem;
+}
+
+.ct-status-badge.fossil {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.ct-status-badge.green {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.ct-metric-group {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.ct-metric {
+    background: rgba(255, 255, 255, 0.85);
+    padding: 0.8rem;
+    border-radius: 12px;
+    text-align: center;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.ct-m-label {
+    display: block;
+    font-size: 0.75rem;
+    color: #64748b;
+    margin-bottom: 0.25rem;
+}
+
+.ct-m-val {
+    font-size: 1.1rem;
+    font-weight: 900;
+}
+
+.ct-scenario-box {
+    background: rgba(255, 255, 255, 0.9);
+    padding: 1rem;
+    border-radius: 12px;
+    margin-bottom: 0.8rem;
+}
+
+.ct-scenario-box h4 {
+    font-size: 0.92rem;
+    color: #1e293b;
+    margin-bottom: 0.4rem;
+}
+
+.ct-scenario-box p {
+    font-size: 0.85rem;
+    color: #475569;
+    line-height: 1.5;
+}
+
+.ct-mission-callout {
+    background: #0f172a;
+    color: #f8fafc;
+    padding: 0.8rem 1.1rem;
+    border-radius: 10px;
+    font-size: 0.85rem;
+}
+
+/* ==========================================
+   기후 뉴스 속보 & 인포그래픽 현황 시각자료 스타일
+   ========================================== */
+.nt-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.2rem;
+}
+
+.nt-badge {
+    background: #fee2e2;
+    color: #b91c1c;
+    font-weight: 800;
+    font-size: 0.82rem;
+    padding: 0.3rem 0.7rem;
+    border-radius: 20px;
+}
+
+.nt-sub {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+}
+
+.news-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.2rem;
+}
+
+.news-item {
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    transition: all 0.25s ease;
+}
+
+.news-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+}
+
+.news-tag {
+    align-self: flex-start;
+    font-size: 0.72rem;
+    font-weight: 800;
+    padding: 0.2rem 0.5rem;
+    border-radius: 6px;
+}
+
+.news-tag.red { background: #fef2f2; color: #dc2626; }
+.news-tag.orange { background: #fff7ed; color: #ea580c; }
+.news-tag.blue { background: #eff6ff; color: #2563eb; }
+
+.news-item h4 {
+    font-size: 0.9rem;
+    color: #0f172a;
+    font-weight: 800;
+    line-height: 1.4;
+}
+
+.news-item p {
+    font-size: 0.8rem;
+    color: #64748b;
+    line-height: 1.5;
+}
+
+/* 인포그래픽 데이터 시각자료 보드 */
+.info-stat-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.2rem;
+    margin-top: 1rem;
+}
+
+.info-stat-card {
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    padding: 1.2rem;
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+}
+
+.istat-icon {
+    font-size: 2rem;
+}
+
+.istat-body {
+    flex: 1;
+}
+
+.istat-title {
+    font-size: 0.9rem;
+    font-weight: 800;
+    color: #1e293b;
+    display: block;
+    margin-bottom: 0.8rem;
+}
+
+.istat-bar-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.istat-row {
+    display: grid;
+    grid-template-columns: 90px 1fr 90px;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.78rem;
+}
+
+.ib-track {
+    background: #e2e8f0;
+    height: 10px;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.ib-fill {
+    height: 100%;
+    border-radius: 6px;
+}
+
+.bg-red { background: #ef4444; }
+.bg-orange { background: #f97316; }
+.bg-green { background: #10b981; }
+
+.istat-peak-box {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 0.8rem;
+}
+
+.ip-time-range {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    font-size: 0.8rem;
+    margin-bottom: 0.6rem;
+}
+
+.highlight-peak {
+    color: #dc2626;
+    font-weight: 800;
+    background: #fef2f2;
+    padding: 0.2rem 0.5rem;
+    border-radius: 6px;
+}
+
+.ip-desc {
+    font-size: 0.78rem;
+    color: #64748b;
+    line-height: 1.4;
+}
+
+/* --- 반응형 및 태블릿 (iPad / Galaxy Tab) 완벽 호환 --- */
 @media (max-width: 1024px) {
+    .app-container { flex-direction: column; }
+    .sidebar { width: 100%; height: auto; flex-direction: row; align-items: center; justify-content: space-between; padding: 1rem 1.5rem; position: relative; }
+    .logo-area { margin-bottom: 0; }
+    .nav-menu { flex-direction: row; flex-wrap: wrap; gap: 0.4rem; margin-left: 1rem; }
+    .main-content { width: 100%; padding: 1.2rem 1.5rem; max-width: 100%; }
+
+    .lab-grid { grid-template-columns: 1fr; gap: 1.2rem; }
+    .game-grid { grid-template-columns: 1fr; gap: 1.2rem; }
+    .scenario-cards { grid-template-columns: 1fr; gap: 0.8rem; }
+    .game-status-board { grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+    .demand-preview { flex-direction: column; gap: 1.2rem; }
+    .demand-preview .dp-right { min-width: 100%; }
+    .report-container { grid-template-columns: 1fr; gap: 1.2rem; }
+
     .lesson-brief { grid-template-columns: 1fr; gap: 1rem; }
     .brief-goal { border-left: none; border-top: 1px solid rgba(5, 150, 105, 0.2); padding-left: 0; padding-top: 1rem; }
     .rationale-grid { grid-template-columns: 1fr; }
-    .report-container { grid-template-columns: 1fr; }
     .quest-groups { grid-template-columns: 1fr; gap: 1.2rem; }
     .quiz-mode-cards { grid-template-columns: 1fr; }
-    .sidebar-footer { display: block; }
-    .sidebar { flex-wrap: wrap; position: static; height: auto; overflow: visible; }
-    .nav-menu { flex-wrap: wrap; gap: 0.5rem; margin-left: 1rem; align-items: flex-start; }
-    .nav-menu-title { display: none; }
-    .nav-lesson-group { padding-left: 0; margin-bottom: 0; }
-    .nav-lesson-group::before { display: none; }
-    .nav-num { position: static; width: 6px; height: 6px; }
-    .nav-lesson-head { font-size: 0.66rem; margin-bottom: 0.25rem; }
-    .nav-menu .nav-btn { font-size: 0.8rem; padding: 0.55rem 0.7rem; white-space: nowrap; }
-    .doc-stats { grid-template-columns: repeat(2, 1fr); }
+    .sidebar-footer { display: none; }
+    .ct-metric-group { grid-template-columns: 1fr; }
+    .news-grid { grid-template-columns: 1fr; }
+    .info-stat-grid { grid-template-columns: 1fr; }
 }
 
-@media (max-width: 720px) {
+@media (max-width: 768px) {
     .class-bar { flex-direction: column; align-items: stretch; }
     .class-bar-tools { margin-left: 0; justify-content: space-between; }
     .record-head { flex-direction: column; }
     .toast-area { left: 1rem; right: 1rem; max-width: none; }
+    .game-status-board { grid-template-columns: 1fr; }
+    .sub-nav-btn { font-size: 0.78rem; padding: 0.55rem 0.5rem; }
+    .map-slot { min-height: 80px; }
 }
+
+
+

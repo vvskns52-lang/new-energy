@@ -26,8 +26,11 @@
             <nav class="nav-menu">
                 <p class="nav-menu-title">친환경 에너지 · 총 5차시</p>
 
-                <div class="nav-lesson-group" data-lesson="1">
+                <div class="nav-lesson-group current" data-lesson="1">
                     <div class="nav-lesson-head"><span class="nav-num">1</span> 에너지 전환의 필요성</div>
+                    <button class="nav-btn active" data-tab="intro" data-lesson="1">
+                        <i class="fa-solid fa-earth-asia"></i> 🌍 기후 위기 타임머신
+                    </button>
                     <button class="nav-btn" data-tab="quiz" data-lesson="1" data-quiz-mode="pre">
                         <i class="fa-solid fa-compass"></i> 사전 진단 골든벨
                     </button>
@@ -101,8 +104,145 @@
                 </div>
             </div>
 
-            <!-- [TAB 1: 발전 실험실] -->
-            <section id="lab" class="tab-content active">
+            <!-- [TAB 1-1: 🌍 기후 위기 타임머신 탭] -->
+            <section id="intro" class="tab-content active">
+                <header class="content-header">
+                    <h2><span class="highlight">🌍 2050 기후 위기 타임머신</span> — 왜 신재생에너지일까?</h2>
+                    <p>우리가 지금 전기를 만드는 방식을 바꾸지 않는다면 지구의 미래는 어떻게 될까요? 버튼을 눌러 비포/애프터를 확인해 보세요!</p>
+                </header>
+
+                <div class="climate-timemachine card" id="climate-timemachine">
+                    <div class="ct-header">
+                        <div class="ct-title-group">
+                            <span class="ct-badge"><i class="fa-solid fa-earth-asia"></i> 1차시 생각 열기</span>
+                            <h3>미래 지구의 비포 & 애프터 체감하기</h3>
+                            <p class="ct-desc">우리가 왜 화석연료를 줄이고 친환경 신재생에너지로 전환해야 하는지 눈으로 직접 확인하세요.</p>
+                        </div>
+                        <div class="ct-toggle-bar">
+                            <button class="ct-btn ct-fossil active" id="ct-btn-fossil">
+                                <i class="fa-solid fa-fire-flame-curved"></i> 🔥 화석연료 계속 사용 시
+                            </button>
+                            <button class="ct-btn ct-green" id="ct-btn-green">
+                                <i class="fa-solid fa-seedling"></i> 🌱 신재생에너지 그린시티 전환 시
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="ct-content-grid" id="ct-content-grid">
+                        <!-- 비포 / 애프터 동적 변경 카드 -->
+                        <div class="ct-visual-card fossil-mode" id="ct-visual-card">
+                            <div class="ct-status-badge" id="ct-status-badge">
+                                <i class="fa-solid fa-triangle-exclamation"></i> 지구 온난화 경보 발생!
+                            </div>
+                            <div class="ct-metric-group">
+                                <div class="ct-metric">
+                                    <span class="ct-m-label">지구 평균 기온</span>
+                                    <strong class="ct-m-val text-red" id="ct-temp-val">+2.0 °C 상승</strong>
+                                </div>
+                                <div class="ct-metric">
+                                    <span class="ct-m-label">대기 중 CO₂ 농도</span>
+                                    <strong class="ct-m-val text-red" id="ct-co2-val">580 ppm (위험)</strong>
+                                </div>
+                                <div class="ct-metric">
+                                    <span class="ct-m-label">기후 재난 발생률</span>
+                                    <strong class="ct-m-val text-red" id="ct-disaster-val">400% 급증</strong>
+                                </div>
+                            </div>
+
+                            <div class="ct-scenario-box" id="ct-scenario-box">
+                                <h4 id="ct-scenario-title"><i class="fa-solid fa-smog"></i> 2050년 예상 시나리오: 화석연료 연소 지속</h4>
+                                <p id="ct-scenario-desc">
+                                    석탄과 석유를 계속 태우면서 매연과 이산화 탄소가 대기에 가득 차 지구 온도가 2°C 이상 치솟습니다. 북극의 빙하가 녹아 해수면이 상승하고, 매년 극심한 폭염과 가뭄, 초대형 태풍이 도시를 위협합니다.
+                                </p>
+                            </div>
+
+                            <div class="ct-mission-callout" id="ct-mission-callout">
+                                <span><i class="fa-solid fa-bullhorn"></i> <strong>연구원 미션:</strong> 정전 없이 24시간 동안 탄소 배출 0%인 그린시티를 설계하여 지구의 잿빛 미래를 푸른빛으로 바꿔 주세요!</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 각종 기사 및 기후 위기 현황 시각 자료 카드 팩 -->
+                <div class="news-infographic-container" style="margin-top: 1.5rem;">
+                    <!-- 1. 뉴스 헤드라인 속보 카드 -->
+                    <div class="news-ticker-card card">
+                        <div class="nt-head">
+                            <span class="nt-badge"><i class="fa-solid fa-newspaper"></i> 긴급 기후 뉴스 속보</span>
+                            <span class="nt-sub">실시간 기후 위기 보도 모음</span>
+                        </div>
+                        <div class="news-grid">
+                            <div class="news-item danger">
+                                <span class="news-tag red">환경 속보</span>
+                                <h4>"지구 평균 기온 사상 최고치 경신... UN '인류 빨간불'"</h4>
+                                <p>석탄·석유 등 화석연료 연소로 발생한 온실가스가 대기를 가두며 전 세계적인 이상 고온 현상이 심화되고 있습니다.</p>
+                            </div>
+                            <div class="news-item warning">
+                                <span class="news-tag orange">경제·산업</span>
+                                <h4>"RE100 전력 미달성 시 수출 규제... 신재생에너지는 국가 경쟁력"</h4>
+                                <p>100% 신재생에너지 전력만을 사용하는 글로벌 RE100 이니셔티브가 가속화되며 에너지 전환이 필수가 되었습니다.</p>
+                            </div>
+                            <div class="news-item info">
+                                <span class="news-tag blue">전력망</span>
+                                <h4>"여름철 저녁 피크타임 블랙아웃 경고... 저장장치(ESS) 확보 긴급"</h4>
+                                <p>해거름 시각 태양광 발전 중단과 저녁 전력 수요 폭증이 겹치는 17~20시 전력 수급 불균형 대비책 마련이 시급합니다.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2. 기후 현황 시각자료 보드 (인포그래픽) -->
+                    <div class="infographic-board card" style="margin-top: 1.5rem;">
+                        <h3><i class="fa-solid fa-chart-line"></i> 한눈에 보는 데이터 현황 시각 자료</h3>
+                        <p class="subtitle">지구 온도와 전력 생산 현황을 보여주는 핵심 데이터입니다.</p>
+
+                        <div class="info-stat-grid">
+                            <!-- 시각자료 1: 화석연료 vs 재생에너지 배출량 -->
+                            <div class="info-stat-card">
+                                <div class="istat-icon text-red"><i class="fa-solid fa-smog"></i></div>
+                                <div class="istat-body">
+                                    <span class="istat-title">발전원별 이산화 탄소 배출량 비교</span>
+                                    <div class="istat-bar-group">
+                                        <div class="istat-row">
+                                            <span>석탄 화력</span>
+                                            <div class="ib-track"><div class="ib-fill bg-red" style="width: 100%;"></div></div>
+                                            <strong>820 g/kWh</strong>
+                                        </div>
+                                        <div class="istat-row">
+                                            <span>천연가스(LNG)</span>
+                                            <div class="ib-track"><div class="ib-fill bg-orange" style="width: 60%;"></div></div>
+                                            <strong>490 g/kWh</strong>
+                                        </div>
+                                        <div class="istat-row">
+                                            <span>신재생에너지</span>
+                                            <div class="ib-track"><div class="ib-fill bg-green" style="width: 5%;"></div></div>
+                                            <strong class="text-green">0 g/kWh (무탄소)</strong>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 시각자료 2: 하루 중 전력 피크시간 수급 곡선 -->
+                            <div class="info-stat-card">
+                                <div class="istat-icon text-amber"><i class="fa-solid fa-bolt"></i></div>
+                                <div class="istat-body">
+                                    <span class="istat-title">24시간 도시 전력 수요 피크 현황</span>
+                                    <div class="istat-peak-box">
+                                        <div class="ip-time-range">
+                                            <span>00~06시 (낮음: 450kW)</span>
+                                            <span>12~15시 (중간: 880kW)</span>
+                                            <span class="highlight-peak">17~20시 (최대 피크: 980kW) ⚠️</span>
+                                        </div>
+                                        <p class="ip-desc">해가 지는 저녁 18시 전후로 태양광 발전은 멈추지만 가정집 전기 사용은 최고조에 달해 정전 위험이 가장 높습니다.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- [TAB 2: 발전 실험실] -->
+            <section id="lab" class="tab-content">
                 <header class="content-header">
                     <h2><span class="highlight">☀️ 발전 실험실</span>에 오신 것을 환영합니다!</h2>
                     <p>신재생에너지 발전기들의 슬라이더를 조절하여 친환경 에너지가 만들어지는 원리를 가상으로 체험해 보세요.</p>

@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
     loadClassState();      // 저장된 모둠 기록을 먼저 불러온다
     initTabs();
     initSubTabs();         // 범용 서브 탭 시스템 초기화
+    initClimateTimeMachine(); // 2050 기후 위기 타임머신 모듈 초기화
     initClassroomBar();
     initLabSimulator();
     initLabExploration();
@@ -45,6 +46,67 @@ function initSubTabs() {
                 });
             });
         });
+    });
+}
+
+function initClimateTimeMachine() {
+    const btnFossil = document.getElementById('ct-btn-fossil');
+    const btnGreen = document.getElementById('ct-btn-green');
+    const visualCard = document.getElementById('ct-visual-card');
+    const statusBadge = document.getElementById('ct-status-badge');
+    const tempVal = document.getElementById('ct-temp-val');
+    const co2Val = document.getElementById('ct-co2-val');
+    const disasterVal = document.getElementById('ct-disaster-val');
+    const scenarioTitle = document.getElementById('ct-scenario-title');
+    const scenarioDesc = document.getElementById('ct-scenario-desc');
+    const missionCallout = document.getElementById('ct-mission-callout');
+
+    if (!btnFossil || !btnGreen || !visualCard) return;
+
+    btnFossil.addEventListener('click', () => {
+        btnFossil.classList.add('active');
+        btnGreen.classList.remove('active');
+        visualCard.className = 'ct-visual-card fossil-mode';
+
+        statusBadge.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> 지구 온난화 경보 발생!';
+        statusBadge.className = 'ct-status-badge fossil';
+        
+        tempVal.textContent = '+2.0 °C 상승';
+        tempVal.className = 'ct-m-val text-red';
+
+        co2Val.textContent = '580 ppm (위험)';
+        co2Val.className = 'ct-m-val text-red';
+
+        disasterVal.textContent = '400% 급증';
+        disasterVal.className = 'ct-m-val text-red';
+
+        scenarioTitle.innerHTML = '<i class="fa-solid fa-smog"></i> 2050년 예상 시나리오: 화석연료 연소 지속';
+        scenarioDesc.textContent = '석탄과 석유를 계속 태우면서 매연과 이산화 탄소가 대기에 가득 차 지구 온도가 2°C 이상 치솟습니다. 북극의 빙하가 녹아 해수면이 상승하고, 매년 극심한 폭염과 가뭄, 초대형 태풍이 도시를 위협합니다.';
+
+        missionCallout.innerHTML = '<span><i class="fa-solid fa-bullhorn"></i> <strong>연구원 미션:</strong> 정전 없이 24시간 동안 탄소 배출 0%인 그린시티를 설계하여 지구의 잿빛 미래를 푸른빛으로 바꿔 주세요!</span>';
+    });
+
+    btnGreen.addEventListener('click', () => {
+        btnGreen.classList.add('active');
+        btnFossil.classList.remove('active');
+        visualCard.className = 'ct-visual-card green-mode';
+
+        statusBadge.innerHTML = '<i class="fa-solid fa-leaf"></i> 2050 넷제로(Net-Zero) 성공!';
+        statusBadge.className = 'ct-status-badge green';
+
+        tempVal.textContent = '+0.5 °C (안정)';
+        tempVal.className = 'ct-m-val text-green';
+
+        co2Val.textContent = '350 ppm (청정)';
+        co2Val.className = 'ct-m-val text-green';
+
+        disasterVal.textContent = '정상 수치 회복';
+        disasterVal.className = 'ct-m-val text-green';
+
+        scenarioTitle.innerHTML = '<i class="fa-solid fa-sun-plant-wilt"></i> 2050년 미래 시나리오: 신재생에너지 그린시티 완공';
+        scenarioDesc.textContent = '태양광, 풍력, 지열, 해양 에너지와 ESS 배터리가 조화를 이루어 이산화 탄소 배출이 0%가 되었습니다! 맑은 공기와 푸른 산림이 돌아오고, 24시간 안정적인 청정 전력이 시에 가득 공급됩니다.';
+
+        missionCallout.innerHTML = '<span><i class="fa-solid fa-trophy text-green"></i> <strong>축하합니다!</strong> 여러분의 스마트한 에너지 믹스로 지구가 건강을 되찾고 지속 가능한 그린 미래가 완성되었습니다!</span>';
     });
 }
 function switchTab(targetTab, lessonNo) {
