@@ -28,49 +28,46 @@
 
                 <div class="nav-lesson-group current" data-lesson="1">
                     <div class="nav-lesson-head"><span class="nav-num">1</span> 에너지 전환의 필요성</div>
-                    <button class="nav-btn active" data-tab="intro" data-lesson="1">
+                    <button class="nav-btn active" data-tab="intro" data-lesson="1" onclick="window.switchTabGlobal('intro', 1)">
                         <i class="fa-solid fa-earth-asia"></i> 🌍 기후 위기 타임머신
                     </button>
-                    <button class="nav-btn" data-tab="quiz" data-lesson="1" data-quiz-mode="pre">
+                    <button class="nav-btn" data-tab="quiz" data-lesson="1" data-quiz-mode="pre" onclick="window.switchTabGlobal('quiz', 1)">
                         <i class="fa-solid fa-compass"></i> 사전 진단 골든벨
                     </button>
                 </div>
 
                 <div class="nav-lesson-group" data-lesson="2">
                     <div class="nav-lesson-head"><span class="nav-num">2</span> 발전 원리 탐구</div>
-                    <button class="nav-btn active" data-tab="lab" data-lesson="2">
+                    <button class="nav-btn" data-tab="lab" data-lesson="2" onclick="window.switchTabGlobal('lab', 2)">
                         <i class="fa-solid fa-flask"></i> 발전 실험실
                     </button>
                 </div>
 
                 <div class="nav-lesson-group" data-lesson="3">
                     <div class="nav-lesson-head"><span class="nav-num">3</span> 지형과 에너지 입지</div>
-                    <button class="nav-btn" data-tab="map" data-lesson="3">
+                    <button class="nav-btn" data-tab="map" data-lesson="3" onclick="window.switchTabGlobal('map', 3)">
                         <i class="fa-solid fa-map-location-dot"></i> 에너지 지형도
                     </button>
                 </div>
 
                 <div class="nav-lesson-group" data-lesson="4">
                     <div class="nav-lesson-head"><span class="nav-num">4</span> 그린시티 설계 <span class="nav-flag">본시</span></div>
-                    <button class="nav-btn" data-tab="game" data-lesson="4">
+                    <button class="nav-btn" data-tab="game" data-lesson="4" onclick="window.switchTabGlobal('game', 4)">
                         <i class="fa-solid fa-city"></i> 그린시티 건설
                     </button>
                 </div>
 
                 <div class="nav-lesson-group" data-lesson="5">
                     <div class="nav-lesson-head"><span class="nav-num">5</span> 우리 도시 에너지 제안</div>
-                    <button class="nav-btn" data-tab="report" data-lesson="5">
+                    <button class="nav-btn" data-tab="report" data-lesson="5" onclick="window.switchTabGlobal('report', 5)">
                         <i class="fa-solid fa-file-lines"></i> 에너지 제안서
                     </button>
-                    <button class="nav-btn" data-tab="quiz" data-lesson="5" data-quiz-mode="final">
+                    <button class="nav-btn" data-tab="quiz" data-lesson="5" data-quiz-mode="final" onclick="window.switchTabGlobal('quiz', 5)">
                         <i class="fa-solid fa-trophy"></i> 정리 골든벨
                     </button>
                 </div>
             </nav>
             <div class="sidebar-footer">
-                <button class="sidebar-tool-btn" id="btn-teacher-guide">
-                    <i class="fa-solid fa-chalkboard-user"></i> 교사용 수업 안내
-                </button>
                 <p>© 2026 미래 기술·가정 교실</p>
             </div>
         </aside>
@@ -740,14 +737,43 @@
                 <!-- 발전실험실 하단 서브 탭 시스템 (한눈에 보기 스크롤 방지) -->
                 <div class="lab-sub-container card">
                     <div class="sub-nav-bar" id="lab-sub-nav">
-                        <button class="sub-nav-btn active" data-subtab="lab-info"><i class="fa-solid fa-book-open"></i> 원리 및 장단점</button>
+                        <button class="sub-nav-btn active" data-subtab="lab-principle"><i class="fa-solid fa-microscope"></i> 🔬 9대 에너지 상세 원리 도감</button>
+                        <button class="sub-nav-btn" data-subtab="lab-info"><i class="fa-solid fa-book-open"></i> 요약 및 장단점</button>
                         <button class="sub-nav-btn" data-subtab="lab-quest"><i class="fa-solid fa-binoculars"></i> 탐구 미션 (<span id="quest-count">0 / 10</span>)</button>
                         <button class="sub-nav-btn" data-subtab="lab-compare"><i class="fa-solid fa-table-list"></i> 에너지원 비교표 (<span id="explore-count">0 / 9</span>)</button>
                         <button class="sub-nav-btn" data-subtab="lab-record"><i class="fa-solid fa-clipboard-list"></i> 실험 기록표</button>
                     </div>
 
-                    <!-- 1. 원리 및 장단점 서브 탭 -->
-                    <div class="sub-tab-content active" id="lab-tab-info">
+                    <!-- 0. 🔬 9대 에너지 상세 원리 도감 서브 탭 -->
+                    <div class="sub-tab-content active" id="lab-tab-principle">
+                        <div class="principle-container">
+                            <div class="principle-header">
+                                <h4><i class="fa-solid fa-atom"></i> 9대 에너지원별 세부 과학 원리 & 핵심 부품 학습 도감</h4>
+                                <p class="subtitle">에너지원 버튼을 선택하면 상세 발전 원리와 학생들이 꼭 알아야 할 **터빈(Turbine), 발전기(Generator), 반도체 셀** 사진과 개념을 배울 수 있습니다.</p>
+                            </div>
+
+                            <!-- 9개 에너지 뱃지 선택 바 -->
+                            <div class="principle-badge-grid" id="principle-badge-grid">
+                                <button class="p-badge-btn active" data-penergy="solar"><i class="fa-solid fa-sun text-amber"></i> 태양광</button>
+                                <button class="p-badge-btn" data-penergy="wind"><i class="fa-solid fa-wind text-blue"></i> 풍력</button>
+                                <button class="p-badge-btn" data-penergy="hydro"><i class="fa-solid fa-water text-cyan"></i> 수력</button>
+                                <button class="p-badge-btn" data-penergy="geo"><i class="fa-solid fa-temperature-high text-red"></i> 지열</button>
+                                <button class="p-badge-btn" data-penergy="tidal_barrage"><i class="fa-solid fa-bridge text-blue"></i> 조력</button>
+                                <button class="p-badge-btn" data-penergy="tidal_current"><i class="fa-solid fa-water text-indigo"></i> 조류</button>
+                                <button class="p-badge-btn" data-penergy="wave"><i class="fa-solid fa-wave-square text-teal"></i> 파력</button>
+                                <button class="p-badge-btn" data-penergy="fossil"><i class="fa-solid fa-industry text-gray"></i> 화석연료</button>
+                                <button class="p-badge-btn" data-penergy="nuclear"><i class="fa-solid fa-radiation text-green"></i> 원자력</button>
+                            </div>
+
+                            <!-- 상세 물리학 원리 & 핵심 부품 사진 통합 패널 -->
+                            <div class="principle-single-panel" id="principle-text-panel">
+                                <!-- JS에서 상세 설명 및 터빈/발전기 사진 카드가 채워짐 -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 1. 요약 및 장단점 서브 탭 -->
+                    <div class="sub-tab-content" id="lab-tab-info">
                         <div class="tech-info-card">
                             <h4 id="tech-title">태양광 발전이란?</h4>
                             <p id="tech-desc">태양의 빛에너지를 반도체 소자인 태양 전지판을 통해 직접 전기에너지로 변환하는 발전 방식입니다.</p>

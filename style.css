@@ -51,6 +51,26 @@ body {
         radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.05) 0px, transparent 50%);
 }
 
+/* 글로벌 클릭 차단 방지 및 모달/토스트 안전 처리 */
+.hidden {
+    display: none !important;
+}
+
+.modal-overlay.hidden {
+    display: none !important;
+    pointer-events: none !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+}
+
+.toast-area {
+    pointer-events: none !important;
+}
+
+.toast-area .toast {
+    pointer-events: auto !important;
+}
+
 /* 전체 앱 레이아웃 */
 .app-container {
     display: flex;
@@ -115,6 +135,9 @@ body {
     display: flex;
     align-items: center;
     gap: 0.8rem;
+    position: relative;
+    z-index: 100;
+    pointer-events: auto !important;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -3903,6 +3926,273 @@ input[type="range"]::-webkit-slider-thumb:hover {
     line-height: 1.4;
 }
 
+/* ==========================================
+   🔬 9대 에너지 상세 원리 도감 서브 탭 스타일
+   ========================================== */
+.principle-container {
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 1.2rem;
+    border: 1px solid var(--border-color);
+}
+
+.principle-header {
+    margin-bottom: 1.2rem;
+    padding-bottom: 0.8rem;
+    border-bottom: 1px dashed #e2e8f0;
+}
+
+.principle-header h4 {
+    font-size: 1.1rem;
+    color: #0f172a;
+    font-weight: 800;
+    margin-bottom: 0.25rem;
+}
+
+.principle-badge-grid {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.2rem;
+    background: #f8fafc;
+    padding: 0.4rem;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+}
+
+.p-badge-btn {
+    flex: 1;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    color: #475569;
+    padding: 0.55rem 0.8rem;
+    border-radius: 9px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+}
+
+.p-badge-btn:hover {
+    border-color: #2563eb;
+    color: #1e3a8a;
+    background: #eff6ff;
+}
+
+.p-badge-btn.active {
+    background: #2563eb;
+    color: #ffffff;
+    border-color: #1d4ed8;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+}
+
+.p-badge-btn.active i {
+    color: #ffffff !important;
+}
+
+.principle-detail-grid {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 1.5rem;
+    align-items: flex-start;
+}
+
+.principle-text-panel {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 1.2rem;
+}
+
+.principle-text-panel h3 {
+    font-size: 1.05rem;
+    color: #1e293b;
+    font-weight: 800;
+    margin-bottom: 0.8rem;
+}
+
+.p-physics-desc {
+    font-size: 0.85rem;
+    color: #334155;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+    background: #ffffff;
+    padding: 0.8rem;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+}
+
+.p-turbine-info {
+    font-size: 0.83rem;
+    color: #1e40af;
+    background: #dbeafe;
+    padding: 0.6rem 0.9rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    font-weight: 700;
+}
+
+.p-steps-box {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 0.8rem;
+}
+
+.p-steps-box h5 {
+    font-size: 0.85rem;
+    color: #0f172a;
+    margin-bottom: 0.5rem;
+}
+
+.p-steps-list {
+    padding-left: 1.2rem;
+    font-size: 0.82rem;
+    color: #475569;
+    line-height: 1.6;
+}
+
+.pv-visual-card {
+    background: #0f172a;
+    border-radius: 12px;
+    padding: 1rem;
+    color: #f8fafc;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.pv-tag {
+    display: block;
+    font-size: 0.78rem;
+    color: #93c5fd;
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+    text-align: center;
+}
+
+/* ==========================================
+   📸 핵심 부품 관찰하기 (터빈 & 발전기 구조) 스타일
+   ========================================== */
+.principle-single-panel {
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 0;
+}
+
+.principle-main-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 1.5rem;
+}
+
+.p-components-section {
+    margin-top: 1.5rem;
+    padding-top: 1.2rem;
+    border-top: 1px dashed #cbd5e1;
+}
+
+.p-components-section h5 {
+    font-size: 0.95rem;
+    color: #1e293b;
+    font-weight: 800;
+    margin-bottom: 1rem;
+}
+
+.comp-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+
+.comp-photo-card {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 12px;
+    padding: 1rem;
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.comp-photo-card:hover {
+    transform: translateY(-2px);
+    border-color: #2563eb;
+}
+
+.comp-svg-box {
+    width: 100px;
+    height: 70px;
+    flex-shrink: 0;
+    background: #0f172a;
+    border-radius: 8px;
+    padding: 0.3rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.comp-svg-box svg {
+    width: 100%;
+    height: 100%;
+}
+
+.comp-info h6 {
+    font-size: 0.88rem;
+    color: #0f172a;
+    font-weight: 800;
+    margin-bottom: 0.3rem;
+}
+
+.comp-info p {
+    font-size: 0.78rem;
+    color: #475569;
+    line-height: 1.45;
+}
+
+/* 터빈 고속 회전 유도 비주얼 애니메이션 */
+.pv-spin-fast {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: pvSpin 1s linear infinite;
+}
+
+.pv-spin-medium {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: pvSpin 2s linear infinite;
+}
+
+.pv-pulse {
+    animation: pvPulse 1.2s ease-in-out infinite alternate;
+}
+
+.pv-flow {
+    stroke-dasharray: 8, 6;
+    animation: pvFlow 0.8s linear infinite;
+}
+
+@keyframes pvSpin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+@keyframes pvPulse {
+    from { opacity: 0.3; filter: drop-shadow(0 0 2px #38bdf8); }
+    to { opacity: 1; filter: drop-shadow(0 0 10px #f59e0b); }
+}
+
+@keyframes pvFlow {
+    from { stroke-dashoffset: 28; }
+    to { stroke-dashoffset: 0; }
+}
+
 /* --- 반응형 및 태블릿 (iPad / Galaxy Tab) 완벽 호환 --- */
 @media (max-width: 1024px) {
     .app-container { flex-direction: column; }
@@ -3928,6 +4218,8 @@ input[type="range"]::-webkit-slider-thumb:hover {
     .ct-metric-group { grid-template-columns: 1fr; }
     .news-grid { grid-template-columns: 1fr; }
     .info-stat-grid { grid-template-columns: 1fr; }
+    .principle-detail-grid { grid-template-columns: 1fr; }
+    .principle-badge-grid { grid-template-columns: repeat(3, 1fr); }
 }
 
 @media (max-width: 768px) {
@@ -3939,6 +4231,7 @@ input[type="range"]::-webkit-slider-thumb:hover {
     .sub-nav-btn { font-size: 0.78rem; padding: 0.55rem 0.5rem; }
     .map-slot { min-height: 80px; }
 }
+
 
 
 

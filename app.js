@@ -3,20 +3,26 @@
 // ==========================================
 
 document.addEventListener('DOMContentLoaded', () => {
-    loadClassState();      // 저장된 모둠 기록을 먼저 불러온다
-    initTabs();
-    initSubTabs();         // 범용 서브 탭 시스템 초기화
-    initClimateTimeMachine(); // 2050 기후 위기 타임머신 모듈 초기화
-    initClassroomBar();
-    initLabSimulator();
-    initLabExploration();
-    initLabRecords();
-    initGameScenario();
-    initGameWorksheet();
-    initMapGame();
-    initQuiz();
-    initReport();
-    initTeacherGuide();
+    const safeRun = (fn, name) => {
+        try { if (typeof fn === 'function') fn(); }
+        catch (err) { console.error(`Error during ${name}:`, err); }
+    };
+
+    safeRun(loadClassState, 'loadClassState');
+    safeRun(initTabs, 'initTabs');
+    safeRun(initSubTabs, 'initSubTabs');
+    safeRun(initClimateTimeMachine, 'initClimateTimeMachine');
+    safeRun(initPrincipleTabs, 'initPrincipleTabs');
+    safeRun(initClassroomBar, 'initClassroomBar');
+    safeRun(initLabSimulator, 'initLabSimulator');
+    safeRun(initLabExploration, 'initLabExploration');
+    safeRun(initLabRecords, 'initLabRecords');
+    safeRun(initGameScenario, 'initGameScenario');
+    safeRun(initGameWorksheet, 'initGameWorksheet');
+    safeRun(initMapGame, 'initMapGame');
+    safeRun(initQuiz, 'initQuiz');
+    safeRun(initReport, 'initReport');
+    safeRun(initTeacherGuide, 'initTeacherGuide');
 });
 
 /* ==========================================
@@ -109,46 +115,345 @@ function initClimateTimeMachine() {
         missionCallout.innerHTML = '<span><i class="fa-solid fa-trophy text-green"></i> <strong>축하합니다!</strong> 여러분의 스마트한 에너지 믹스로 지구가 건강을 되찾고 지속 가능한 그린 미래가 완성되었습니다!</span>';
     });
 }
-function switchTab(targetTab, lessonNo) {
-    document.querySelectorAll('.tab-content').forEach(tab => {
-        tab.classList.toggle('active', tab.getAttribute('id') === targetTab);
+
+/* ==========================================
+   1-2. 🔬 9대 에너지 상세 원리 & 시각 도감 모듈
+   ========================================== */
+function initPrincipleTabs() {
+    const badgeBtns = document.querySelectorAll('.p-badge-btn');
+    if (!badgeBtns || badgeBtns.length === 0) return;
+
+    badgeBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const energyKey = btn.getAttribute('data-penergy');
+            badgeBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderEnergyPrinciple(energyKey);
+        });
     });
 
-    // 차시가 지정되면 그 차시의 메뉴를, 아니면 해당 도구의 첫 메뉴를 선택 표시한다
-    const navButtons = document.querySelectorAll('.nav-btn');
-    let matched = null;
-    navButtons.forEach(b => {
-        const isTab = b.getAttribute('data-tab') === targetTab;
-        const isLesson = lessonNo === undefined || parseInt(b.getAttribute('data-lesson')) === lessonNo;
-        if (isTab && isLesson && !matched) matched = b;
-    });
-    if (!matched) matched = document.querySelector(`.nav-btn[data-tab="${targetTab}"]`);
-    navButtons.forEach(b => b.classList.toggle('active', b === matched));
-
-    document.querySelectorAll('.nav-lesson-group').forEach(g => {
-        g.classList.toggle('current', matched && g.getAttribute('data-lesson') === matched.getAttribute('data-lesson'));
-    });
-
-    // 골든벨은 차시에 따라 사전 진단 / 정리 모드를 미리 골라 준다
-    const wantMode = matched && matched.getAttribute('data-quiz-mode');
-    if (targetTab === 'quiz' && wantMode) selectQuizMode(wantMode);
-
-    if (targetTab !== 'game' && isSimulating) stopGameSimulation();
-    if (targetTab === 'report') renderCollectedData();
-
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    renderEnergyPrinciple('solar');
 }
+
+function syncPrincipleBadge(energyKey) {
+    const badgeBtns = document.querySelectorAll('.p-badge-btn');
+    if (!badgeBtns) return;
+    badgeBtns.forEach(btn => {
+        if (btn.getAttribute('data-penergy') === energyKey) {
+            badgeBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderEnergyPrinciple(energyKey);
+        }
+    });
+}
+
+function renderEnergyPrinciple(key) {
+    const textPanel = document.getElementById('principle-text-panel');
+    if (!textPanel) return;
+
+    const dataMap = {
+        solar: {
+            title: "☀️ 태양광 발전: 빛에너지 ➔ 전기에너지 (무터빈 직접 변환)",
+            physics: "<strong>핵심 물리학 원리 — 광전 효과 (Photovoltaic Effect)</strong><br>태양 전지판은 P형 반도체와 N형 반도체가 만나는 접합 구조로 이루어져 있습니다. 햇빛(빛 알갱이인 광자)이 전지판에 부딪히면 반도체 내부의 전자가 에너지를 얻어 튀어나가 자유 전자가 됩니다. 자유 전자(-)는 N형 쪽으로, 양공(+)은 P형 쪽으로 모이면서 전압이 발생하고, 전선으로 연결하면 전자가 흘러 직류(DC) 전기가 곧바로 생산됩니다. 회전하는 터빈이 전혀 필요 없는 유일한 청정 직접 발전입니다.",
+            turbineInfo: "💡 <strong>터빈 사용 여부:</strong> 터빈 없음 (회전 부품 0개)",
+            steps: [
+                "1단계: 태양 광자(빛)가 태양 전지판 표면 흡수",
+                "2단계: 반도체 내부 전자(-)와 양공(+) 분리 (광전 효과)",
+                "3단계: N형/P형 기판 양끝으로 전자 이동하며 전압 발생",
+                "4단계: 인버터를 거쳐 직류(DC) ➔ 교류(AC) 전기로 변환 공급"
+            ],
+            components: [
+                {
+                    name: "☀️ 태양 전지판 셀 (PV Cell)",
+                    desc: "햇빛을 받아 직접 전자를 분리해내는 실리콘 반도체판입니다. 터빈 없이 전기를 생산합니다.",
+                    svg: `<svg viewBox="0 0 160 100"><rect x="10" y="10" width="140" height="80" fill="#1d4ed8" rx="6"/><line x1="10" y1="36" x2="150" y2="36" stroke="#93c5fd" stroke-width="2"/><line x1="10" y1="64" x2="150" y2="64" stroke="#93c5fd" stroke-width="2"/><line x1="56" y1="10" x2="56" y2="90" stroke="#93c5fd" stroke-width="2"/><line x1="104" y1="10" x2="104" y2="90" stroke="#93c5fd" stroke-width="2"/></svg>`
+                },
+                {
+                    name: "⚡ 직류-교류 인버터 (Inverter)",
+                    desc: "태양 전지판에서 나온 직류(DC) 전기를 우리가 집에서 쓰는 220V 교류(AC) 전기로 바꾸어주는 장치입니다.",
+                    svg: `<svg viewBox="0 0 160 100"><rect x="20" y="15" width="120" height="70" fill="#334155" rx="8"/><circle cx="50" cy="50" r="18" fill="#1e293b" stroke="#38bdf8" stroke-width="3"/><text x="42" y="55" fill="#38bdf8" font-size="14" font-weight="bold">DC</text><path d="M 80 50 L 95 50" stroke="#f59e0b" stroke-width="4"/><circle cx="115" cy="50" r="18" fill="#1e293b" stroke="#ef4444" stroke-width="3"/><text x="107" y="55" fill="#ef4444" font-size="14" font-weight="bold">AC</text></svg>`
+                }
+            ]
+        },
+        wind: {
+            title: "💨 풍력 발전: 바람 운동에너지 ➔ 풍력 터빈 회전 ➔ 전자기 유도",
+            physics: "<strong>핵심 물리학 원리 — 양력 발생 & 전자기 유도 법칙 (Faraday's Law)</strong><br>비행기 날개처럼 유선형으로 설계된 풍력 터빈의 3개 날개에 바람이 불어오면, 날개 앞뒤의 공기 압력 차이로 강력한 '양력(Lift)'이 발생하여 터빈이 회전합니다. 이 회전축이 증속기(Gearbox)를 거쳐 분당 1,500회 이상의 고속 회전으로 바뀐 뒤 발전기 내부의 대형 자석을 돌립니다. 자석이 회전하면서 내부 코일을 통과하는 자속(자기장)이 연속적으로 변하고, 패러데이 전자기 유도 법칙에 의해 코일에 강력한 교류 전기가 쏟아져 나옵니다.",
+            turbineInfo: "💡 <strong>터빈 종류:</strong> 수평축 3엽 풍력 터빈 (Wind Turbine)",
+            steps: [
+                "1단계: 바람이 유선형 회전 날개를 지나며 양력(Lift) 발생",
+                "2단계: 풍력 터빈 회전축이 돌며 증속기(Gearbox)로 회전수 가속",
+                "3단계: 발전기 내부 회전 자석이 고속으로 회전",
+                "4단계: 자기장 변화로 패러데이 전자기 유도 법칙 전기 생성"
+            ],
+            components: [
+                {
+                    name: "⚙️ 풍력 터빈 날개 (Wind Turbine Blade)",
+                    desc: "바람을 받아 회전하는 대형 회전 날개입니다. 비행기 날개 모양(유선형)으로 만들어져 바람이 불 때 회전력이 극대화됩니다.",
+                    svg: `<svg viewBox="0 0 160 100"><circle cx="80" cy="50" r="14" fill="#1e293b"/><path d="M 80 50 Q 60 10 80 0 Q 100 10 80 50 Z" fill="#cbd5e1" stroke="#475569"/><path d="M 80 50 Q 120 70 145 50 Q 120 30 80 50 Z" fill="#cbd5e1" stroke="#475569"/><path d="M 80 50 Q 40 85 20 65 Q 40 45 80 50 Z" fill="#cbd5e1" stroke="#475569"/></svg>`
+                },
+                {
+                    name: "🧲 발전기 (Generator) & 회전 자석",
+                    desc: "터빈 회전축에 연결되어 대형 자석이 돌면서 코일에 전기를 유도해내는 전력 생산의 핵심 기계입니다.",
+                    svg: `<svg viewBox="0 0 160 100"><rect x="25" y="20" width="110" height="60" fill="#1e293b" rx="6"/><circle cx="55" cy="50" r="16" fill="#ef4444"/><text x="49" y="55" fill="#fff" font-size="12" font-weight="bold">N</text><circle cx="105" cy="50" r="16" fill="#3b82f6"/><text x="100" y="55" fill="#fff" font-size="12" font-weight="bold">S</text><line x1="10" y1="50" x2="150" y2="50" stroke="#f59e0b" stroke-width="4" stroke-dasharray="6,4"/></svg>`
+                }
+            ]
+        },
+        hydro: {
+            title: "🌊 수력 발전: 물의 위치에너지 ➔ 낙하 운동에너지 ➔ 수차 터빈 회전 ➔ 전기 생성",
+            physics: "<strong>핵심 물리학 원리 — 위치에너지의 운동에너지 전환 & 수차 터빈 역학</strong><br>댐에 가두어 둔 높은 곳의 물은 거대한 위치에너지를 가집니다. 수문을 열면 물이 수압관(Penstock)을 따라 가파르게 떨어지면서 엄청난 낙하 수압의 운동에너지로 변환됩니다. 이 거센 물살이 하부에 설치된 '수차 터빈(Water Turbine)'의 묵직한 쇠날개를 강하게 때려 분당 수백 회 회전시킵니다. 수차 터빈의 수직 회전축이 상부 발전기의 대형 자석을 돌려 전자기 유도 전기를 생산합니다.",
+            turbineInfo: "💡 <strong>터빈 종류:</strong> 프랜시스 / 카플란 수차 터빈 (Water Turbine)",
+            steps: [
+                "1단계: 높은 댐에 갇힌 물의 높은 위치에너지 확보",
+                "2단계: 수로 낙하를 통해 거센 물살의 수압 운동에너지 변환",
+                "3단계: 수차 터빈(Water Turbine) 쇠날개 회전",
+                "4단계: 발전기 축 자석 회전으로 전자기 유도 전력 생성"
+            ],
+            components: [
+                {
+                    name: "⚙️ 수차 터빈 (Water Turbine Wheel)",
+                    desc: "댐에서 떨어지는 거센 물살의 힘을 직접 받아 빙글빙글 도는 묵직한 금속 회전날개 기계입니다.",
+                    svg: `<svg viewBox="0 0 160 100"><circle cx="80" cy="50" r="32" fill="none" stroke="#64748b" stroke-width="8"/><line x1="48" y1="50" x2="112" y2="50" stroke="#94a3b8" stroke-width="5"/><line x1="80" y1="18" x2="80" y2="82" stroke="#94a3b8" stroke-width="5"/><line x1="57" y1="27" x2="103" y2="73" stroke="#94a3b8" stroke-width="5"/><line x1="57" y1="73" x2="103" y2="27" stroke="#94a3b8" stroke-width="5"/><circle cx="80" cy="50" r="10" fill="#1e293b"/></svg>`
+                },
+                {
+                    name: "🧲 수력 발전기 (Hydro Generator)",
+                    desc: "수차 터빈의 수직 회전축 위쪽에 위치하여 자석이 돌며 대용량 전기를 만드는 발전기입니다.",
+                    svg: `<svg viewBox="0 0 160 100"><rect x="30" y="15" width="100" height="70" fill="#334155" rx="8"/><circle cx="80" cy="50" r="22" fill="#ef4444"/><text x="71" y="56" fill="#fff" font-size="14" font-weight="bold">N-S</text></svg>`
+                }
+            ]
+        },
+        geo: {
+            title: "🌋 지열 발전: 지하 마그마 열 ➔ 고온 고압 증기 팽창 ➔ 증기 터빈 초고속 회전",
+            physics: "<strong>핵심 물리학 원리 — 열역학 증기 팽창 (Steam Expansion)</strong><br>지하 수 킬로미터 아래의 마그마 열원은 150~300°C 이상의 거대한 지열 에너지를 품고 있습니다. 시추 파이프를 통해 지하수를 끌어올리거나 물을 투입하면 즉시 팽창하는 고온·고압 수증기가 발생합니다. 이 증기가 노즐을 통해 초속 수십 미터로 뿜어져 나오며 '증기 터빈(Steam Turbine)'의 촘촘한 블레이드를 때립니다. 팽창하는 증기 압력으로 증기 터빈이 분당 3,600회 고속 회전하고, 축에 연결된 발전기가 24시간 멈춤 없이 전기를 만듭니다.",
+            turbineInfo: "💡 <strong>터빈 종류:</strong> 고압 고속 증기 터빈 (Steam Turbine)",
+            steps: [
+                "1단계: 지하 깊은 곳 마그마 지열로 지하수 100°C 이상 가열",
+                "2단계: 고온 고압 수증기 노즐 뿜어짐 (열에너지 ➔ 운동에너지)",
+                "3단계: 증기 터빈(Steam Turbine) 블레이드 날개 고속 회전",
+                "4단계: 발전기 축 회전으로 24시간 기상 무관 연속 전력 공급"
+            ],
+            components: [
+                {
+                    name: "⚙️ 증기 터빈 (Steam Turbine Rotor)",
+                    desc: "고온 고압의 수증기가 뿜어져 나올 때 수천 개의 촘촘한 블레이드 날개가 분당 3,600회 초고속으로 회전하는 기계입니다.",
+                    svg: `<svg viewBox="0 0 160 100"><rect x="30" y="20" width="100" height="60" fill="#475569" rx="6"/><circle cx="80" cy="50" r="22" fill="none" stroke="#fbbf24" stroke-width="6" stroke-dasharray="8,5"/><circle cx="80" cy="50" r="8" fill="#78350f"/></svg>`
+                },
+                {
+                    name: "🌋 지열 시추 파이프 (Geothermal Pipe)",
+                    desc: "지하 깊은 곳 마그마층까지 뚫고 내려가 고온의 수증기와 열을 지상으로 끌어올리는 파이프입니다.",
+                    svg: `<svg viewBox="0 0 160 100"><rect x="65" y="10" width="30" height="80" fill="#334155"/><path d="M 80 90 L 80 10" stroke="#f59e0b" stroke-width="6" stroke-dasharray="6,4"/></svg>`
+                }
+            ]
+        },
+        tidal_barrage: {
+            title: "🌉 조력 발전: 밀물·썰물 바다 수위 차 ➔ 수문 수압 ➔ 수중 양방향 터빈 회전",
+            physics: "<strong>핵심 물리학 원리 — 조석 수위 차 낙차 & 양방향 수중 터빈 역학</strong><br>달과 태양의 이끌림으로 밀물 때 바닷물이 들어와 방조제 안쪽 수위가 낮을 때 수문을 열면, 강한 수압으로 바닷물이 댐 안으로 쏟아져 들어옵니다. 반대로 썰물 때는 댐 안쪽 수위가 높아 바닷물이 밖으로 빠져나갑니다. 이 수문 사이에 누워있는 '양방향 수중 터빈(Bulb Turbine)'은 물이 들어올 때나 빠져나갈 때 모두 프로펠러 날개가 회전하도록 특수 설계되어 무한 자연 바닷물 낙차로 전기를 만듭니다.",
+            turbineInfo: "💡 <strong>터빈 종류:</strong> 양방향 수중 벌브 터빈 (Bulb Turbine)",
+            steps: [
+                "1단계: 달/태양 인력으로 밀물·썰물 해수면 수위 차 발생",
+                "2단계: 방조제 수문을 열어 거센 바닷물 유입/유출 수압 생성",
+                "3단계: 수문 하부 양방향 수중 터빈(Bulb Turbine) 프로펠러 회전",
+                "4단계: 회전력으로 발전기 구동 전자기 유도 전력 생성"
+            ],
+            components: [
+                {
+                    name: "⚙️ 수중 양방향 터빈 (Bulb Turbine)",
+                    desc: "방조제 수문에 눕혀 설치하여 바닷물이 댐 안으로 들어올 때나 밖으로 빠져나갈 때 모두 회전하는 프로펠러 터빈입니다.",
+                    svg: `<svg viewBox="0 0 160 100"><rect x="25" y="30" width="110" height="40" fill="#475569" rx="20"/><circle cx="80" cy="50" r="18" fill="none" stroke="#f59e0b" stroke-width="5"/></svg>`
+                }
+            ]
+        },
+        tidal_current: {
+            title: "🌊 조류 발전: 댐 없는 빠르는 바닷물 유속 ➔ 수중 프로펠러 터빈 회전",
+            physics: "<strong>핵심 물리학 원리 — 유체 유속 운동에너지 (Fluid Kinetic Energy)</strong><br>울돌목처럼 폭이 좁은 해협을 지나는 바닷물은 유속이 2~4m/s 이상으로 매우 빠릅니다. 조류 발전은 댐을 쌓지 않고 바다 밑바닥에 '수중 프로펠러 터빈'을 직접 세웁니다. 바닷물의 빠른 흐름이 수중 날개를 직접 밀어붙여 회전시키며, 바닷속에 차단막이 전혀 없어 갯벌 파괴나 해양 생물 이동 통제 문제 없이 청정 전기를 만듭니다.",
+            turbineInfo: "💡 <strong>터빈 종류:</strong> 수중 해저 프로펠러 터빈 (Tidal Current Turbine)",
+            steps: [
+                "1단계: 좁은 해협을 통과하는 빠른 바닷물 조류 유속 형성",
+                "2단계: 해저 바닥에 세워진 수중 프로펠러 터빈 날개 직접 회전",
+                "3단계: 수중 터빈 회전축이 발전기 자석 회전",
+                "4단계: 방조제 없는 100% 친환경 해양 전력 생산"
+            ],
+            components: [
+                {
+                    name: "⚙️ 수중 해저 프로펠러 터빈 (Tidal Turbine)",
+                    desc: "댐을 쌓지 않고 바다 밑바닥에 직접 세워 빠른 물살 유속으로 돌리는 바닷속 바람개비 형태의 터빈입니다.",
+                    svg: `<svg viewBox="0 0 160 100"><rect x="72" y="45" width="16" height="50" fill="#334155"/><circle cx="80" cy="45" r="22" fill="none" stroke="#38bdf8" stroke-width="5"/><line x1="58" y1="45" x2="102" y2="45" stroke="#cbd5e1" stroke-width="4"/><line x1="80" y1="23" x2="80" y2="67" stroke="#cbd5e1" stroke-width="4"/></svg>`
+                }
+            ]
+        },
+        wave: {
+            title: "🌊 파력 발전: 파도 오르내림 파동 ➔ 공기 압축 ➔ 공기 터빈 회전",
+            physics: "<strong>핵심 물리학 원리 — 공기 압축 파동 & 웰스 공기 터빈 (Wells Turbine)</strong><br>파도가 칠 때 바다 표면의 부표나 진동 수주관 내부의 물 수위가 위아래로 둥실둥실 출렁입니다. 수위가 올라갈 때는 내부 공기실의 공기를 밀어 올려 고압으로 압축 분사하고, 내려갈 때는 공기를 빨아들입니다. 이때 공기가 들어오거나 빠져나갈 때 모두 같은 방향으로만 회전하는 '웰스 공기 터빈(Wells Turbine)'이 강력히 돌며 발전기를 가동합니다.",
+            turbineInfo: "💡 <strong>터빈 종류:</strong> 웰스 공기 터빈 (Wells Air Turbine)",
+            steps: [
+                "1단계: 바다 표면 파도의 상하 파동 출렁임 발생",
+                "2단계: 공기실 내부 수위 변화로 공기 압축 및 흡입 뿜어냄",
+                "3단계: 일방향 회전 특수 공기 터빈(Wells Air Turbine) 회전",
+                "4단계: 터빈 축 회전으로 분산형 청정 해양 전력 생산"
+            ],
+            components: [
+                {
+                    name: "⚙️ 웰스 공기 터빈 (Wells Turbine)",
+                    desc: "바람(공기)이 위로 뿜어지든 아래로 들어오든 상관없이 한 방향으로만 계속 회전하는 파력 발전 특수 공기 터빈입니다.",
+                    svg: `<svg viewBox="0 0 160 100"><circle cx="80" cy="50" r="20" fill="none" stroke="#38bdf8" stroke-width="5"/><line x1="60" y1="50" x2="100" y2="50" stroke="#cbd5e1" stroke-width="3"/><line x1="80" y1="30" x2="80" y2="70" stroke="#cbd5e1" stroke-width="3"/></svg>`
+                }
+            ]
+        },
+        fossil: {
+            title: "🏭 화석연료 발전: 화석연료 연소 열 ➔ 보일러 물 끓임 ➔ 증기 터빈 회전",
+            physics: "<strong>핵심 물리학 원리 — 화학에너지의 열/운동에너지 전환 & 증기 터빈 3,600 RPM</strong><br>석탄, 석유, 천연가스(LNG)의 화학결합 에너지에 불을 붙여 1,000°C 이상의 고온 보일러에서 연소시킵니다. 이 막대한 열로 보일러 내부 물을 끓여 고온·고압 증기를 만들고, 노즐에서 분사되는 증기 힘으로 '증기 터빈(Steam Turbine)'의 수천 개 블레이드를 분당 3,600회 초고속 회전시킵니다. 터빈 축이 대형 발전기 자석을 돌려 대규모 전기를 내지만, 연소 시 다량의 CO₂와 미세먼지가 방출됩니다.",
+            turbineInfo: "💡 <strong>터빈 종류:</strong> 초고속 대형 증기 터빈 (Steam Turbine)",
+            steps: [
+                "1단계: 석탄/가스 연소로 고온 열에너지 발생 (탄소 배출)",
+                "2단계: 보일러 물을 끓여 고온 고압 수증기 생성",
+                "3단계: 증기 터빈(Steam Turbine) 분당 3,600회 초고속 회전",
+                "4단계: 발전기 전자기 유도로 대규모 기저 전력 공급"
+            ],
+            svg: `
+                <div class="pv-visual-card">
+                    <span class="pv-tag">🎨 화석연료 보일러 연소 & 증기 터빈 작동 구조도</span>
+                    <svg viewBox="0 0 400 240" width="100%" height="100%">
+                        <rect x="60" y="100" width="100%" height="100" fill="#334155"/>
+                        <path d="M 80 180 L 100 150 L 120 180 Z" fill="#ef4444"/>
+                        <rect x="220" y="80" width="60" height="40" fill="#475569" rx="4"/>
+                        <circle cx="250" cy="100" r="14" fill="none" stroke="#fbbf24" stroke-width="4"/>
+                    </svg>
+                </div>
+            `
+        },
+        nuclear: {
+            title: "⚛️ 원자력 발전: 우라늄 핵분열 열 ➔ 증기발생기 물 끓임 ➔ 증기 터빈 회전",
+            physics: "<strong>핵심 물리학 원리 — 원자핵 질량 결손 에너지 (E=mc²) & 증기 터빈</strong><br>원자로 격납건물 내부에서 우라늄(U-235) 원자핵이 중성자와 부딪치며 쪼개질 때, 질량이 일부 사라지며 아이슈타인의 법칙(E=mc²)에 따라 천문학적인 핵분열 열이 발생합니다. 제어봉으로 반응 속도를 조절하며, 이 열로 증기발생기의 물을 끓여 고온·고압 증기를 만듭니다. 이 증기가 '증기 터빈(Steam Turbine)'을 고속 회전시켜 발전기 자석을 돌려 대량의 전기를 생성합니다.",
+            turbineInfo: "💡 <strong>터빈 종류:</strong> 원자력 전용 대형 증기 터빈 (Steam Turbine)",
+            steps: [
+                "1단계: 원자로 내부 우라늄(U-235) 핵분열 반응 열 방출",
+                "2단계: 1차 냉각재가 증기발생기 물을 끓여 고압 증기 팽창",
+                "3단계: 증기 터빈(Steam Turbine) 고속 회전",
+                "4단계: 발전기 축 자석 회전으로 무탄소 대규모 기저 전력 공급"
+            ],
+            components: [
+                {
+                    name: "⚛️ 원자로 노심 (Reactor Core)",
+                    desc: "우라늄 연료봉이 핵분열을 일으켜 막대한 열을 생산하는 원자력 발전의 핵심 안전 용기입니다.",
+                    svg: `<svg viewBox="0 0 160 100"><path d="M 45 80 L 45 35 A 35 35 0 0 1 115 35 L 115 80 Z" fill="#94a3b8"/><circle cx="80" cy="55" r="16" fill="#10b981"/></svg>`
+                },
+                {
+                    name: "⚙️ 원자력 증기 터빈 (Steam Turbine)",
+                    desc: "원자로의 열로 만들어진 고압 수증기를 받아 대형 자석 발전기를 돌리는 핵심 터빈입니다.",
+                    svg: `<svg viewBox="0 0 160 100"><rect x="30" y="20" width="100" height="60" fill="#475569" rx="6"/><circle cx="80" cy="50" r="20" fill="none" stroke="#fbbf24" stroke-width="5"/></svg>`
+                }
+            ]
+        }
+    };
+
+    const target = dataMap[key] || dataMap.solar;
+
+    let stepsHTML = target.steps.map(s => `<li>${s}</li>`).join('');
+    
+    let componentsHTML = (target.components || []).map(comp => `
+        <div class="comp-photo-card">
+            <div class="comp-svg-box">${comp.svg}</div>
+            <div class="comp-info">
+                <h6>${comp.name}</h6>
+                <p>${comp.desc}</p>
+            </div>
+        </div>
+    `).join('');
+
+    textPanel.innerHTML = `
+        <div class="principle-main-card">
+            <h3>${target.title}</h3>
+            <p class="p-physics-desc">${target.physics}</p>
+            <div class="p-turbine-info">${target.turbineInfo}</div>
+            
+            <div class="p-steps-box">
+                <h5><i class="fa-solid fa-list-ol"></i> 단계별 발전 프로세스</h5>
+                <ol class="p-steps-list">${stepsHTML}</ol>
+            </div>
+
+            <!-- 학생들이 모르는 터빈/발전기 학습 사진 관찰 도감 -->
+            <div class="p-components-section">
+                <h5><i class="fa-solid fa-camera text-blue"></i> 📸 핵심 부품 관찰하기 (터빈 & 발전기 구조)</h5>
+                <div class="comp-cards-grid">
+                    ${componentsHTML}
+                </div>
+            </div>
+        </div>
+    `;
+}
+function switchTab(targetTab, lessonNo) {
+    try {
+        const tabs = document.querySelectorAll('.tab-content');
+        tabs.forEach(tab => {
+            const isMatch = tab.getAttribute('id') === targetTab;
+            tab.classList.toggle('active', isMatch);
+            tab.style.display = isMatch ? 'block' : 'none';
+        });
+
+        // 차시가 지정되면 그 차시의 메뉴를, 아니면 해당 도구의 첫 메뉴를 선택 표시한다
+        const navButtons = document.querySelectorAll('.nav-btn');
+        let matched = null;
+        navButtons.forEach(b => {
+            const isTab = b.getAttribute('data-tab') === targetTab;
+            const isLesson = lessonNo === undefined || parseInt(b.getAttribute('data-lesson')) === lessonNo;
+            if (isTab && isLesson && !matched) matched = b;
+        });
+        if (!matched) matched = document.querySelector(`.nav-btn[data-tab="${targetTab}"]`);
+        
+        navButtons.forEach(b => b.classList.toggle('active', b === matched));
+
+        document.querySelectorAll('.nav-lesson-group').forEach(g => {
+            const matchLesson = matched ? matched.getAttribute('data-lesson') : null;
+            g.classList.toggle('current', matchLesson && g.getAttribute('data-lesson') === matchLesson);
+        });
+
+        // 골든벨은 차시에 따라 사전 진단 / 정리 모드를 미리 골라 준다
+        const wantMode = matched && matched.getAttribute('data-quiz-mode');
+        if (targetTab === 'quiz' && wantMode && typeof selectQuizMode === 'function') {
+            selectQuizMode(wantMode);
+        }
+
+        if (targetTab !== 'game' && typeof isSimulating !== 'undefined' && isSimulating && typeof stopGameSimulation === 'function') {
+            stopGameSimulation();
+        }
+        if (targetTab === 'report' && typeof renderCollectedData === 'function') {
+            renderCollectedData();
+        }
+
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (err) {
+        console.warn("Tab switch warning:", err);
+    }
+}
+
+// 브라우저 직관 클릭 보장 전역 바인딩
+window.switchTabGlobal = function(targetTab, lessonNo) {
+    if (typeof lessonNo !== 'undefined' && typeof classState !== 'undefined') {
+        classState.lesson = lessonNo;
+        if (typeof saveClassState === 'function') saveClassState();
+        if (typeof renderLessonBrief === 'function') renderLessonBrief();
+    }
+    switchTab(targetTab, lessonNo);
+};
 
 function initTabs() {
     document.querySelectorAll('.nav-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const lesson = parseInt(btn.getAttribute('data-lesson'));
-            if (!isNaN(lesson)) {
-                classState.lesson = lesson;
-                saveClassState();
-                renderLessonBrief();
+        btn.addEventListener('click', (e) => {
+            try {
+                const targetTab = btn.getAttribute('data-tab');
+                const lesson = parseInt(btn.getAttribute('data-lesson'));
+                
+                if (!isNaN(lesson) && typeof classState !== 'undefined') {
+                    classState.lesson = lesson;
+                    if (typeof saveClassState === 'function') saveClassState();
+                    if (typeof renderLessonBrief === 'function') renderLessonBrief();
+                }
+                
+                if (targetTab) {
+                    switchTab(targetTab, lesson);
+                }
+            } catch (err) {
+                console.error("Tab click error:", err);
             }
-            switchTab(btn.getAttribute('data-tab'), lesson);
         });
     });
 }
@@ -209,21 +514,27 @@ function initLabSimulator() {
             }
 
             updateTechInfo(energy);
+            syncPrincipleBadge(energy);
             updateLabSimulator();
         });
     });
 
-    // 슬라이더 조작 리스너 연결
-    document.getElementById('solar-time').addEventListener('input', updateLabSimulator);
-    document.getElementById('solar-weather').addEventListener('input', updateLabSimulator);
-    document.getElementById('wind-speed').addEventListener('input', updateLabSimulator);
-    document.getElementById('hydro-flow').addEventListener('input', updateLabSimulator);
-    document.getElementById('geo-depth').addEventListener('input', updateLabSimulator);
-    document.getElementById('tidal-head').addEventListener('input', updateLabSimulator);
-    document.getElementById('tidal-velocity').addEventListener('input', updateLabSimulator);
-    document.getElementById('wave-height').addEventListener('input', updateLabSimulator);
-    document.getElementById('fossil-fuel').addEventListener('input', updateLabSimulator);
-    document.getElementById('nuclear-rod').addEventListener('input', updateLabSimulator);
+    // 슬라이더 조작 리스너 안전 연결 (널 방어)
+    const bindInputEvent = (id, fn) => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('input', fn);
+    };
+
+    bindInputEvent('solar-time', updateLabSimulator);
+    bindInputEvent('solar-weather', updateLabSimulator);
+    bindInputEvent('wind-speed', updateLabSimulator);
+    bindInputEvent('hydro-flow', updateLabSimulator);
+    bindInputEvent('geo-depth', updateLabSimulator);
+    bindInputEvent('tidal-head', updateLabSimulator);
+    bindInputEvent('tidal-velocity', updateLabSimulator);
+    bindInputEvent('wave-height', updateLabSimulator);
+    bindInputEvent('fossil-fuel', updateLabSimulator);
+    bindInputEvent('nuclear-rod', updateLabSimulator);
 
     // 초기 상태 렌더링
     updateTechInfo('solar');
@@ -239,6 +550,8 @@ function updateTechInfo(energy) {
     const method = document.getElementById('tech-method');
     const prosList = document.getElementById('tech-pros');
     const consList = document.getElementById('tech-cons');
+
+    if (!title || !desc || !method || !prosList || !consList) return;
 
     const infoData = {
         solar: {
