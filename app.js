@@ -1,0 +1,3104 @@
+// ==========================================
+// 그린시티 에너지 연구소 - 인터랙티브 애플리케이션 스크립트
+// ==========================================
+
+document.addEventListener('DOMContentLoaded', () => {
+    loadClassState();      // 저장된 모둠 기록을 먼저 불러온다
+    initTabs();
+    initClassroomBar();
+    initLabSimulator();
+    initLabExploration();
+    initLabRecords();
+    initGameScenario();
+    initGameWorksheet();
+    initMapGame();
+    initQuiz();
+    initReport();
+    initTeacherGuide();
+});
+
+/* ==========================================
+   1. 글로벌 탭 제어
+   ========================================== */
+function switchTab(targetTab, lessonNo) {
+    document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.toggle('active', tab.getAttribute('id') === targetTab);
+    });
+
+    // 차시가 지정되면 그 차시의 메뉴를, 아니면 해당 도구의 첫 메뉴를 선택 표시한다
+    const navButtons = document.querySelectorAll('.nav-btn');
+    let matched = null;
+    navButtons.forEach(b => {
+        const isTab = b.getAttribute('data-tab') === targetTab;
+        const isLesson = lessonNo === undefined || parseInt(b.getAttribute('data-lesson')) === lessonNo;
+        if (isTab && isLesson && !matched) matched = b;
+    });
+    if (!matched) matched = document.querySelector(`.nav-btn[data-tab="${targetTab}"]`);
+    navButtons.forEach(b => b.classList.toggle('active', b === matched));
+
+    document.querySelectorAll('.nav-lesson-group').forEach(g => {
+        g.classList.toggle('current', matched && g.getAttribute('data-lesson') === matched.getAttribute('data-lesson'));
+    });
+
+    // 골든벨은 차시에 따라 사전 진단 / 정리 모드를 미리 골라 준다
+    const wantMode = matched && matched.getAttribute('data-quiz-mode');
+    if (targetTab === 'quiz' && wantMode) selectQuizMode(wantMode);
+
+    if (targetTab !== 'game' && isSimulating) stopGameSimulation();
+    if (targetTab === 'report') renderCollectedData();
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function initTabs() {
+    document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const lesson = parseInt(btn.getAttribute('data-lesson'));
+            if (!isNaN(lesson)) {
+                classState.lesson = lesson;
+                saveClassState();
+                renderLessonBrief();
+            }
+            switchTab(btn.getAttribute('data-tab'), lesson);
+        });
+    });
+}
+
+
+/* ==========================================
+   2. 발전 실험실 (Lab Simulator) 로직
+   ========================================== */
+let activeEnergy = 'solar';
+let steamIntervalId = null;
+let currentWaterLinesIntervalId = null;
+let smokeIntervalId = null;
+let nuclearSteamIntervalId = null;
+
+function initLabSimulator() {
+    const energyTabs = document.querySelectorAll('.energy-tab');
+    const energyControls = document.querySelectorAll('.energy-controls');
+    const svgWrappers = document.querySelectorAll('.svg-wrapper');
+
+    energyTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            const energy = tab.getAttribute('data-energy');
+            activeEnergy = energy;
+
+            energyTabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+
+            energyControls.forEach(ctrl => {
+                ctrl.classList.remove('active');
+                if (ctrl.getAttribute('id') === `${energy}-controls`) {
+                    ctrl.classList.add('active');
+                }
+            });
+
+            svgWrappers.forEach(svg => {
+                svg.classList.remove('active');
+                if (svg.getAttribute('id') === `${energy}-svg`) {
+                    svg.classList.add('active');
+                }
+            });
+
+            // 발전소 변경 시 타이머 해제
+            if (energy !== 'geo' && steamIntervalId) {
+                clearInterval(steamIntervalId);
+                steamIntervalId = null;
+            }
+            if (energy !== 'tidal_current' && currentWaterLinesIntervalId) {
+                clearInterval(currentWaterLinesIntervalId);
+                currentWaterLinesIntervalId = null;
+            }
+            if (energy !== 'fossil' && smokeIntervalId) {
+                clearInterval(smokeIntervalId);
+                smokeIntervalId = null;
+            }
+            if (energy !== 'nuclear' && nuclearSteamIntervalId) {
+                clearInterval(nuclearSteamIntervalId);
+                nuclearSteamIntervalId = null;
+            }
+
+            updateTechInfo(energy);
+            updateLabSimulator();
+        });
+    });
+
+    // 슬라이더 조작 리스너 연결
+    document.getElementById('solar-time').addEventListener('input', updateLabSimulator);
+    document.getElementById('solar-weather').addEventListener('input', updateLabSimulator);
+    document.getElementById('wind-speed').addEventListener('input', updateLabSimulator);
+    document.getElementById('hydro-flow').addEventListener('input', updateLabSimulator);
+    document.getElementById('geo-depth').addEventListener('input', updateLabSimulator);
+    document.getElementById('tidal-head').addEventListener('input', updateLabSimulator);
+    document.getElementById('tidal-velocity').addEventListener('input', updateLabSimulator);
+    document.getElementById('wave-height').addEventListener('input', updateLabSimulator);
+    document.getElementById('fossil-fuel').addEventListener('input', updateLabSimulator);
+    document.getElementById('nuclear-rod').addEventListener('input', updateLabSimulator);
+
+    // 초기 상태 렌더링
+    updateTechInfo('solar');
+    updateLabSimulator();
+    generateSunRays();
+    generateWindLines();
+}
+
+// 기술 설명 카드 및 Pros / Cons 데이터 업데이트 (장단점 개편)
+function updateTechInfo(energy) {
+    const title = document.getElementById('tech-title');
+    const desc = document.getElementById('tech-desc');
+    const method = document.getElementById('tech-method');
+    const prosList = document.getElementById('tech-pros');
+    const consList = document.getElementById('tech-cons');
+
+    const infoData = {
+        solar: {
+            title: "태양광 발전이란?",
+            desc: "태양 전지판(반도체)이 태양 빛을 흡수할 때 발생하는 광전 효과를 이용해 직접 전기에너지를 생산하는 기술입니다.",
+            method: "주로 주택 지붕, 넓은 평지, 저수지 수면(수상 태양광) 등에 태양광 패널을 설치하여 에너지를 생산합니다.",
+            pros: [
+                "환경오염 물질과 온실가스를 배출하지 않음",
+                "지붕, 베란다 등 남는 유휴 공간을 폭넓게 활용 가능",
+                "한 번 지어두면 수명이 길고 유지보수 비용이 적음"
+            ],
+            cons: [
+                "일조량(날씨, 밤낮)에 따라 발전량이 불안정함 (간헐성)",
+                "초기 시설 설치 단계에서 큰 비용이 수반됨",
+                "대규모 설치를 위해 드넓은 토지 면적이 요구됨"
+            ]
+        },
+        wind: {
+            title: "풍력 발전이란?",
+            desc: "바람이 가진 운동에너지를 회전 날개의 회전력을 통해 발전기를 돌려 전기에너지로 변환하는 발전 방식입니다.",
+            method: "산간 지역, 해안가, 또는 먼 바다(해상 풍력)에 거대한 풍력 터빈을 세워 에너지를 생산합니다.",
+            pros: [
+                "국토를 효율적으로 활용할 수 있고 설치 기간이 짧음",
+                "다른 신재생에너지 시설에 비해 발전 단가가 저렴함",
+                "무공해 무한 자원인 바람을 사용하여 탄소 배출 없음"
+            ],
+            cons: [
+                "바람이 너무 약하거나 태풍(안전 정지) 시 발전을 할 수 없음",
+                "날개가 회전할 때 발생하는 소음으로 주민 민원이 발생함",
+                "조류가 충돌하여 폐사하는 등 생태계 유해 영향 우려"
+            ]
+        },
+        hydro: {
+            title: "수력 발전이란?",
+            desc: "높은 곳에 있는 물이 아래로 떨어질 때 발생하는 위치에너지를 회전 터빈의 운동에너지로 바꾸어 발전기를 돌려 전기를 생산합니다.",
+            method: "강을 막아 대규모 댐을 건설하거나, 작은 하천에서 소수력 발전기를 이용하여 에너지를 생산합니다.",
+            pros: [
+                "에너지 변환 효율이 매우 높고 전력량 조절이 신속함",
+                "청정 자연 에너지원이며 가뭄이나 홍수 방지 수로 활용 가능",
+                "댐 구조물이 튼튼하여 오랜 기간 저비용 운영 가능"
+            ],
+            cons: [
+                "대규모 댐 건설 시 지형 수몰 및 주민 이주가 발생함",
+                "지형이 협곡 형태이거나 물이 풍부한 특정 입지로만 제한됨",
+                "초기 방조제/댐 건설 비용 및 환경 복원 비용이 높음"
+            ]
+        },
+        geo: {
+            title: "지열 발전이란?",
+            desc: "지하 깊은 곳에 존재하는 고온의 마그마 열을 활용하여 차가운 물을 데우고, 이때 발생하는 고압의 증기로 터빈을 돌려 발전합니다.",
+            method: "지하 깊은 곳으로 파이프를 박아 지하수나 증기를 끌어올려 터빈을 돌립니다. 주로 화산 지대에서 활발하게 이용됩니다.",
+            pros: [
+                "기상 조건(구름, 바람)에 관계없이 24시간 균일한 발전 가능",
+                "화석연료 연소가 없어 대기 오염 물질을 전혀 배출하지 않음",
+                "에너지 설비 면적 대비 생산 효율이 대단히 뛰어남"
+            ],
+            cons: [
+                "마그마 열원이 풍부한 화산지대 인근 특정 지역에만 건설 가능",
+                "수천 미터 아래 지하를 뚫어야 하여 고도의 시추 비용 소요",
+                "개발 중 미세 진동 유발이나 유독 지하 가스 분출 통제 필요"
+            ]
+        },
+        tidal_barrage: {
+            title: "조력 발전이란?",
+            desc: "밀물과 썰물 때 발생하는 바다의 수위 차(낙차)를 이용해 방조제(댐)를 건설하고, 수문을 통과하는 물의 힘으로 터빈을 돌립니다.",
+            method: "조수 간만의 차가 큰 만이나 하구에 방조제를 쌓고, 밀물과 썰물 때 물이 드나드는 힘을 이용해 터빈을 돌려 에너지를 생산합니다.",
+            pros: [
+                "만조와 간조 주기가 확실하여 전력 생산량을 예측할 수 있음",
+                "자연의 수위 차 낙차를 쓰므로 연료비가 전혀 들지 않음",
+                "방조제 위 교량 건설 등 국토 개발 효과 수반"
+            ],
+            cons: [
+                "방조제 건설로 갯벌이 소실되며 해안 해양 생태계 파괴 발생",
+                "조석 수위 차가 크게 확보되는 특정 서해안 지역으로 입지 제한",
+                "하루에 밀물/썰물 수위차가 극대화될 때만 단시간 출력 가능"
+            ]
+        },
+        tidal_current: {
+            title: "조류 발전이란?",
+            desc: "방조제를 건설하지 않고 바닷물의 빠른 흐름(조류)이 있는 길목에 수중에 설치한 날개 터빈을 돌려 전기를 얻습니다.",
+            method: "물이 빠르게 흐르는 해협 등의 바다 속에 대형 터빈을 설치하여 에너지를 생산합니다.",
+            pros: [
+                "방조제를 쌓지 않아 해수 순환이 자유롭고 갯벌 파괴가 없음",
+                "해양 생물 이동 제한이 없고 해안선 파괴도 매우 적음",
+                "주기적 바닷물 흐름에 연동되므로 계획적인 전력망 운영 가능"
+            ],
+            cons: [
+                "물살 흐름(유속)이 1m/s 이상 확보되는 좁은 해협에만 건설 가능",
+                "해저 바닷물 속 염분에 의한 설비 부식 및 세척 보수 난해",
+                "바닷물 정체 현상(슬랙 타임) 시 하루 수 시간 가동 정지"
+            ]
+        },
+        wave: {
+            title: "파력 발전이란?",
+            desc: "바다 표면에서 파도가 칠 때 발생하는 상하 출렁임의 운동에너지를 공기 압축이나 실린더 왕복 운동으로 바꾸어 발전기를 돌립니다.",
+            method: "해수면에 부표나 진동수주관을 띄워놓고, 파도로 인한 상하 운동을 전기로 변환하여 에너지를 생산합니다.",
+            pros: [
+                "삼면이 바다인 우리나라 특성상 해안가 입지 선정이 용이함",
+                "댐이나 방조제 같은 거대 장벽 시설물이 불필요해 환경 파괴가 적음",
+                "소형 부표 단위로 분산 건설하여 도서 지역 독립 전력 공급 유리"
+            ],
+            cons: [
+                "파도의 높이와 주기가 매우 불규칙하여 전력 생산 변동폭이 큼",
+                "태풍이나 높은 풍랑 시 시설물이 침수/파손될 확률이 높음",
+                "해상 유지 관리를 위해 매번 선박과 수중 잠수 인력 소요"
+            ]
+        },
+        fossil: {
+            title: "화석연료 발전이란?",
+            desc: "석탄, 석유, 천연가스 등 화석연료를 연소시켜 발생하는 열에너지로 물을 끓이고, 고압의 수증기로 터빈을 돌려 발전하는 방식입니다.",
+            method: "대규모 화력 발전소에서 주로 석탄이나 LNG(액화천연가스)를 태워 전기를 생산하며, 가장 널리 쓰이는 기저 발전원 중 하나입니다.",
+            pros: [
+                "입지 선정이 비교적 자유롭고, 건설 비용과 발전 단가가 저렴함",
+                "날씨와 무관하게 24시간 안정적인 대규모 전력 공급이 가능함",
+                "수요에 따라 연료 투입량을 조절하여 발전량을 즉시 통제할 수 있음"
+            ],
+            cons: [
+                "연소 과정에서 대량의 이산화탄소와 온실가스를 배출하여 지구온난화를 유발함",
+                "황산화물, 미세먼지 등 대기 오염 물질이 다량 발생함",
+                "자원이 한정되어 있어 미래에 연료가 고갈될 위험이 높음"
+            ]
+        },
+        nuclear: {
+            title: "원자력 발전이란?",
+            desc: "우라늄과 같은 방사성 동위원소의 핵분열 반응에서 나오는 막대한 열에너지로 물을 끓여, 수증기로 터빈을 회전시켜 발전합니다.",
+            method: "원자력 발전소의 거대한 돔(격납건물) 내부 원자로에서 우라늄 연료봉을 반응시켜 에너지를 생산하며, 핵분열 속도를 조절하는 제어봉을 사용합니다.",
+            pros: [
+                "적은 양의 연료로 엄청난 양의 전력을 생산할 수 있어 효율이 매우 높음",
+                "발전 과정에서 이산화탄소가 거의 발생하지 않아 온실가스 배출이 적음",
+                "연료비 비중이 낮고 1년 이상 교체 없이 가동되어 기저 부하를 담당하기 좋음"
+            ],
+            cons: [
+                "방사능 누출 사고 발생 시 인체와 환경에 치명적이고 회복 불가능한 피해를 줌",
+                "사용 후 핵연료(고준위 방사성 폐기물)의 안전하고 영구적인 처리가 매우 어려움",
+                "초기 건설 비용이 천문학적으로 높고 수명 연장 및 폐로(해체) 과정도 복잡함"
+            ]
+        }
+    };
+
+    const current = infoData[energy];
+    title.textContent = current.title;
+    desc.textContent = current.desc;
+    method.textContent = current.method;
+
+    // 장단점 목록 쪼개기 매핑
+    prosList.innerHTML = current.pros.map(p => `<li>${p}</li>`).join('');
+    consList.innerHTML = current.cons.map(c => `<li>${c}</li>`).join('');
+}
+
+// 태양 빛 애니메이션 입자 생성
+function generateSunRays() {
+    const container = document.getElementById('sun-rays');
+    if (!container) return;
+    container.innerHTML = '';
+    
+    for (let i = 0; i < 5; i++) {
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        const xOffset = 130 + (i * 35);
+        line.setAttribute('x1', xOffset.toString());
+        line.setAttribute('y1', '30');
+        line.setAttribute('x2', (xOffset - 20).toString());
+        line.setAttribute('y2', '100');
+        line.setAttribute('stroke', '#fef08a');
+        line.setAttribute('stroke-width', '2');
+        line.setAttribute('stroke-linecap', 'round');
+        line.setAttribute('opacity', '0.6');
+        line.setAttribute('class', 'ray-particle');
+        line.style.animationDelay = `${i * 0.3}s`;
+        container.appendChild(line);
+    }
+}
+
+// 풍력 효과선 생성
+function generateWindLines() {
+    const container = document.getElementById('wind-lines');
+    if (!container) return;
+    container.innerHTML = '';
+
+    for (let i = 0; i < 4; i++) {
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        const yOffset = 50 + (i * 45);
+        path.setAttribute('d', `M -50 ${yOffset} C 100 ${yOffset - 10}, 200 ${yOffset + 10}, 450 ${yOffset}`);
+        path.setAttribute('fill', 'none');
+        path.setAttribute('stroke', 'rgba(255, 255, 255, 0.3)');
+        path.setAttribute('stroke-width', '2');
+        path.setAttribute('stroke-dasharray', '30, 200');
+        path.setAttribute('class', 'wind-flow-line');
+        path.style.animation = `windFlow ${1.5 + i * 0.4}s linear infinite`;
+        container.appendChild(path);
+    }
+}
+
+// 지열 증기 입자 제어
+function startSteamParticles(efficiency) {
+    if (steamIntervalId) clearInterval(steamIntervalId);
+    
+    const container = document.getElementById('steam-particles');
+    if (!container) return;
+
+    const intervalMs = Math.max(100, 800 - (efficiency * 7));
+
+    steamIntervalId = setInterval(() => {
+        if (activeEnergy !== 'geo' || efficiency === 0) return;
+        
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('class', 'steam-particle');
+        const xOffset = 150 + (Math.random() * 10 - 5);
+        circle.setAttribute('cx', xOffset.toString());
+        circle.setAttribute('cy', '160');
+        const rVal = 3 + Math.random() * 8;
+        circle.setAttribute('r', rVal.toString());
+
+        container.appendChild(circle);
+
+        setTimeout(() => {
+            if (circle.parentNode) container.removeChild(circle);
+        }, 1200);
+    }, intervalMs);
+}
+
+// 조류 수중 수류 가이드선 동적 생성
+function startCurrentWaterLines(efficiency, velocity) {
+    if (currentWaterLinesIntervalId) clearInterval(currentWaterLinesIntervalId);
+    
+    const container = document.getElementById('current-water-lines');
+    if (!container) return;
+    container.innerHTML = '';
+
+    if (velocity === 0) return;
+
+    for (let i = 0; i < 4; i++) {
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        const yOffset = 80 + (i * 40);
+        path.setAttribute('d', `M -50 ${yOffset} L 450 ${yOffset}`);
+        path.setAttribute('fill', 'none');
+        path.setAttribute('class', 'current-water-line');
+        const duration = (2.5 - (velocity / 4) * 2).toFixed(2);
+        path.style.animation = `currentWaterFlow ${duration}s linear infinite`;
+        container.appendChild(path);
+    }
+}
+
+// 화석연료 연기 파티클 동적 생성
+function startSmokeParticles(efficiency) {
+    if (smokeIntervalId) clearInterval(smokeIntervalId);
+    
+    const container = document.getElementById('fossil-smoke');
+    if (!container) return;
+    container.innerHTML = '';
+    
+    if (efficiency === 0) return;
+
+    const intervalMs = Math.max(300, 1500 - (efficiency * 12));
+    
+    smokeIntervalId = setInterval(() => {
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        const r = 8 + Math.random() * 8;
+        const xOffset = 115 + (Math.random() * 10 - 5);
+        circle.setAttribute('cx', xOffset.toString());
+        circle.setAttribute('cy', '60');
+        circle.setAttribute('r', r.toString());
+        circle.setAttribute('fill', '#9ca3af');
+        circle.setAttribute('class', 'smoke-particle');
+        
+        container.appendChild(circle);
+        
+        setTimeout(() => {
+            if (container.contains(circle)) {
+                container.removeChild(circle);
+            }
+        }, 2000);
+    }, intervalMs);
+}
+
+// 원자력 냉각탑 수증기 파티클 동적 생성
+function startNuclearSteamParticles(efficiency) {
+    if (nuclearSteamIntervalId) clearInterval(nuclearSteamIntervalId);
+    
+    const container = document.getElementById('nuclear-steam');
+    if (!container) return;
+    container.innerHTML = '';
+    
+    if (efficiency === 0) return;
+
+    const intervalMs = Math.max(400, 2000 - (efficiency * 16));
+    
+    nuclearSteamIntervalId = setInterval(() => {
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        const r = 10 + Math.random() * 10;
+        const xOffset = 100 + (Math.random() * 20 - 10);
+        circle.setAttribute('cx', xOffset.toString());
+        circle.setAttribute('cy', '40');
+        circle.setAttribute('r', r.toString());
+        circle.setAttribute('fill', '#e2e8f0');
+        circle.setAttribute('class', 'steam-particle');
+        
+        container.appendChild(circle);
+        
+        setTimeout(() => {
+            if (container.contains(circle)) {
+                container.removeChild(circle);
+            }
+        }, 3000);
+    }, intervalMs);
+}
+
+// 실시간 시뮬레이터 수치 및 그래픽 업데이트
+function updateLabSimulator() {
+    const efficiencyMetric = document.getElementById('metric-efficiency');
+    const generationMetric = document.getElementById('metric-generation');
+    const efficiencyBar = document.getElementById('bar-efficiency');
+
+    if (activeEnergy === 'solar') {
+        const time = parseInt(document.getElementById('solar-time').value);
+        const weather = parseInt(document.getElementById('solar-weather').value);
+
+        let timeText = `낮 (${time}시)`;
+        if (time < 12) timeText = `오전 (${time}시)`;
+        if (time > 12) timeText = `오후 (${time}시)`;
+        document.getElementById('val-solar-time').textContent = timeText;
+
+        let weatherText = "맑음 (100%)";
+        let weatherCoeff = 1.0;
+        if (weather === 2) {
+            weatherText = "흐림 (30%)";
+            weatherCoeff = 0.3;
+        } else if (weather === 1) {
+            weatherText = "비/눈 (5%)";
+            weatherCoeff = 0.05;
+        }
+        document.getElementById('val-solar-weather').textContent = weatherText;
+
+        let timeCoeff = 0;
+        if (time >= 6 && time <= 18) {
+            const radians = ((time - 6) / 12) * Math.PI;
+            timeCoeff = Math.sin(radians);
+        }
+
+        const efficiency = Math.round(timeCoeff * weatherCoeff * 100);
+        const generation = (efficiency * 0.05).toFixed(2);
+
+        efficiencyMetric.textContent = `${efficiency}%`;
+        generationMetric.textContent = `${generation} kW`;
+        efficiencyBar.style.width = `${efficiency}%`;
+
+        const sun = document.getElementById('visual-sun');
+        const skyBg = document.getElementById('sky-bg');
+        
+        const sunX = 15 + ((time - 6) / 12) * 70;
+        const sunY = 90 - (timeCoeff * 70);
+        sun.style.left = `${sunX}%`;
+        sun.style.top = `${sunY}px`;
+
+        if (time < 6 || time > 18) {
+            sun.style.opacity = '0';
+        } else {
+            sun.style.opacity = '1';
+        }
+
+        let bgGradient = 'linear-gradient(to bottom, #1e3a8a, #93c5fd)';
+        if (time >= 6 && time <= 8) bgGradient = 'linear-gradient(to bottom, #d97706, #cbd5e1)';
+        else if (time > 8 && time < 16) bgGradient = 'linear-gradient(to bottom, #bfdbfe, #eff6ff)';
+        else if (time >= 16 && time <= 18) bgGradient = 'linear-gradient(to bottom, #b91c1c, #94a3b8)';
+        skyBg.style.background = bgGradient;
+
+        const clouds = document.getElementById('visual-clouds');
+        const rain = document.getElementById('visual-rain');
+        
+        clouds.className = 'cloud-layer';
+        rain.className = 'rain-layer';
+        
+        if (weather === 2) {
+            clouds.classList.add('cloudy');
+        } else if (weather === 1) {
+            clouds.classList.add('rainy');
+            rain.classList.add('raining');
+        }
+
+        const powerLine = document.getElementById('power-line');
+        const bulb = document.getElementById('bulb-glow');
+        const rayParticles = document.querySelectorAll('.ray-particle');
+        
+        if (generation > 0) {
+            powerLine.classList.add('active');
+            const brightness = Math.min(100, Math.max(20, efficiency));
+            bulb.setAttribute('fill', `rgb(234, 179, ${8 + (100 - brightness) * 2})`);
+            bulb.style.filter = `drop-shadow(0 0 ${brightness/5}px rgba(234, 179, 8, 0.8))`;
+
+            rayParticles.forEach(ray => {
+                ray.style.display = 'block';
+                ray.style.animationPlayState = 'running';
+            });
+        } else {
+            powerLine.classList.remove('active');
+            bulb.setAttribute('fill', '#64748b');
+            bulb.style.filter = 'none';
+
+            rayParticles.forEach(ray => {
+                ray.style.display = 'none';
+                ray.style.animationPlayState = 'paused';
+            });
+        }
+
+    } else if (activeEnergy === 'wind') {
+        const windSpeed = parseInt(document.getElementById('wind-speed').value);
+        const windAlert = document.getElementById('wind-alert');
+
+        let windDesc = `미풍 (${windSpeed} m/s)`;
+        if (windSpeed === 0) windDesc = "무풍 (0 m/s)";
+        else if (windSpeed >= 3 && windSpeed < 12) windDesc = `보통 바람 (${windSpeed} m/s)`;
+        else if (windSpeed >= 12 && windSpeed <= 20) windDesc = `강풍 (정격 출력) (${windSpeed} m/s)`;
+        else if (windSpeed > 20) windDesc = `태풍급 강풍 (${windSpeed} m/s) [보호 장치 작동]`;
+
+        document.getElementById('val-wind-speed').textContent = windDesc;
+
+        let efficiency = 0;
+
+        if (windSpeed < 3) {
+            efficiency = 0;
+            windAlert.className = "info-alert";
+            windAlert.querySelector('span').textContent = "풍속이 너무 낮아 (3m/s 미만) 날개가 돌아가지 않아 발전할 수 없습니다.";
+        } else if (windSpeed >= 3 && windSpeed <= 12) {
+            efficiency = Math.round(30 + ((windSpeed - 3) / 9) * 70);
+            windAlert.className = "info-alert info-active";
+            windAlert.querySelector('span').textContent = "정상 작동 중: 바람이 풍력 날개를 돌려 회전 운동에너지를 발생시키고 있습니다.";
+        } else if (windSpeed > 12 && windSpeed <= 20) {
+            efficiency = 100;
+            windAlert.className = "info-alert info-active";
+            windAlert.querySelector('span').textContent = "최대 정격 출력 작동 중: 발전 시설이 안전 범위 내 최고의 효율을 내고 있습니다.";
+        } else if (windSpeed > 20) {
+            efficiency = 0;
+            windAlert.className = "info-alert";
+            windAlert.querySelector('span').textContent = "위험 상황! 태풍(20m/s 초과) 감지로 인한 풍력기 보호 장치(Cut-out)가 동작하여 작동을 중지했습니다.";
+        }
+
+        const generation = (efficiency * 0.08).toFixed(2);
+
+        efficiencyMetric.textContent = `${efficiency}%`;
+        generationMetric.textContent = `${generation} kW`;
+        efficiencyBar.style.width = `${efficiency}%`;
+
+        const root = document.documentElement;
+        if (efficiency > 0) {
+            const speed = (4 - (efficiency / 100) * 3.5).toFixed(2);
+            root.style.setProperty('--wind-spin-speed', `${speed}s`);
+        } else {
+            root.style.setProperty('--wind-spin-speed', '0s');
+        }
+
+        const windFlowLines = document.querySelectorAll('.wind-flow-line');
+        windFlowLines.forEach(line => {
+            if (windSpeed === 0) {
+                line.style.animationPlayState = 'paused';
+            } else {
+                line.style.animationPlayState = 'running';
+                const duration = Math.max(0.4, 2.5 - (windSpeed / 25) * 2);
+                line.style.animationDuration = `${duration}s`;
+            }
+        });
+
+    } else if (activeEnergy === 'hydro') {
+        const flow = parseInt(document.getElementById('hydro-flow').value);
+        document.getElementById('val-hydro-flow').textContent = `수문 개방 (${flow}%)`;
+
+        const efficiency = flow;
+        const generation = (efficiency * 0.1).toFixed(2);
+
+        efficiencyMetric.textContent = `${efficiency}%`;
+        generationMetric.textContent = `${generation} kW`;
+        efficiencyBar.style.width = `${efficiency}%`;
+
+        const flowStream = document.getElementById('water-flow-stream');
+        if (flow > 0) {
+            flowStream.style.opacity = (0.3 + (flow / 100) * 0.7).toString();
+            flowStream.setAttribute('stroke-width', (5 + (flow / 100) * 15).toString());
+            flowStream.style.strokeDasharray = '10, 10';
+            flowStream.style.animation = 'electricityFlow 0.5s linear infinite';
+        } else {
+            flowStream.style.opacity = '0';
+            flowStream.style.animation = 'none';
+        }
+
+        const root = document.documentElement;
+        if (flow > 0) {
+            const speed = (3 - (flow / 100) * 2.6).toFixed(2);
+            root.style.setProperty('--hydro-spin-speed', `${speed}s`);
+        } else {
+            root.style.setProperty('--hydro-spin-speed', '0s');
+        }
+
+        const powerLine = document.getElementById('hydro-power-line');
+        const bulb = document.getElementById('hydro-bulb-glow');
+
+        if (generation > 0) {
+            powerLine.classList.add('active');
+            const brightness = Math.min(100, Math.max(20, efficiency));
+            bulb.setAttribute('fill', `rgb(234, 179, ${8 + (100 - brightness) * 2})`);
+            bulb.style.filter = `drop-shadow(0 0 ${brightness/5}px rgba(234, 179, 8, 0.8))`;
+        } else {
+            powerLine.classList.remove('active');
+            bulb.setAttribute('fill', '#64748b');
+            bulb.style.filter = 'none';
+        }
+
+    } else if (activeEnergy === 'geo') {
+        const depth = parseInt(document.getElementById('geo-depth').value);
+        document.getElementById('val-geo-depth').textContent = `${depth.toLocaleString()} m`;
+
+        const temperature = 15 + Math.round((depth / 100) * 3);
+        const geoAlert = document.getElementById('geo-alert');
+
+        let alertMsg = `시추를 시작하지 않았습니다. 파이프를 땅속 깊은 곳으로 내려보내세요.`;
+        let efficiency = 0;
+
+        if (depth > 0) {
+            alertMsg = `현재 시추 깊이 ${depth}m (예상 지하 온도: 약 ${temperature}℃). `;
+            if (temperature < 60) {
+                alertMsg += `온도가 너무 낮아 물을 끓이기 어렵습니다. (최소 60도 이상 필요)`;
+                efficiency = 0;
+            } else {
+                efficiency = Math.round(((depth - 1500) / 2500) * 100);
+                efficiency = Math.min(100, Math.max(10, efficiency));
+                alertMsg += `마그마 열로 지하수가 끓어 고압의 수증기를 생산 중입니다!`;
+            }
+        }
+
+        geoAlert.querySelector('span').textContent = alertMsg;
+
+        const generation = (efficiency * 0.07).toFixed(2);
+
+        efficiencyMetric.textContent = `${efficiency}%`;
+        generationMetric.textContent = `${generation} kW`;
+        efficiencyBar.style.width = `${efficiency}%`;
+
+        const pipeHeight = (depth / 4000) * 105;
+        document.getElementById('geo-pipe').setAttribute('height', pipeHeight.toString());
+
+        if (efficiency > 0) {
+            startSteamParticles(efficiency);
+        } else {
+            if (steamIntervalId) {
+                clearInterval(steamIntervalId);
+                steamIntervalId = null;
+            }
+            document.getElementById('steam-particles').innerHTML = '';
+        }
+
+        const root = document.documentElement;
+        if (efficiency > 0) {
+            const speed = (3.5 - (efficiency / 100) * 3.1).toFixed(2);
+            root.style.setProperty('--geo-spin-speed', `${speed}s`);
+        } else {
+            root.style.setProperty('--geo-spin-speed', '0s');
+        }
+
+        const powerLine = document.getElementById('geo-power-line');
+        const bulb = document.getElementById('geo-bulb-glow');
+
+        if (generation > 0) {
+            powerLine.classList.add('active');
+            const brightness = Math.min(100, Math.max(20, efficiency));
+            bulb.setAttribute('fill', `rgb(234, 179, ${8 + (100 - brightness) * 2})`);
+            bulb.style.filter = `drop-shadow(0 0 ${brightness/5}px rgba(234, 179, 8, 0.8))`;
+        } else {
+            powerLine.classList.remove('active');
+            bulb.setAttribute('fill', '#64748b');
+            bulb.style.filter = 'none';
+        }
+
+    } else if (activeEnergy === 'tidal_barrage') {
+        const head = parseInt(document.getElementById('tidal-head').value);
+        document.getElementById('val-tidal-head').textContent = `조석차 ${head} m`;
+
+        const efficiency = Math.round((head / 9) * 100);
+        const generation = (efficiency * 0.09).toFixed(2);
+
+        efficiencyMetric.textContent = `${efficiency}%`;
+        generationMetric.textContent = `${generation} kW`;
+        efficiencyBar.style.width = `${efficiency}%`;
+
+        const seaOuter = document.getElementById('sea-outer');
+        const newY = 120 + (9 - head) * 8;
+        seaOuter.setAttribute('y', newY.toString());
+        seaOuter.setAttribute('height', (260 - newY).toString());
+
+        const flowStream = document.getElementById('tidal-flow-stream');
+        const root = document.documentElement;
+
+        if (head > 0) {
+            flowStream.style.opacity = (0.3 + (head / 9) * 0.7).toString();
+            flowStream.style.strokeDasharray = '10, 10';
+            flowStream.style.animation = 'electricityFlow 0.5s linear infinite';
+
+            const speed = (3.5 - (efficiency / 100) * 3.1).toFixed(2);
+            root.style.setProperty('--tidal-spin-speed', `${speed}s`);
+        } else {
+            flowStream.style.opacity = '0';
+            flowStream.style.animation = 'none';
+            root.style.setProperty('--tidal-spin-speed', '0s');
+        }
+
+        const powerLine = document.getElementById('tidal-power-line');
+        const bulb = document.getElementById('tidal-bulb-glow');
+
+        if (generation > 0) {
+            powerLine.classList.add('active');
+            const brightness = Math.min(100, Math.max(20, efficiency));
+            bulb.setAttribute('fill', `rgb(234, 179, ${8 + (100 - brightness) * 2})`);
+            bulb.style.filter = `drop-shadow(0 0 ${brightness/5}px rgba(234, 179, 8, 0.8))`;
+        } else {
+            powerLine.classList.remove('active');
+            bulb.setAttribute('fill', '#64748b');
+            bulb.style.filter = 'none';
+        }
+
+    } else if (activeEnergy === 'tidal_current') {
+        const velocity = parseFloat(document.getElementById('tidal-velocity').value);
+        document.getElementById('val-tidal-velocity').textContent = `${velocity.toFixed(1)} m/s`;
+
+        const currentAlert = document.getElementById('tidal-current-alert');
+        let efficiency = 0;
+
+        if (velocity < 1.0) {
+            efficiency = 0;
+            currentAlert.className = "info-alert";
+            currentAlert.querySelector('span').textContent = "유속이 너무 느려(1.0m/s 미만) 해저 터빈의 관성을 이겨내지 못해 발전할 수 없습니다.";
+        } else {
+            efficiency = Math.round(((velocity - 1.0) / 3.0) * 100);
+            efficiency = Math.min(100, Math.max(10, efficiency));
+            currentAlert.className = "info-alert info-active";
+            currentAlert.querySelector('span').textContent = "정상 가동 중: 빠른 바닷물의 해류 운동에너지가 날개를 회전시키고 있습니다.";
+        }
+
+        const generation = (efficiency * 0.06).toFixed(2);
+
+        efficiencyMetric.textContent = `${efficiency}%`;
+        generationMetric.textContent = `${generation} kW`;
+        efficiencyBar.style.width = `${efficiency}%`;
+
+        startCurrentWaterLines(efficiency, velocity);
+        
+        const root = document.documentElement;
+        if (efficiency > 0) {
+            const speed = (4.0 - (efficiency / 100) * 3.6).toFixed(2);
+            root.style.setProperty('--current-spin-speed', `${speed}s`);
+        } else {
+            root.style.setProperty('--current-spin-speed', '0s');
+        }
+
+        const powerLine = document.getElementById('current-power-line');
+        const bulb = document.getElementById('current-bulb-glow');
+
+        if (generation > 0) {
+            powerLine.classList.add('active');
+            const brightness = Math.min(100, Math.max(20, efficiency));
+            bulb.setAttribute('fill', `rgb(234, 179, ${8 + (100 - brightness) * 2})`);
+            bulb.style.filter = `drop-shadow(0 0 ${brightness/5}px rgba(234, 179, 8, 0.8))`;
+        } else {
+            powerLine.classList.remove('active');
+            bulb.setAttribute('fill', '#64748b');
+            bulb.style.filter = 'none';
+        }
+
+    } else if (activeEnergy === 'wave') {
+        const height = parseFloat(document.getElementById('wave-height').value);
+        document.getElementById('val-wave-height').textContent = `${height.toFixed(1)} m`;
+
+        const efficiency = Math.round((height / 5) * 100);
+        const generation = (efficiency * 0.04).toFixed(2);
+
+        efficiencyMetric.textContent = `${efficiency}%`;
+        generationMetric.textContent = `${generation} kW`;
+        efficiencyBar.style.width = `${efficiency}%`;
+
+        // SVG 물결 3중 일렁임 스피드 및 부표 롤링 주기 조작
+        const root = document.documentElement;
+        const backWave = document.querySelector('.wave-back');
+        const middleWave = document.querySelector('.wave-middle');
+        const frontWave = document.querySelector('.wave-front');
+
+        if (height > 0) {
+            backWave.style.animationPlayState = 'running';
+            middleWave.style.animationPlayState = 'running';
+            frontWave.style.animationPlayState = 'running';
+
+            // 파고(height)에 따라 일렁임 속도와 부표 움직임 가속
+            backWave.style.animationDuration = `${(9.0 - (height / 5.0) * 6.5).toFixed(2)}s`;
+            middleWave.style.animationDuration = `${(7.5 - (height / 5.0) * 5.5).toFixed(2)}s`;
+            frontWave.style.animationDuration = `${(6.0 - (height / 5.0) * 4.5).toFixed(2)}s`;
+
+            const buoySpeed = (2.4 - (efficiency / 100) * 2.0).toFixed(2);
+            root.style.setProperty('--wave-motion-speed', `${buoySpeed}s`);
+
+            const speed = (4.0 - (efficiency / 100) * 3.6).toFixed(2);
+            root.style.setProperty('--wave-spin-speed', `${speed}s`);
+        } else {
+            backWave.style.animationPlayState = 'paused';
+            middleWave.style.animationPlayState = 'paused';
+            frontWave.style.animationPlayState = 'paused';
+            root.style.setProperty('--wave-motion-speed', '0s');
+            root.style.setProperty('--wave-spin-speed', '0s');
+        }
+
+        const powerLine = document.getElementById('wave-power-line');
+        const bulb = document.getElementById('wave-bulb-glow');
+
+        if (generation > 0) {
+            powerLine.classList.add('active');
+            const brightness = Math.min(100, Math.max(20, efficiency));
+            bulb.setAttribute('fill', `rgb(234, 179, ${8 + (100 - brightness) * 2})`);
+            bulb.style.filter = `drop-shadow(0 0 ${brightness/5}px rgba(234, 179, 8, 0.8))`;
+        } else {
+            powerLine.classList.remove('active');
+            bulb.setAttribute('fill', '#64748b');
+            bulb.style.filter = 'none';
+        }
+    } else if (activeEnergy === 'fossil') {
+        const fuel = parseInt(document.getElementById('fossil-fuel').value);
+        let fuelText = `${fuel}%`;
+        if (fuel === 0) fuelText = "정지 (0%)";
+        else if (fuel === 50) fuelText = "보통 (50%)";
+        else if (fuel === 100) fuelText = "최대 (100%)";
+        
+        document.getElementById('val-fossil-fuel').textContent = fuelText;
+        
+        const efficiency = fuel;
+        const generation = (efficiency * 1.5).toFixed(2);
+        
+        efficiencyMetric.textContent = `${efficiency}%`;
+        generationMetric.textContent = `${generation} kW`;
+        efficiencyBar.style.width = `${efficiency}%`;
+        
+        const alertBox = document.getElementById('fossil-alert');
+        if (efficiency === 0) {
+            alertBox.className = "info-alert";
+            alertBox.querySelector('span').textContent = "연료 공급이 중단되어 발전이 정지되었습니다.";
+        } else {
+            alertBox.className = "info-alert info-active";
+            alertBox.querySelector('span').textContent = `화석연료를 태워 전기를 생산합니다. 발전량이 많을수록 이산화탄소 배출량도 크게 증가합니다.`;
+        }
+        
+        startSmokeParticles(efficiency);
+
+        const powerLine = document.getElementById('fossil-power-line');
+        const bulb = document.getElementById('fossil-bulb-glow');
+
+        if (generation > 0) {
+            powerLine.classList.add('active');
+            const brightness = Math.min(100, Math.max(20, efficiency));
+            bulb.setAttribute('fill', `rgb(234, 179, ${8 + (100 - brightness) * 2})`);
+            bulb.style.filter = `drop-shadow(0 0 ${brightness/5}px rgba(234, 179, 8, 0.8))`;
+        } else {
+            powerLine.classList.remove('active');
+            bulb.setAttribute('fill', '#4a5568');
+            bulb.style.filter = 'none';
+        }
+    } else if (activeEnergy === 'nuclear') {
+        const rod = parseInt(document.getElementById('nuclear-rod').value);
+        let rodText = `${rod}%`;
+        if (rod === 0) rodText = "완전 인출 (0%)";
+        else if (rod === 50) rodText = "보통 (50%)";
+        else if (rod === 100) rodText = "완전 삽입 (100%)";
+        
+        document.getElementById('val-nuclear-rod').textContent = rodText;
+        
+        // 제어봉 삽입 깊이가 깊을수록(100%) 핵분열 억제 -> 효율 감소. 0%면 효율 100%
+        const efficiency = 100 - rod;
+        const generation = (efficiency * 2.0).toFixed(2);
+        
+        efficiencyMetric.textContent = `${efficiency}%`;
+        generationMetric.textContent = `${generation} kW`;
+        efficiencyBar.style.width = `${efficiency}%`;
+        
+        const alertBox = document.getElementById('nuclear-alert');
+        if (efficiency === 0) {
+            alertBox.className = "info-alert";
+            alertBox.querySelector('span').textContent = "제어봉이 완전히 삽입되어 원자로 가동이 중단되었습니다.";
+        } else {
+            alertBox.className = "info-alert info-active";
+            alertBox.querySelector('span').textContent = `우라늄 핵분열을 통해 막대한 에너지를 생산 중입니다. 제어봉을 빼낼수록(얕게 넣을수록) 발전량이 증가합니다.`;
+        }
+        
+        startNuclearSteamParticles(efficiency);
+        
+        const controlRods = document.getElementById('control-rods');
+        const reactorGlow = document.getElementById('reactor-core-glow');
+        
+        // 제어봉 위치 조정 (y: 140~200)
+        controlRods.setAttribute('y', (140 + (rod * 0.6)).toString());
+        
+        // 노심 밝기 조정
+        reactorGlow.setAttribute('opacity', (0.2 + (efficiency * 0.008)).toString());
+
+        const powerLine = document.getElementById('nuclear-power-line');
+        const bulb = document.getElementById('nuclear-bulb-glow');
+
+        if (generation > 0) {
+            powerLine.classList.add('active');
+            const brightness = Math.min(100, Math.max(20, efficiency));
+            bulb.setAttribute('fill', `rgb(234, 179, ${8 + (100 - brightness) * 2})`);
+            bulb.style.filter = `drop-shadow(0 0 ${brightness/5}px rgba(234, 179, 8, 0.8))`;
+        } else {
+            powerLine.classList.remove('active');
+            bulb.setAttribute('fill', '#4a5568');
+            bulb.style.filter = 'none';
+        }
+    }
+}
+
+
+/* ==========================================
+   3. 그린시티 건설 게임 (Green City Builder) 로직
+   ========================================== */
+const PLANT_SPECS = {
+    fossil: { cost: 800, power: 400, carbon: 80, name: "화석연료 발전소", icon: "fa-industry", class: "built-fossil" },
+    solar: { cost: 1000, power: 200, carbon: 0, name: "태양광 발전단지", icon: "fa-solar-panel", class: "built-solar" },
+    wind: { cost: 1200, power: 300, carbon: 0, name: "풍력 발전단지", icon: "fa-wind", class: "built-wind" },
+    geothermal: { cost: 1500, power: 350, carbon: 0, name: "지열 발전소", icon: "fa-fire-flame-simple", class: "built-geothermal" },
+    tidal_barrage: { cost: 1300, power: 450, carbon: 0, name: "조력 발전소", icon: "fa-bridge", class: "built-tidal-barrage" },
+    tidal_current: { cost: 1100, power: 250, carbon: 0, name: "조류 발전소", icon: "fa-water-ladder", class: "built-tidal-current" },
+    wave_power: { cost: 800, power: 150, carbon: 0, name: "파력 발전소", icon: "fa-water", class: "built-wave-power" },
+    hydro: { cost: 1400, power: 500, carbon: 0, name: "수력 발전소", icon: "fa-droplet", class: "built-hydro" },
+    ess: { cost: 700, power: 0, carbon: 0, capacity: 300, name: "친환경 배터리 (ESS)", icon: "fa-car-battery", class: "built-ess" }
+};
+
+/*
+   24시간 기상은 시나리오마다 미리 정해 둔다.
+   무작위로 만들면 같은 설계를 두 번 돌려도 결과가 달라져서
+   "무엇을 바꿨더니 무엇이 좋아졌다"는 판단을 학생이 할 수 없다.
+   문자는 시각별 상태 코드다.
+   날씨 C(맑음) O(흐림) R(비) D(황사) H(호우) / 바람 n(무풍) w(약함) s(센바람) x(컷아웃)
+*/
+const WEATHER_PROFILES = {
+    normal:  { sky: 'CCCCCCCCCOOCCCCCOOCRRCCC', wind: 'nnwwwsssswwwsssswwwwwwnn' },
+    drought: { sky: 'DDDDDDDDDDDDDDDDDDDDDDDD', wind: 'nnwwwwwwwwnnwwwwwwwwnnnn' },
+    typhoon: { sky: 'HHHHHHHHHHHHHHHHHHHHHHHH', wind: 'xxxxsxxxxxxsxxxxxxxsxxxx' }
+};
+
+const SKY_INFO = {
+    C: { weather: '맑음', coeff: 1.0 },
+    O: { weather: '흐림', coeff: 0.3 },
+    R: { weather: '비', coeff: 0.1 },
+    D: { weather: '황사 가득함', coeff: 0.3 },
+    H: { weather: '집중 호우', coeff: 0.05 }
+};
+
+const WIND_INFO = {
+    n: { desc: '무풍', coeff: 0.0 },
+    w: { desc: '보통 바람', coeff: 0.7 },
+    s: { desc: '센 바람 (정격 출력)', coeff: 1.0 },
+    x: { desc: '초강력 태풍 — 컷아웃', coeff: 0.0 }
+};
+
+// 파력은 파도의 세기에 따라 시각마다 출력이 달라진다 (0.4~1.0)
+const WAVE_PROFILE = [0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 0.9, 0.8, 0.6, 0.5, 0.4, 0.5,
+                      0.6, 0.7, 0.8, 0.9, 1.0, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.5];
+
+// 돌발 재난은 시나리오마다 정해진 시각에 일어난다 (교사가 미리 발문을 준비할 수 있도록)
+const SCENARIO_EVENTS = {
+    normal: {
+        15: { msg: '☁️ 돌발 상황: 초대형 먹구름이 도시를 덮쳤습니다! 태양광 발전량이 급감합니다.', weatherCoeff: 0.1 }
+    },
+    drought: {
+        13: { msg: '🔥 돌발 상황: 가뭄이 더 심해져 댐 수위가 낮아졌습니다. 수력 발전 효율이 30%로 떨어집니다.', hydroCoeff: 0.3 }
+    },
+    typhoon: {
+        19: { msg: '🌀 돌발 상황: 돌풍 경보! 안전을 위해 모든 풍력 발전기가 컷아웃(정지)되었습니다.', windCoeff: 0.0 }
+    }
+};
+
+function getHourEnvironment(scenario, hour) {
+    const profile = WEATHER_PROFILES[scenario];
+    const sky = SKY_INFO[profile.sky[hour]] || SKY_INFO.C;
+    const wind = WIND_INFO[profile.wind[hour]] || WIND_INFO.w;
+
+    return {
+        weather: sky.weather,
+        weatherCoeff: sky.coeff,
+        windDesc: wind.desc,
+        windCoeff: wind.coeff,
+        hydroCoeff: scenario === 'drought' ? 0.4 : 1.0   // 가뭄에는 수력 60% 감소
+    };
+}
+
+let activeScenario = 'normal';
+let budget = 5000;
+let citySlots = [null, null, null, null, null, null];
+let isSimulating = false;
+let simIntervalId = null;
+let simTickFn = null;
+let simSpeed = 400;
+let isSimPaused = false;
+
+// 시나리오 선택기 관리
+function initGameScenario() {
+    const cards = document.querySelectorAll('.scenario-card');
+    cards.forEach(card => {
+        card.addEventListener('click', () => {
+            if (isSimulating) return;
+            
+            const sc = card.getAttribute('data-scenario');
+            activeScenario = sc;
+
+            cards.forEach(c => c.classList.remove('active'));
+            card.classList.add('active');
+
+            resetScenarioState();
+        });
+    });
+
+    resetScenarioState();
+}
+
+function resetScenarioState() {
+    citySlots = [null, null, null, null, null, null];
+    
+    if (activeScenario === 'normal') {
+        budget = 5000;
+    } else if (activeScenario === 'drought') {
+        budget = 4000;
+    } else if (activeScenario === 'typhoon') {
+        budget = 4500;
+    }
+
+    updateGameUI();
+}
+
+// 도시 UI 업데이트
+function updateGameUI() {
+    let usedBudget = 0;
+    let totalMaxPower = 0;
+    let averageCarbon = 0;
+    let activePlantsCount = 0;
+    let carbonSum = 0;
+
+    citySlots.forEach(slot => {
+        if (slot) {
+            const spec = PLANT_SPECS[slot];
+            usedBudget += spec.cost;
+            totalMaxPower += spec.power;
+            
+            if (slot !== 'ess') {
+                carbonSum += spec.carbon;
+                activePlantsCount++;
+            }
+        }
+    });
+
+    const currentBudget = budget - usedBudget;
+    averageCarbon = activePlantsCount > 0 ? Math.round(carbonSum / activePlantsCount) : 0;
+
+    document.getElementById('game-budget').textContent = `${currentBudget.toLocaleString()}만 원`;
+    document.getElementById('game-carbon').textContent = `${averageCarbon}%`;
+    document.getElementById('game-carbon-bar').style.width = `${averageCarbon}%`;
+    document.getElementById('game-total-power').textContent = `${totalMaxPower} / 1000 kW`;
+    
+    const powerPercentage = Math.min(100, (totalMaxPower / 1000) * 100);
+    document.getElementById('game-power-bar').style.width = `${powerPercentage}%`;
+
+    const slotElements = document.querySelectorAll('.map-slot');
+    slotElements.forEach((el, index) => {
+        const plant = citySlots[index];
+        el.className = 'map-slot';
+
+        if (plant) {
+            const spec = PLANT_SPECS[plant];
+            el.classList.add('built', spec.class);
+            el.innerHTML = `<i class="fa-solid ${spec.icon}"></i> ${spec.name}`;
+        } else {
+            el.className = 'map-slot empty';
+            el.innerHTML = `<i class="fa-solid fa-plus"></i> 빈 부지`;
+        }
+    });
+}
+
+// 발전시설 건설 구매
+function buyPlant(type) {
+    if (isSimulating) {
+        showToast("시뮬레이션이 도는 동안에는 도시를 바꿀 수 없어요. 먼저 시뮬레이션을 멈추세요.", "warn");
+        return;
+    }
+
+    const spec = PLANT_SPECS[type];
+
+    const emptyIndex = citySlots.findIndex(s => s === null);
+    if (emptyIndex === -1) {
+        showToast("빈 부지가 없습니다. 오른쪽 영토에서 시설을 눌러 철거한 뒤 다시 건설하세요.", "warn");
+        return;
+    }
+
+    let currentCost = 0;
+    citySlots.forEach(s => { if (s) currentCost += PLANT_SPECS[s].cost; });
+    const remaining = budget - currentCost;
+    if (remaining < spec.cost) {
+        showToast(`예산이 부족합니다. 남은 예산 ${remaining.toLocaleString()}만 원 < ${spec.name} ${spec.cost.toLocaleString()}만 원`, "warn");
+        return;
+    }
+
+    citySlots[emptyIndex] = type;
+    updateGameUI();
+    showToast(`${spec.name} 건설 완료! (남은 예산 ${(remaining - spec.cost).toLocaleString()}만 원)`, "ok");
+}
+
+// 발전시설 철거
+function removePlant(index) {
+    if (isSimulating) {
+        showToast("시뮬레이션이 도는 동안에는 철거할 수 없어요.", "warn");
+        return;
+    }
+    if (citySlots[index] === null) return;
+
+    const spec = PLANT_SPECS[citySlots[index]];
+    showConfirm(
+        "시설을 철거할까요?",
+        `${spec.name}를 철거하면 건설비 ${spec.cost.toLocaleString()}만 원이 예산으로 되돌아옵니다.`,
+        () => {
+            citySlots[index] = null;
+            updateGameUI();
+            showToast(`${spec.name}를 철거했습니다.`, "ok");
+        }
+    );
+}
+
+// 24시간 시뮬레이션 제어
+document.getElementById('btn-start-simulation').addEventListener('click', () => {
+    if (isSimulating) {
+        stopGameSimulation();
+    } else {
+        startGameSimulation();
+    }
+});
+
+function startGameSimulation() {
+    if (isSimulating) return;              // 이미 돌고 있으면 타이머가 겹치지 않도록 막는다
+    clearInterval(simIntervalId);
+
+    const builtCount = citySlots.filter(s => s !== null).length;
+    if (builtCount === 0) {
+        showToast("도시 영토에 발전 시설을 최소 1개 이상 건설한 뒤 시뮬레이션을 시작하세요.", "warn");
+        return;
+    }
+    const onlyEss = citySlots.every(s => s === null || s === 'ess');
+    if (onlyEss) {
+        showToast("ESS는 전기를 만들지 못하고 저장만 합니다. 발전소를 최소 1개 지어 보세요.", "warn");
+        return;
+    }
+
+    isSimulating = true;
+    isSimPaused = false;
+    const btn = document.getElementById('btn-start-simulation');
+    btn.innerHTML = `<i class="fa-solid fa-stop"></i> 시뮬레이션 중단`;
+    btn.classList.add('btn-red');
+
+    const pauseBtn = document.getElementById('btn-pause-simulation');
+    pauseBtn.disabled = false;
+    pauseBtn.innerHTML = `<i class="fa-solid fa-pause"></i> 일시정지`;
+
+    document.querySelectorAll('.scenario-card').forEach(c => c.style.pointerEvents = 'none');
+
+    const simScreen = document.getElementById('sim-screen');
+    simScreen.classList.remove('hidden');
+    
+    const slotsPanel = document.getElementById('city-slots');
+    slotsPanel.style.opacity = '0.5';
+
+    let hour = 0;
+    let blackoutCount = 0;
+    let carbonSum = 0;
+    let activePlantsCount = 0;
+
+    citySlots.forEach(s => {
+        if (s && s !== 'ess') {
+            carbonSum += PLANT_SPECS[s].carbon;
+            activePlantsCount++;
+        }
+    });
+    const avgCarbon = activePlantsCount > 0 ? carbonSum / activePlantsCount : 0;
+
+    let batteryLevel = 0;
+    const essCount = citySlots.filter(s => s === 'ess').length;
+    const maxBatteryCapacity = essCount * 300;
+
+    const logOutput = document.getElementById('sim-log-output');
+    logOutput.innerHTML = `<div class="log-line log-success">⚡ [도전 시나리오: ${activeScenario === 'normal' ? '평화로운 그린시티' : (activeScenario === 'drought' ? '황사와 봄가뭄' : '강력 태풍과 폭우')}] 시뮬레이션 시작...</div>`;
+
+    const blackoutHours = [];
+
+    simTickFn = () => {
+        if (hour >= 24) {
+            endGameSimulation(blackoutCount, avgCarbon, essCount, blackoutHours);
+            return;
+        }
+
+        // 1. 시나리오별 24시간 기상 (같은 시나리오면 항상 같은 날씨)
+        const env = getHourEnvironment(activeScenario, hour);
+        let weather = env.weather;
+        let weatherCoeff = env.weatherCoeff;
+        let windDesc = env.windDesc;
+        let windCoeff = env.windCoeff;
+        let hydroCoeff = env.hydroCoeff;
+
+        // 1.5. 정해진 시각에 일어나는 돌발 기상 재난
+        let disasterMessage = null;
+        const disaster = SCENARIO_EVENTS[activeScenario][hour];
+        if (disaster) {
+            if (disaster.weatherCoeff !== undefined) weatherCoeff = disaster.weatherCoeff;
+            if (disaster.windCoeff !== undefined) windCoeff = disaster.windCoeff;
+            if (disaster.hydroCoeff !== undefined) hydroCoeff = disaster.hydroCoeff;
+            disasterMessage = disaster.msg;
+        }
+
+        // Show disaster alert UI
+        const disasterAlert = document.getElementById('disaster-alert');
+        if (disasterMessage) {
+            disasterAlert.classList.remove('hidden');
+            document.getElementById('disaster-desc').textContent = disasterMessage;
+            
+            const logLine = document.createElement('div');
+            logLine.className = 'log-line';
+            logLine.innerHTML = `<span class="log-alert" style="color:#ef4444; font-weight:bold;">${disasterMessage}</span>`;
+            logOutput.appendChild(logLine);
+        } else {
+            disasterAlert.classList.add('hidden');
+        }
+
+        // 2. 시간별 전력 수요 곡선 (1000kW 기준)
+        let demand = 450;
+        if (hour >= 6 && hour < 9) demand = 750;
+        else if (hour >= 9 && hour < 17) demand = 880;
+        else if (hour >= 17 && hour < 21) demand = 980;
+        else if (hour >= 21) demand = 600;
+
+        // 3. 공급 전력량 계산
+        let supply = 0;
+        citySlots.forEach(plant => {
+            if (plant === 'fossil') {
+                supply += PLANT_SPECS.fossil.power;
+            } else if (plant === 'solar') {
+                let timeCoeff = 0;
+                if (hour >= 6 && hour <= 18) {
+                    const radians = ((hour - 6) / 12) * Math.PI;
+                    timeCoeff = Math.sin(radians);
+                }
+                supply += Math.round(PLANT_SPECS.solar.power * timeCoeff * weatherCoeff);
+            } else if (plant === 'wind') {
+                supply += Math.round(PLANT_SPECS.wind.power * windCoeff);
+            } else if (plant === 'geothermal') {
+                supply += PLANT_SPECS.geothermal.power; // 지열 24시간 균일 가동
+            } else if (plant === 'hydro') {
+                supply += Math.round(PLANT_SPECS.hydro.power * hydroCoeff);
+            } else if (plant === 'tidal_barrage') {
+                // 조력: 수위차가 벌어지는 04, 10, 16, 22시에만 450kW 가동
+                if ([4, 10, 16, 22].includes(hour)) {
+                    supply += PLANT_SPECS.tidal_barrage.power;
+                }
+            } else if (plant === 'tidal_current') {
+                // 조류: 02~07시, 14~19시에 빠른 유속으로 250kW 가동, 그 외에는 50kW 기저
+                if ((hour >= 2 && hour <= 7) || (hour >= 14 && hour <= 19)) {
+                    supply += PLANT_SPECS.tidal_current.power;
+                } else {
+                    supply += 50;
+                }
+            } else if (plant === 'wave_power') {
+                // 파력: 파도 세기에 따라 40~100% 사이로 출렁인다 (시각마다 정해진 값)
+                supply += Math.round(PLANT_SPECS.wave_power.power * WAVE_PROFILE[hour]);
+            }
+        });
+
+        // 4. 배터리(ESS) 연동
+        let netPower = supply - demand;
+        let batteryActionLog = "";
+
+        if (netPower > 0 && essCount > 0) {
+            const charging = Math.min(netPower, maxBatteryCapacity - batteryLevel);
+            batteryLevel += charging;
+            if (charging > 0) batteryActionLog = ` [🔋 ESS 충전 +${Math.round(charging)}kW]`;
+        } else if (netPower < 0 && essCount > 0 && batteryLevel > 0) {
+            const discharging = Math.min(Math.abs(netPower), batteryLevel);
+            batteryLevel -= discharging;
+            supply += discharging;
+            netPower = supply - demand;
+            if (discharging > 0) batteryActionLog = ` [🔋 ESS 방출 -${Math.round(discharging)}kW]`;
+        }
+
+        // 5. 정전 판정
+        let isBlackout = false;
+        if (supply < demand) {
+            isBlackout = true;
+            blackoutCount++;
+            blackoutHours.push(hour);
+        }
+
+        // 6. UI 업데이트 및 로그 출력
+        const clockFormatted = `${hour.toString().padStart(2, '0')}:00`;
+        document.getElementById('sim-clock').innerHTML = `<i class="fa-regular fa-clock"></i> ${clockFormatted}`;
+        document.getElementById('sim-env').innerHTML = `<i class="fa-solid fa-cloud-sun"></i> 날씨: ${weather} / 바람: ${windDesc}`;
+
+        const maxVal = Math.max(supply, demand, 1200);
+        document.getElementById('bar-sim-supply').style.width = `${(supply / maxVal) * 100}%`;
+        document.getElementById('bar-sim-demand').style.width = `${(demand / maxVal) * 100}%`;
+        
+        document.getElementById('lbl-sim-supply').textContent = `${supply} kW`;
+        document.getElementById('lbl-sim-demand').textContent = `${demand} kW`;
+
+        if (essCount > 0) {
+            document.getElementById('sim-battery-area').classList.remove('hidden');
+            document.getElementById('lbl-sim-battery').textContent = `${Math.round(batteryLevel)} / ${maxBatteryCapacity} kWh`;
+            document.getElementById('bar-sim-battery').style.width = `${(batteryLevel / maxBatteryCapacity) * 100}%`;
+        } else {
+            document.getElementById('sim-battery-area').classList.add('hidden');
+        }
+
+        const logLine = document.createElement('div');
+        logLine.className = 'log-line';
+        if (isBlackout) {
+            const shortfall = demand - supply;
+            logLine.innerHTML = `<span class="log-alert">⚠️ [${clockFormatted}] 정전! 공급 ${supply}kW < 수요 ${demand}kW — ${shortfall}kW 부족</span>`;
+        } else {
+            logLine.innerHTML = `<span>[${clockFormatted}] 공급 ${supply}kW / 수요 ${demand}kW — 전력망 정상.${batteryActionLog}</span>`;
+        }
+        logOutput.appendChild(logLine);
+        logOutput.scrollTop = logOutput.scrollHeight;
+
+        hour++;
+    };
+
+    simIntervalId = setInterval(simTickFn, simSpeed);
+}
+
+// 시뮬레이션 속도 변경 / 일시정지
+function setSimSpeed(ms) {
+    simSpeed = ms;
+    if (isSimulating && !isSimPaused && simTickFn) {
+        clearInterval(simIntervalId);
+        simIntervalId = setInterval(simTickFn, simSpeed);
+    }
+}
+
+function toggleSimPause() {
+    if (!isSimulating) return;
+    const pauseBtn = document.getElementById('btn-pause-simulation');
+
+    if (isSimPaused) {
+        isSimPaused = false;
+        simIntervalId = setInterval(simTickFn, simSpeed);
+        pauseBtn.innerHTML = `<i class="fa-solid fa-pause"></i> 일시정지`;
+    } else {
+        isSimPaused = true;
+        clearInterval(simIntervalId);
+        pauseBtn.innerHTML = `<i class="fa-solid fa-play"></i> 이어서 보기`;
+        showToast("일시정지했습니다. 지금 화면의 수치를 모둠끼리 이야기해 보세요.", "info");
+    }
+}
+
+// 시뮬레이션 중단
+function stopGameSimulation() {
+    clearInterval(simIntervalId);
+    isSimulating = false;
+    isSimPaused = false;
+    simTickFn = null;
+
+    const btn = document.getElementById('btn-start-simulation');
+    btn.innerHTML = `<i class="fa-solid fa-play"></i> 24시간 시뮬레이션 시작`;
+    btn.classList.remove('btn-red');
+
+    const pauseBtn = document.getElementById('btn-pause-simulation');
+    if (pauseBtn) {
+        pauseBtn.disabled = true;
+        pauseBtn.innerHTML = `<i class="fa-solid fa-pause"></i> 일시정지`;
+    }
+
+    document.querySelectorAll('.scenario-card').forEach(c => c.style.pointerEvents = 'auto');
+
+    document.getElementById('sim-screen').classList.add('hidden');
+    document.getElementById('disaster-alert').classList.add('hidden');
+    document.getElementById('city-slots').style.opacity = '1';
+}
+
+const SCENARIO_LABELS = {
+    normal: '평화로운 그린시티',
+    drought: '먼지와 가뭄의 습격',
+    typhoon: '강력 태풍과 장마'
+};
+
+// 시뮬레이션 결과 판정
+function endGameSimulation(blackoutCount, avgCarbon, essCount, blackoutHours = []) {
+    if (!isSimulating) return;             // 타이머가 겹쳐 두 번 불려도 결과는 한 번만 기록한다
+    stopGameSimulation();
+
+    let stabilityGrade = 'S';
+    if (blackoutCount > 0 && blackoutCount <= 2) stabilityGrade = 'A';
+    else if (blackoutCount > 2 && blackoutCount <= 5) stabilityGrade = 'B';
+    else if (blackoutCount > 5 && blackoutCount <= 9) stabilityGrade = 'C';
+    else if (blackoutCount > 9) stabilityGrade = 'F';
+
+    let ecoGrade = 'S';
+    if (avgCarbon > 0 && avgCarbon <= 20) ecoGrade = 'A';
+    else if (avgCarbon > 20 && avgCarbon <= 40) ecoGrade = 'B';
+    else if (avgCarbon > 40 && avgCarbon <= 60) ecoGrade = 'C';
+    else if (avgCarbon > 60) ecoGrade = 'F';
+
+    const scenarioLabel = SCENARIO_LABELS[activeScenario];
+    let summaryText = "";
+    if (stabilityGrade === 'S' && ecoGrade === 'S') {
+        summaryText = `🎉 <strong>정전 0회 · 탄소 0%</strong> — [${scenarioLabel}] 조건에서 하루 종일 전기를 끊기지 않게 공급하면서 탄소도 전혀 내보내지 않았습니다.`;
+    } else if (stabilityGrade === 'S' && ecoGrade !== 'S') {
+        summaryText = `💡 <strong>정전은 막았지만 탄소가 남았습니다.</strong> 화석연료 발전소가 안정적인 전기를 준 대신 평균 탄소 배출이 ${Math.round(avgCarbon)}%입니다. 지열이나 조력처럼 <strong>날씨와 덜 관계있는 무탄소 발전소</strong>로 바꿔 보면 어떨까요?`;
+    } else if (stabilityGrade !== 'S' && ecoGrade === 'S') {
+        summaryText = `🌱 <strong>탄소는 0인데 전기가 끊겼습니다(${blackoutCount}회).</strong> 신재생에너지만으로 채우면 날씨가 나쁠 때 발전이 멈춥니다. <strong>지열·조력</strong>처럼 꾸준한 발전원이나 <strong>ESS</strong>로 간헐성을 메워 보세요.`;
+    } else {
+        summaryText = `🔧 <strong>정전 ${blackoutCount}회 · 평균 탄소 ${Math.round(avgCarbon)}%</strong> — 안정성과 환경 둘 다 아쉽습니다. 정전이 난 시각에 어떤 발전소가 쉬고 있었는지 기록을 다시 살펴보세요.`;
+    }
+
+    // 정전 시각을 근거 자료로 제시
+    let detailHTML = `<div class="rd-row"><span class="rd-key">시나리오</span><span>${scenarioLabel}</span></div>`;
+    detailHTML += `<div class="rd-row"><span class="rd-key">발전 시설</span><span>${describeCity() || '없음'}</span></div>`;
+    if (blackoutHours.length > 0) {
+        const hoursText = blackoutHours.map(h => `${String(h).padStart(2, '0')}시`).join(', ');
+        detailHTML += `<div class="rd-row rd-warn"><span class="rd-key">정전 시각</span><span>${hoursText}</span></div>`;
+        detailHTML += `<div class="rd-tip">💬 이 시각에 <strong>어떤 발전소가 멈춰 있었는지</strong>, 그때 수요는 왜 높았는지 모둠에서 이야기해 보세요.</div>`;
+    } else {
+        detailHTML += `<div class="rd-row rd-ok"><span class="rd-key">정전 시각</span><span>없음 — 24시간 모두 정상 공급</span></div>`;
+    }
+    if (essCount === 0) {
+        detailHTML += `<div class="rd-tip">🔋 아직 ESS가 없습니다. 남는 전기를 저장했다가 저녁 피크에 꺼내 쓰면 결과가 달라질 수 있어요.</div>`;
+    }
+
+    document.getElementById('score-stability').textContent = stabilityGrade;
+    document.getElementById('score-eco').textContent = ecoGrade;
+    document.getElementById('result-summary').innerHTML = summaryText;
+    document.getElementById('result-detail').innerHTML = detailHTML;
+
+    document.getElementById('score-stability').className = `score-val ${stabilityGrade === 'F' ? 'text-red' : (stabilityGrade === 'S' ? 'text-green' : '')}`;
+    document.getElementById('score-eco').className = `score-val ${ecoGrade === 'F' ? 'text-red' : (ecoGrade === 'S' ? 'text-green' : '')}`;
+
+    recordSimulationRun({
+        scenario: scenarioLabel,
+        city: describeCity(),
+        usedBudget: citySlots.reduce((sum, s) => sum + (s ? PLANT_SPECS[s].cost : 0), 0),
+        blackoutCount,
+        blackoutHours,
+        avgCarbon: Math.round(avgCarbon),
+        stabilityGrade,
+        ecoGrade
+    });
+
+    document.getElementById('game-modal').classList.remove('hidden');
+}
+
+// 현재 도시 구성을 "지열 2 · 태양광 1" 형태의 문장으로
+const PLANT_SHORT = {
+    fossil: '화석연료', solar: '태양광', wind: '풍력', geothermal: '지열',
+    tidal_barrage: '조력', tidal_current: '조류', wave_power: '파력',
+    hydro: '수력', ess: 'ESS'
+};
+
+function describeCity() {
+    const counts = {};
+    citySlots.forEach(s => { if (s) counts[s] = (counts[s] || 0) + 1; });
+    return Object.keys(counts)
+        .map(k => `${PLANT_SHORT[k] || PLANT_SPECS[k].name} ${counts[k]}`)
+        .join(' · ');
+}
+
+// 결과를 근거로 설계 수정 (도시는 그대로 유지)
+function closeGameModal() {
+    document.getElementById('game-modal').classList.add('hidden');
+}
+
+function reviseCity() {
+    document.getElementById('game-modal').classList.add('hidden');
+    showToast("도시가 그대로 남아 있습니다. 결과를 근거로 배치를 고친 뒤 다시 돌려 보세요.", "info");
+    const panel = document.getElementById('rationale-panel-anchor') || document.querySelector('.city-map-panel');
+    if (panel) panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function newCity() {
+    document.getElementById('game-modal').classList.add('hidden');
+    resetScenarioState();
+    showToast("새 도시를 시작합니다. 시뮬레이션 기록은 비교표에 남아 있어요.", "info");
+}
+
+
+/* ==========================================
+   4. 에너지 골든벨 퀴즈 (Quiz Module) 로직
+   ========================================== */
+/*
+   문제 은행: modes 에 'pre'(1차시 사전 진단) / 'final'(5차시 정리 골든벨) 을 표기한다.
+   사전 진단은 '무엇을 모르는지 찾기'가 목적이므로 개념·오개념 확인 문항 위주로 묶었다.
+*/
+const QUIZ_BANK = [
+    {
+        modes: ['pre', 'final'],
+        question: "다음 중 신재생에너지의 특징에 대한 설명으로 올바르지 않은 것은 무엇일까요?",
+        options: [
+            "자연에서 지속해서 얻을 수 있어 화석연료와 달리 고갈될 염려가 없다.",
+            "기후나 기상 조건에 관계없이 언제나 일정한 발전량을 낼 수 있다.",
+            "화석연료에 비해 초기에 발전 설비를 설치할 때 막대한 비용이 필요하다.",
+            "온실가스나 유해 물질을 배출하지 않기 때문에 환경 보호에 유리하다."
+        ],
+        answer: 1,
+        explanation: "해설: 태양광이나 풍력과 같은 재생에너지는 햇빛의 세기, 기온, 바람의 속도 등 기후나 기상 조건에 따라 전력 공급량이 변하는 '간헐성(불안정성)'이라는 대표적인 단점이 있습니다."
+    },
+    {
+        modes: ['pre', 'final'],
+        question: "다음 중 '재생에너지'로 묶을 수 없는 것은 무엇일까요?",
+        options: [
+            "태양광 발전",
+            "풍력 발전",
+            "석탄 화력 발전",
+            "지열 발전"
+        ],
+        answer: 2,
+        explanation: "해설: 석탄·석유·천연가스는 땅속에 묻힌 양이 정해져 있어 쓰면 없어지는 화석연료입니다. 반면 태양·바람·땅속 열은 자연에서 계속 다시 채워지므로 재생에너지로 분류합니다."
+    },
+    {
+        modes: ['pre', 'final'],
+        question: "우리가 전기를 쓸 때 지구 온난화에 가장 큰 영향을 주는 것은 발전 과정에서 나오는 무엇 때문일까요?",
+        options: [
+            "이산화 탄소 등의 온실가스",
+            "발전기가 만드는 소음",
+            "발전소에서 나오는 빛",
+            "송전선이 만드는 자기장"
+        ],
+        answer: 0,
+        explanation: "해설: 화석연료를 태워 전기를 만들 때 나오는 이산화 탄소가 대기에 쌓이면 지구의 열이 빠져나가지 못해 기온이 올라갑니다. 그래서 '탄소 배출이 적은 전기'를 만드는 일이 기후 위기 대응의 핵심입니다."
+    },
+    {
+        modes: ['pre', 'final'],
+        question: "태양광 발전이 밤에는 전기를 만들지 못하는 까닭으로 가장 알맞은 것은?",
+        options: [
+            "밤에는 기온이 낮아 전선이 얼어붙기 때문이다.",
+            "태양 전지판은 빛을 받아야 전기를 만들 수 있기 때문이다.",
+            "밤에는 사람들이 전기를 쓰지 않기 때문이다.",
+            "태양 전지판이 밤에는 자동으로 접히기 때문이다."
+        ],
+        answer: 1,
+        explanation: "해설: 태양 전지판은 빛이 닿을 때 생기는 광전 효과로 전기를 만듭니다. 그래서 밤이나 흐린 날에는 발전량이 크게 줄고, 이 성질이 바로 신재생에너지의 '간헐성'입니다."
+    },
+    {
+        modes: ['pre', 'final'],
+        question: "바람의 힘으로 발전을 하는 풍력 발전기에서, 태풍처럼 너무 강한 바람이 불 때 기기가 파손되는 것을 방지하기 위해 날개를 정지시키는 안전 기능을 무엇이라 부를까요?",
+        options: [
+            "스타트인 (Start-in)",
+            "바람막이 (Wind-break)",
+            "컷아웃 (Cut-out) 제어",
+            "오토 스탠바이 (Auto-standby)"
+        ],
+        answer: 2,
+        explanation: "해설: 풍력 발전기는 바람이 일정 속도 이상(보통 20~25m/s)으로 과도하게 불 경우, 터빈의 기계적 파손을 예방하기 위해 브레이크를 걸고 회전을 강제 차단하는 '컷아웃(Cut-out)' 안전 기능이 작동합니다. 그래서 태풍이 오면 오히려 풍력 발전이 멈춥니다."
+    },
+    {
+        modes: ['final'],
+        question: "신재생에너지의 최대 약점인 '간헐성(발전량 불안정)'을 극복하기 위해, 전기가 남을 때 배터리에 대량 저장했다가 필요할 때 꺼내어 쓰도록 돕는 에너지 저장장치의 약자는 무엇일까요?",
+        options: [
+            "CPU (Central Processing Unit)",
+            "ESS (Energy Storage System)",
+            "LED (Light Emitting Diode)",
+            "GPS (Global Positioning System)"
+        ],
+        answer: 1,
+        explanation: "해설: 에너지 저장 시스템(ESS)은 날씨와 시간에 따라 전력 생산량이 바뀌는 신재생에너지를 한데 모아 대형 저장 장치에 담아두어 정전을 방지하는 스마트 그리드의 핵심 장치입니다."
+    },
+    {
+        modes: ['final'],
+        question: "해양 에너지 3대장(조력, 조류, 파력) 중, '바다에 댐(방조제)을 건설하지 않고 빠른 바닷물의 흐름을 직접 이용하여 수중 터빈을 돌려 발전하는 방식'으로 갯벌 파괴 등 환경 파괴 우려가 가장 적은 친환경 해양 에너지는 무엇일까요?",
+        options: [
+            "조력 발전",
+            "조류 발전",
+            "파력 발전",
+            "수력 발전"
+        ],
+        answer: 1,
+        explanation: "해설: 조류 발전은 조력 발전과 달리 바다를 막는 댐(방조제)을 건설하지 않고 바닷물 본연의 빠른 흐름만을 활용하므로 해양 생태계 교란과 환경 파괴가 현저히 적은 발전 기술입니다."
+    },
+    {
+        modes: ['final'],
+        question: "수력 발전은 물이 아래로 떨어질 때 발생하는 위치에너지를 활용합니다. 다음 중 수력 발전소의 시간당 전력 생산량을 증가시키기 위한 조작 방법으로 알맞은 것은?",
+        options: [
+            "댐의 수문을 조금 더 개방하여 유량을 증가시킨다.",
+            "발전기 내 터빈의 날개 개수를 최대한 줄인다.",
+            "댐에 고여있는 물의 내부 온도를 뜨겁게 가열한다.",
+            "수차가 돌아가지 않도록 수문을 완전히 폐쇄한다."
+        ],
+        answer: 0,
+        explanation: "해설: 수력 발전량은 물이 떨어지는 높이(낙차)와 단위 시간당 수차를 지나는 물의 양(유량)에 비례합니다. 수문을 더 열어서 유량을 높이면 터빈이 더 큰 물리적인 힘으로 회전하게 되어 전기 에너지가 더 많이 생산됩니다."
+    },
+    {
+        modes: ['final'],
+        question: "지열 발전소가 다른 신재생에너지와 달리 24시간 거의 일정하게 전기를 만들 수 있는 까닭은 무엇일까요?",
+        options: [
+            "발전기 안에 커다란 배터리가 들어 있기 때문이다.",
+            "땅속 깊은 곳의 열은 날씨나 밤낮에 관계없이 유지되기 때문이다.",
+            "지열 발전소는 전기를 만들 때 연료를 태우기 때문이다.",
+            "발전소를 반드시 바닷가에만 짓기 때문이다."
+        ],
+        answer: 1,
+        explanation: "해설: 지열은 땅속 마그마의 열을 이용하므로 햇빛이나 바람과 달리 날씨의 영향을 거의 받지 않습니다. 그래서 간헐성이 큰 태양광·풍력을 보완하는 '기저 발전'으로 활용됩니다."
+    },
+    {
+        modes: ['pre', 'final'],
+        question: "서해안에 조력 발전소를 짓기에 유리한 우리나라의 지리적 조건은 무엇일까요?",
+        options: [
+            "밀물과 썰물의 수위 차이(조수 간만의 차)가 크다.",
+            "일 년 내내 햇빛이 가장 강하다.",
+            "화산 활동이 활발해 땅속이 뜨겁다.",
+            "산이 높고 비가 많이 내린다."
+        ],
+        answer: 0,
+        explanation: "해설: 우리나라 서해안은 밀물과 썰물의 높이 차가 세계적으로 큰 편입니다. 이 낙차를 이용해 방조제 아래 수차를 돌리는 것이 조력 발전이며, 발전소의 입지는 이렇게 지역의 자연 조건에 따라 결정됩니다."
+    },
+    {
+        modes: ['final'],
+        question: "태풍이 지나가는 날, 우리 도시의 전기를 가장 안정적으로 공급해 줄 수 있는 발전소 조합은 무엇일까요?",
+        options: [
+            "태양광 발전 + 풍력 발전",
+            "태양광 발전만 여러 개",
+            "지열 발전 + ESS(에너지 저장장치)",
+            "풍력 발전만 여러 개"
+        ],
+        answer: 2,
+        explanation: "해설: 태풍이 오면 비구름 때문에 태양광이 거의 멈추고, 풍력도 컷아웃으로 정지합니다. 날씨의 영향을 받지 않는 지열을 기본으로 두고 ESS로 부족한 시간을 메우는 조합이 가장 안정적입니다."
+    },
+    {
+        modes: ['final'],
+        question: "우리 도시의 에너지 조합(에너지 믹스)을 설계할 때, 아래 중 가장 바람직한 판단 태도는 무엇일까요?",
+        options: [
+            "값이 가장 싼 발전소만 최대한 많이 짓는다.",
+            "탄소 배출, 정전 위험, 예산, 지역 조건을 함께 따져 근거를 들어 결정한다.",
+            "가장 발전량이 큰 발전소 하나만 골라 전부 채운다.",
+            "주민들의 의견은 듣지 않고 전문가가 정한 대로만 짓는다."
+        ],
+        answer: 1,
+        explanation: "해설: 에너지 선택은 정답이 하나로 정해진 문제가 아니라 여러 조건이 서로 부딪히는 의사결정 문제입니다. 어떤 지표를 근거로 무엇을 우선했는지 설명할 수 있는 것이 가장 중요합니다."
+    },
+    {
+        modes: ['final'],
+        question: "신재생에너지 발전소를 지을 때 지역 주민과 갈등이 생기는 경우가 있습니다. 그 까닭으로 알맞지 않은 것은?",
+        options: [
+            "풍력 발전기의 소음이나 그림자가 생활에 불편을 줄 수 있다.",
+            "조력 발전소의 방조제가 갯벌 생태계를 바꿀 수 있다.",
+            "넓은 땅이 필요해 농지나 산림이 줄어들 수 있다.",
+            "신재생에너지는 전기를 만들 때 매연을 많이 내뿜는다."
+        ],
+        answer: 3,
+        explanation: "해설: 신재생에너지는 발전 과정에서 온실가스나 매연을 거의 내뿜지 않습니다. 다만 소음·경관·생태계 변화·토지 이용 같은 문제가 생길 수 있으므로, 기술만이 아니라 주민의 삶까지 함께 고려해야 합니다."
+    }
+];
+
+let currentQuizIndex = 0;
+let quizCorrectCount = 0;
+let quizMode = 'pre';
+let activeQuestions = [];
+let quizWrongList = [];
+
+const QUIZ_MODE_INFO = {
+    pre: { count: 5, label: '사전 진단 골든벨 (1차시)' },
+    final: { count: 10, label: '정리 골든벨 (5차시)' }
+};
+
+function shuffle(arr) {
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+}
+
+function initQuiz() {
+    document.getElementById('btn-start-quiz').addEventListener('click', startQuiz);
+    document.getElementById('btn-next-question').addEventListener('click', nextQuestion);
+    document.getElementById('btn-retry-quiz').addEventListener('click', resetQuiz);
+
+    document.querySelectorAll('.quiz-mode-card').forEach(card => {
+        card.addEventListener('click', () => selectQuizMode(card.getAttribute('data-mode')));
+    });
+}
+
+function selectQuizMode(mode) {
+    quizMode = mode;
+    document.querySelectorAll('.quiz-mode-card').forEach(c => {
+        c.classList.toggle('active', c.getAttribute('data-mode') === mode);
+    });
+}
+
+function startQuiz() {
+    currentQuizIndex = 0;
+    quizCorrectCount = 0;
+    quizWrongList = [];
+
+    const pool = QUIZ_BANK.filter(q => q.modes.includes(quizMode));
+    activeQuestions = shuffle(pool).slice(0, Math.min(QUIZ_MODE_INFO[quizMode].count, pool.length));
+
+    document.getElementById('quiz-start-screen').classList.remove('active');
+    document.getElementById('quiz-play-screen').classList.add('active');
+    document.getElementById('quiz-result-screen').classList.remove('active');
+
+    renderQuestion();
+}
+
+function currentQuizScore() {
+    if (activeQuestions.length === 0) return 0;
+    return Math.round((quizCorrectCount / activeQuestions.length) * 100);
+}
+
+function renderQuestion() {
+    const qData = activeQuestions[currentQuizIndex];
+
+    document.getElementById('quiz-progress-text').textContent = `문제 ${currentQuizIndex + 1} / ${activeQuestions.length}`;
+    document.getElementById('quiz-score-text').textContent = `맞힌 문제: ${quizCorrectCount}개`;
+
+    const progressPercent = ((currentQuizIndex + 1) / activeQuestions.length) * 100;
+    document.getElementById('quiz-progress-bar').style.width = `${progressPercent}%`;
+
+    document.getElementById('quiz-question').textContent = `${currentQuizIndex + 1}. ${qData.question}`;
+    document.getElementById('quiz-feedback').classList.add('hidden');
+
+    const nextBtn = document.getElementById('btn-next-question');
+    nextBtn.innerHTML = (currentQuizIndex === activeQuestions.length - 1)
+        ? `결과 보기 <i class="fa-solid fa-flag-checkered"></i>`
+        : `다음 문제로 <i class="fa-solid fa-arrow-right"></i>`;
+
+    const optionsContainer = document.getElementById('quiz-options-container');
+    optionsContainer.innerHTML = '';
+
+    qData.options.forEach((optText, index) => {
+        const btn = document.createElement('button');
+        btn.className = 'option-btn';
+        btn.textContent = `${index + 1}. ${optText}`;
+        btn.addEventListener('click', () => handleOptionClick(index, btn));
+        optionsContainer.appendChild(btn);
+    });
+}
+
+function handleOptionClick(selectedIndex, clickedBtn) {
+    const qData = activeQuestions[currentQuizIndex];
+    const allOptionButtons = document.querySelectorAll('.option-btn');
+
+    allOptionButtons.forEach(btn => { btn.disabled = true; });
+
+    const feedbackBox = document.getElementById('quiz-feedback');
+    const feedbackTitle = document.getElementById('feedback-status-title');
+    const feedbackDesc = document.getElementById('feedback-desc');
+
+    if (selectedIndex === qData.answer) {
+        quizCorrectCount++;
+        clickedBtn.classList.add('correct');
+        feedbackTitle.innerHTML = `<i class="fa-solid fa-circle-check text-green"></i> ⭕ 정답입니다!`;
+    } else {
+        clickedBtn.classList.add('incorrect');
+        allOptionButtons[qData.answer].classList.add('correct');
+        feedbackTitle.innerHTML = `<i class="fa-solid fa-circle-xmark text-red"></i> ❌ 아쉽게도 오답입니다.`;
+        quizWrongList.push({
+            question: qData.question,
+            chosen: qData.options[selectedIndex],
+            correct: qData.options[qData.answer],
+            explanation: qData.explanation
+        });
+    }
+
+    document.getElementById('quiz-score-text').textContent = `맞힌 문제: ${quizCorrectCount}개`;
+    feedbackDesc.textContent = qData.explanation;
+    feedbackBox.classList.remove('hidden');
+}
+
+function nextQuestion() {
+    currentQuizIndex++;
+    if (currentQuizIndex < activeQuestions.length) {
+        renderQuestion();
+    } else {
+        showQuizResult();
+    }
+}
+
+function showQuizResult() {
+    document.getElementById('quiz-play-screen').classList.remove('active');
+    document.getElementById('quiz-result-screen').classList.add('active');
+
+    const score = currentQuizScore();
+    document.getElementById('quiz-final-score').textContent = score.toString();
+
+    const badgeIcon = document.getElementById('result-badge-icon');
+    const resultTitle = document.getElementById('quiz-result-title');
+    const tierText = document.getElementById('quiz-tier');
+    const feedbackSummary = document.getElementById('quiz-feedback-summary');
+
+    if (quizMode === 'pre') {
+        // 사전 진단은 등급을 매기지 않는다 — '무엇을 모르는지 확인'이 목적
+        badgeIcon.className = "fa-solid fa-compass result-award-icon";
+        badgeIcon.style.color = "#2563eb";
+        resultTitle.textContent = "사전 진단이 끝났습니다!";
+        tierText.textContent = "지금부터 배울 것 찾기";
+        feedbackSummary.textContent = quizWrongList.length === 0
+            ? "이미 기본 개념을 잘 알고 있네요. 앞으로는 '어떤 조건에서 어떤 에너지를 골라야 하는가'를 판단하는 활동에 집중해 봅시다."
+            : `헷갈린 문제가 ${quizWrongList.length}개 있었습니다. 지금은 몰라도 괜찮습니다 — 아래 오답 노트의 내용이 앞으로 다섯 차시 동안 배울 내용입니다.`;
+    } else if (score === 100) {
+        badgeIcon.className = "fa-solid fa-crown result-award-icon";
+        badgeIcon.style.color = "#d97706";
+        resultTitle.textContent = "완벽합니다! 백점만점!";
+        tierText.textContent = "미래 에너지 마스터 👑";
+        feedbackSummary.textContent = "발전 원리와 장단점은 물론, 조건에 맞는 에너지 선택까지 설명할 수 있는 수준입니다. 제안서에도 근거를 자신 있게 적어 보세요!";
+    } else if (score >= 80) {
+        badgeIcon.className = "fa-solid fa-award result-award-icon";
+        badgeIcon.style.color = "#059669";
+        resultTitle.textContent = "훌륭합니다!";
+        tierText.textContent = "그린 에너지 전문가 🥇";
+        feedbackSummary.textContent = "신재생에너지에 대한 이해가 아주 훌륭합니다. 아래 오답 노트만 한 번 더 읽어 보면 마스터 등급도 어렵지 않습니다.";
+    } else if (score >= 50) {
+        badgeIcon.className = "fa-solid fa-medal result-award-icon";
+        badgeIcon.style.color = "#2563eb";
+        resultTitle.textContent = "좋은 성적입니다!";
+        tierText.textContent = "에너지 꿈나무 🥈";
+        feedbackSummary.textContent = "원리는 파악했지만 간헐성이나 조건별 판단에서 헷갈린 부분이 있습니다. 발전 실험실에서 슬라이더를 다시 조작해 보면 훨씬 또렷해집니다.";
+    } else {
+        badgeIcon.className = "fa-solid fa-seedling result-award-icon";
+        badgeIcon.style.color = "#ef4444";
+        resultTitle.textContent = "조금만 더 힘내요!";
+        tierText.textContent = "에너지 탐구자 🥉";
+        feedbackSummary.textContent = "발전 실험실에서 조건을 바꿔 가며 발전량이 어떻게 달라지는지 다시 관찰해 보세요. 오답 노트의 해설을 읽고 나면 훨씬 쉬워집니다.";
+    }
+
+    renderWrongNote();
+    saveQuizResult(quizMode, score, quizCorrectCount, activeQuestions.length, quizWrongList);
+}
+
+function renderWrongNote() {
+    const box = document.getElementById('quiz-wrong-note');
+    const list = document.getElementById('quiz-wrong-list');
+
+    if (quizWrongList.length === 0) {
+        box.classList.add('hidden');
+        return;
+    }
+
+    list.innerHTML = quizWrongList.map(w => `
+        <div class="wrong-item">
+            <p class="wrong-q">${escapeHTML(w.question)}</p>
+            <p class="wrong-line"><span class="wl-x">내가 고른 답</span> ${escapeHTML(w.chosen)}</p>
+            <p class="wrong-line"><span class="wl-o">정답</span> ${escapeHTML(w.correct)}</p>
+            <p class="wrong-exp">${escapeHTML(w.explanation)}</p>
+        </div>
+    `).join('');
+    box.classList.remove('hidden');
+}
+
+function resetQuiz() {
+    document.getElementById('quiz-result-screen').classList.remove('active');
+    document.getElementById('quiz-start-screen').classList.add('active');
+}
+
+/* ==========================================
+   5. 대한민국 에너지 지형도 미션 로직
+   ========================================== */
+const MAP_MISSIONS = [
+    { id: 'seohae', name: '서해안 (경기만 일대)', x: 120, y: 220, hint: '이곳 서해안은 밀물과 썰물의 수위 차(낙차)가 세계적으로 큽니다. 방조제를 쌓아 만들 수 있는 이 발전은?', correct: 'tidal_barrage' },
+    { id: 'jeju', name: '제주도', x: 120, y: 650, hint: '제주도는 연중 바람이 매우 강하게 부는 지역입니다. 거대한 회전 날개를 세워 전기를 만드는 이 발전은?', correct: 'wind' },
+    { id: 'donghae', name: '동해안·울릉도', x: 430, y: 220, hint: '울릉도와 동해안은 파도가 높게 치는 곳입니다. 파도의 상하 출렁임을 이용해 부표를 띄우는 이 발전은?', correct: 'wave' },
+    { id: 'city', name: '수도권 대도시', x: 200, y: 250, hint: '이곳은 인구가 밀집된 대도시입니다. 아파트 베란다나 건물 옥상 유휴 공간에 쉽게 설치할 수 있는 발전은?', correct: 'solar' },
+    { id: 'mountain', name: '태백산맥 산간 지역', x: 300, y: 150, hint: '이곳은 산세가 험하고 비가 많이 와 물을 가두기 좋습니다. 댐을 건설하여 물의 위치에너지를 이용하는 이 발전은?', correct: 'hydro' },
+    { id: 'base', name: '남동 임해 산업 단지', x: 350, y: 450, hint: '이곳은 대규모 산업 단지가 있어 24시간 안정적인 기저 전력이 필요합니다. 우라늄을 원료로 하는 이 발전은?', correct: 'nuclear' }
+];
+
+const ENERGY_LABELS = {
+    solar: '태양광', wind: '풍력', hydro: '수력',
+    tidal_barrage: '조력', wave: '파력', nuclear: '원자력'
+};
+
+let mapMissionsCompleted = [];
+let currentMissionId = null;
+
+function initMapGame() {
+    const svg = document.getElementById('korea-map-svg');
+    if (!svg) return;
+
+    // 저장된 기록이 있으면 완료 지역을 복원한다
+    mapMissionsCompleted = Object.keys(classState.mapReasons || {});
+
+    MAP_MISSIONS.forEach(mission => {
+        const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        group.setAttribute('class', 'map-marker');
+        group.setAttribute('data-id', mission.id);
+        group.setAttribute('transform', `translate(${mission.x}, ${mission.y})`);
+
+        const isDone = mapMissionsCompleted.includes(mission.id);
+
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('cx', '0');
+        circle.setAttribute('cy', '0');
+        circle.setAttribute('r', isDone ? '18' : '15');
+        circle.setAttribute('fill', isDone ? '#10b981' : '#f59e0b');
+        if (!isDone) circle.setAttribute('class', 'marker-pulse');
+
+        const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        text.setAttribute('x', '0');
+        text.setAttribute('y', '5');
+        text.setAttribute('text-anchor', 'middle');
+        text.setAttribute('fill', '#fff');
+        text.setAttribute('font-weight', 'bold');
+        text.textContent = isDone ? 'O' : '?';
+
+        group.appendChild(circle);
+        group.appendChild(text);
+        
+        group.addEventListener('click', () => {
+            if (mapMissionsCompleted.includes(mission.id)) {
+                showToast(`${mission.name}은(는) 이미 완료했습니다. 아래 기록장에서 근거를 고쳐 쓸 수 있어요.`, "info");
+                return;
+            }
+
+            currentMissionId = mission.id;
+            document.getElementById('mission-status-content').innerHTML = `
+                <div class="mission-hint-box">
+                    <span class="mission-place">${mission.name}</span>
+                    <p>${mission.hint}</p>
+                </div>
+            `;
+            document.querySelectorAll('.energy-badge').forEach(b => b.classList.remove('badge-correct'));
+        });
+
+        svg.appendChild(group);
+    });
+
+    renderMapProgress();
+    renderMapReasons();
+
+    document.querySelectorAll('.energy-badge').forEach(badge => {
+        badge.addEventListener('click', () => {
+            if (!currentMissionId) {
+                showToast("먼저 지도에서 깜빡이는 '?' 마커를 눌러 미션 지역을 골라 주세요.", "warn");
+                return;
+            }
+
+            const selectedEnergy = badge.getAttribute('data-energy');
+            const mission = MAP_MISSIONS.find(m => m.id === currentMissionId);
+
+            if (mission.correct === selectedEnergy) {
+                mapMissionsCompleted.push(mission.id);
+                badge.classList.add('badge-correct');
+
+                const marker = document.querySelector(`.map-marker[data-id="${mission.id}"]`);
+                marker.innerHTML = `
+                    <circle cx="0" cy="0" r="18" fill="#10b981"></circle>
+                    <text x="0" y="5" text-anchor="middle" fill="#fff" font-weight="bold">O</text>
+                `;
+
+                // 정답 뒤에는 곧바로 '왜 알맞은지' 근거를 쓰게 한다
+                document.getElementById('mission-status-content').innerHTML = `
+                    <div class="mission-ok-box">
+                        <p class="mission-ok-title">🎉 정답! ${mission.name}에 <strong>${ENERGY_LABELS[selectedEnergy]} 발전소</strong>를 세웠습니다.</p>
+                        <label class="reason-input-label">이 지역에 왜 알맞을까요? 한 문장으로 적어 보세요.</label>
+                        <textarea id="reason-input" rows="3" placeholder="예: 서해안은 밀물과 썰물의 높이 차가 커서 방조제 아래 수차를 돌릴 힘이 충분하기 때문이다."></textarea>
+                        <button class="btn btn-primary btn-sm" id="btn-save-reason">
+                            <i class="fa-solid fa-floppy-disk"></i> 근거 저장하기
+                        </button>
+                    </div>
+                `;
+
+                const savedMission = mission;
+                const savedEnergy = selectedEnergy;
+                document.getElementById('btn-save-reason').addEventListener('click', () => {
+                    const text = document.getElementById('reason-input').value.trim();
+                    if (!text) {
+                        showToast("근거를 한 문장이라도 적어 주세요. 이 문장이 5차시 제안서의 재료가 됩니다.", "warn");
+                        return;
+                    }
+                    saveMapReason(savedMission.id, savedMission.name, savedEnergy, text);
+                    document.getElementById('mission-status-content').innerHTML = `
+                        <div class="empty-mission-state">근거를 저장했습니다! 지도에서 다음 <strong style="color:#f97316;">? 마커</strong>를 눌러 주세요.</div>
+                    `;
+                    showToast("입지 근거를 저장했습니다.", "ok");
+                });
+
+                currentMissionId = null;
+                renderMapProgress();
+
+                if (mapMissionsCompleted.length === MAP_MISSIONS.length) {
+                    showToast("🎊 여섯 지역을 모두 완성했습니다! 아래 기록장의 근거를 다시 읽어 보세요.", "ok", 5000);
+                }
+            } else {
+                document.getElementById('mission-status-content').innerHTML = `
+                    <div class="mission-no-box">
+                        <p><strong>다시 생각해 볼까요?</strong></p>
+                        <p>${ENERGY_LABELS[selectedEnergy]} 발전은 이 지역의 조건과 잘 맞지 않습니다. 힌트에 나온 <strong>지형·기후 단어</strong>에 밑줄을 그어 보고 다시 골라 보세요.</p>
+                        <p class="mission-hint-again">${mission.hint}</p>
+                    </div>
+                `;
+            }
+        });
+    });
+}
+
+function renderMapProgress() {
+    const done = mapMissionsCompleted.length;
+    const total = MAP_MISSIONS.length;
+    document.getElementById('map-progress-text').textContent = `${done} / ${total} 지역`;
+    document.getElementById('map-progress-bar').style.width = `${(done / total) * 100}%`;
+}
+
+
+/* ==========================================
+   6. 수업 운영 모듈 (모둠 기록 · 차시 안내 · 제안서)
+   ========================================== */
+
+const STORAGE_KEY = 'greencity-classroom-v1';
+
+function defaultClassState() {
+    return {
+        team: '',
+        lesson: 2,
+        labRecords: [],
+        exploredEnergies: [],
+        questsDone: [],
+        mapReasons: {},
+        rationale: { condition: '', choice: '', revision: '' },
+        simRuns: [],
+        quiz: { pre: null, final: null },
+        report: { problem: '', mix: '', evidence: '', effect: '' },
+        peer: { checks: [false, false, false, false, false], question: '' }
+    };
+}
+
+let classState = defaultClassState();
+
+function loadClassState() {
+    try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) classState = Object.assign(defaultClassState(), JSON.parse(raw));
+    } catch (e) {
+        // 저장 공간을 쓸 수 없는 환경에서도 수업은 진행되어야 한다
+        classState = defaultClassState();
+    }
+}
+
+let saveTimer = null;
+function saveClassState() {
+    try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(classState));
+    } catch (e) { /* 저장 실패해도 화면 동작은 유지 */ }
+
+    const indicator = document.getElementById('save-indicator');
+    if (!indicator) return;
+    indicator.classList.add('saved');
+    indicator.innerHTML = `<i class="fa-solid fa-check"></i> 저장됨`;
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => {
+        indicator.classList.remove('saved');
+        indicator.innerHTML = `<i class="fa-solid fa-cloud-arrow-down"></i> 자동 저장`;
+    }, 1500);
+}
+
+function escapeHTML(str) {
+    return String(str === null || str === undefined ? '' : str)
+        .replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+/* ------------------------------------------
+   공용 UI: 토스트 알림 / 확인 대화상자
+   ------------------------------------------ */
+function showToast(message, type = 'info', duration = 3200) {
+    const area = document.getElementById('toast-area');
+    if (!area) return;
+
+    const icons = { ok: 'fa-circle-check', warn: 'fa-triangle-exclamation', info: 'fa-circle-info' };
+    const el = document.createElement('div');
+    el.className = `toast toast-${type}`;
+    el.innerHTML = `<i class="fa-solid ${icons[type] || icons.info}"></i><span>${escapeHTML(message)}</span>`;
+    area.appendChild(el);
+
+    setTimeout(() => {
+        el.classList.add('toast-out');
+        setTimeout(() => el.remove(), 300);
+    }, duration);
+}
+
+let confirmCallback = null;
+function showConfirm(title, message, onOk) {
+    document.getElementById('confirm-title').textContent = title;
+    document.getElementById('confirm-message').textContent = message;
+    confirmCallback = onOk;
+    document.getElementById('confirm-modal').classList.remove('hidden');
+}
+
+/* ------------------------------------------
+   차시 안내 데이터
+   ------------------------------------------ */
+const LESSONS = {
+    1: {
+        tab: 'quiz',
+        title: '에너지 전환의 필요성',
+        mission: '우리 도시의 전기가 어디서 오는지 살펴보고, 사전 진단 골든벨로 내가 아는 것과 모르는 것을 확인합니다.',
+        criteria: [
+            '사전 진단 골든벨 5문항을 끝까지 풀었다.',
+            '오답 노트를 읽고 앞으로 배울 내용을 한 가지 이상 말할 수 있다.',
+            '우리 모둠의 탐구 질문을 한 문장으로 정했다.'
+        ],
+        tool: '에너지 골든벨 (사전 진단 모드)',
+        teacher: '점수를 공개하지 않고 “무엇이 헷갈렸는지”만 발표하게 하면 진단 활동의 부담이 줄어듭니다. 오답이 많이 나온 문항을 판서해 두었다가 5차시에 다시 확인하세요.'
+    },
+    2: {
+        tab: 'lab',
+        title: '발전 원리 탐구',
+        mission: '슬라이더로 조건을 바꿔 가며 발전량이 어떻게 달라지는지 스스로 찾아내고, 9가지 에너지원을 비교해 정리합니다.',
+        criteria: [
+            '탐구 미션 10개 중 7개 이상을 찾아냈다.',
+            '9가지 에너지원을 모두 눌러 비교표를 완성했다.',
+            '실험 기록표에 조건과 결과를 3건 이상 남겼다.',
+            '조건이 나빠지면 발전이 멈추는 성질(간헐성)을 말로 설명할 수 있다.'
+        ],
+        tool: '발전 실험실 (탐구 미션 · 비교표 · 기록표)',
+        teacher: '정답을 먼저 알려주지 마세요. 탐구 미션은 학생이 조건을 찾아내면 자동으로 체크되고 그때서야 원리가 공개됩니다. “멈추는 조건 5개”를 모두 찾은 모둠에게 간헐성을 자기 말로 설명하게 한 뒤 전체 공유하면 좋습니다.'
+    },
+    3: {
+        tab: 'map',
+        title: '지형과 에너지 입지',
+        mission: '지역의 지형·기후 단서를 읽고 알맞은 발전소를 배치한 뒤, 왜 알맞은지 근거를 씁니다.',
+        criteria: [
+            '6개 지역의 발전소를 모두 맞게 배치했다.',
+            '각 지역마다 입지 근거를 한 문장으로 적었다.',
+            '근거에 지형이나 기후를 나타내는 낱말이 들어 있다.'
+        ],
+        tool: '에너지 지형도 + 입지 근거 기록장',
+        teacher: '정답을 맞히는 것보다 근거 문장이 중요합니다. “바람이 세다” 수준의 문장을 “연평균 풍속이 높아 날개가 정격 회전에 도달한다”처럼 다듬도록 발문하세요.'
+    },
+    4: {
+        tab: 'game',
+        title: '그린시티 설계 (본시)',
+        mission: '예산과 기후 조건 속에서 발전소를 배치하고, 24시간 시뮬레이션 결과를 근거로 설계를 한 번 이상 수정합니다.',
+        criteria: [
+            '예산 안에서 6개 슬롯에 발전 시설을 배치했다.',
+            '24시간 시뮬레이션을 돌리고 정전 시각을 확인했다.',
+            '결과를 근거로 배치를 1회 이상 수정했다.',
+            '설계 근거 기록지 ①②③을 모두 채웠다.'
+        ],
+        tool: '그린시티 건설 + 설계 근거 기록지',
+        teacher: '모둠 역할(설계·기록·검증)을 먼저 정하고, 태블릿은 모둠당 2대로 제한합니다. 시뮬레이션을 [일시정지]해 정전이 난 시각의 화면을 함께 읽는 순간이 핵심 발문 지점입니다.'
+    },
+    5: {
+        tab: 'report',
+        title: '우리 도시 에너지 제안',
+        mission: '앞선 차시의 기록을 모아 제안서를 완성하고, 패들렛에 공유한 뒤 서로의 제안에 질문을 남깁니다.',
+        criteria: [
+            '제안서에 시뮬레이션 수치가 들어간 근거를 3가지 적었다.',
+            '좋은 점과 걱정되는 점을 모두 적었다.',
+            '다른 모둠의 제안서에 질문을 1개 남겼다.',
+            '정리 골든벨로 배운 내용을 확인했다.'
+        ],
+        tool: '에너지 제안서 + 패들렛 + 정리 골든벨',
+        teacher: '제안서의 [복사] 버튼으로 패들렛에 바로 붙여넣게 하면 옮겨 적는 시간을 줄일 수 있습니다. 상호 평가는 점수가 아니라 질문 1개 남기기로 운영하세요.'
+    }
+};
+
+/* ------------------------------------------
+   수업 운영 바
+   ------------------------------------------ */
+function initClassroomBar() {
+    const teamInput = document.getElementById('team-name');
+    teamInput.value = classState.team;
+    teamInput.addEventListener('input', () => {
+        classState.team = teamInput.value;
+        saveClassState();
+    });
+
+    document.getElementById('btn-reset-all').addEventListener('click', () => {
+        showConfirm(
+            '기록을 모두 지울까요?',
+            '이 태블릿에 저장된 모둠 이름, 실험 기록, 입지 근거, 설계 근거, 제안서가 모두 지워집니다. 되돌릴 수 없습니다.',
+            () => {
+                try { localStorage.removeItem(STORAGE_KEY); } catch (e) { /* 무시 */ }
+                location.reload();
+            }
+        );
+    });
+
+    document.getElementById('btn-confirm-ok').addEventListener('click', () => {
+        document.getElementById('confirm-modal').classList.add('hidden');
+        if (confirmCallback) confirmCallback();
+        confirmCallback = null;
+    });
+    document.getElementById('btn-confirm-cancel').addEventListener('click', () => {
+        document.getElementById('confirm-modal').classList.add('hidden');
+        confirmCallback = null;
+    });
+
+    renderLessonBrief();
+    switchTab(LESSONS[classState.lesson].tab, classState.lesson);
+}
+
+function renderLessonBrief() {
+    const n = classState.lesson;
+    const info = LESSONS[n];
+
+    document.getElementById('brief-tag').textContent = `${n}차시`;
+    document.getElementById('brief-title').textContent = info.title;
+    document.getElementById('brief-mission').textContent = info.mission;
+    document.getElementById('brief-criteria').innerHTML =
+        info.criteria.map(c => `<li>${escapeHTML(c)}</li>`).join('');
+}
+
+/* ------------------------------------------
+   2차시: 발전 실험실 기록표
+   ------------------------------------------ */
+function initLabRecords() {
+    document.getElementById('btn-record-lab').addEventListener('click', () => {
+        const snap = getLabSnapshot();
+        classState.labRecords.push(snap);
+        saveClassState();
+        renderLabRecords();
+        showToast(`${snap.energy} 조건을 기록했습니다. '알게 된 점'도 적어 보세요.`, 'ok');
+    });
+
+    document.getElementById('btn-clear-lab-records').addEventListener('click', () => {
+        if (classState.labRecords.length === 0) return;
+        showConfirm('실험 기록을 모두 지울까요?', '표에 적은 내용이 모두 사라집니다.', () => {
+            classState.labRecords = [];
+            saveClassState();
+            renderLabRecords();
+            showToast('실험 기록을 비웠습니다.', 'info');
+        });
+    });
+
+    renderLabRecords();
+}
+
+// 지금 화면에 보이는 조건과 결과를 그대로 한 줄로 담아 온다
+function getLabSnapshot() {
+    const energyBtn = document.querySelector('.energy-tab.active');
+    const panel = document.querySelector('.energy-controls.active');
+
+    const conditions = Array.from(panel.querySelectorAll('.slider-group')).map(group => {
+        const spans = group.querySelectorAll('label > span');
+        if (spans.length < 2) return '';
+        return `${spans[0].textContent.trim()} → ${spans[1].textContent.trim()}`;
+    }).filter(Boolean).join(' / ');
+
+    return {
+        energy: energyBtn ? energyBtn.textContent.trim() : '알 수 없음',
+        condition: conditions,
+        efficiency: document.getElementById('metric-efficiency').textContent,
+        generation: document.getElementById('metric-generation').textContent,
+        note: ''
+    };
+}
+
+function renderLabRecords() {
+    const body = document.getElementById('lab-record-body');
+    const empty = document.getElementById('lab-record-empty');
+    const summary = document.getElementById('lab-record-summary');
+    const records = classState.labRecords;
+
+    if (records.length === 0) {
+        body.innerHTML = '';
+        empty.classList.remove('hidden');
+        summary.classList.add('hidden');
+        return;
+    }
+    empty.classList.add('hidden');
+
+    body.innerHTML = records.map((r, i) => `
+        <tr>
+            <td><strong>${escapeHTML(r.energy)}</strong></td>
+            <td class="cell-cond">${escapeHTML(r.condition)}</td>
+            <td class="cell-num">${escapeHTML(r.efficiency)}</td>
+            <td class="cell-num">${escapeHTML(r.generation)}</td>
+            <td><input type="text" class="note-input" data-index="${i}" value="${escapeHTML(r.note)}" placeholder="예: 낮 12시에 가장 많이 만들어진다."></td>
+            <td><button class="row-del" data-index="${i}" title="이 줄 지우기"><i class="fa-solid fa-xmark"></i></button></td>
+        </tr>
+    `).join('');
+
+    body.querySelectorAll('.note-input').forEach(input => {
+        input.addEventListener('input', () => {
+            classState.labRecords[parseInt(input.dataset.index)].note = input.value;
+            saveClassState();
+        });
+    });
+    body.querySelectorAll('.row-del').forEach(btn => {
+        btn.addEventListener('click', () => {
+            classState.labRecords.splice(parseInt(btn.dataset.index), 1);
+            saveClassState();
+            renderLabRecords();
+        });
+    });
+
+    renderLabSummary(records, summary);
+}
+
+// 기록이 쌓이면 "가장 잘 만든 조건"을 자동으로 짚어 준다
+function renderLabSummary(records, summaryEl) {
+    const byEnergy = {};
+    records.forEach(r => {
+        const eff = parseInt(r.efficiency) || 0;
+        if (!byEnergy[r.energy] || eff > byEnergy[r.energy].eff) {
+            byEnergy[r.energy] = { eff, condition: r.condition };
+        }
+    });
+
+    const lines = Object.keys(byEnergy).map(energy => {
+        const b = byEnergy[energy];
+        if (b.eff === 0) {
+            return `<li><strong>${escapeHTML(energy)}</strong> — 아직 전기가 만들어진 조건을 찾지 못했습니다. 조건을 더 바꿔 보세요.</li>`;
+        }
+        return `<li><strong>${escapeHTML(energy)}</strong> — 효율이 가장 높았던 조건은 <em>${escapeHTML(b.condition)}</em> (${b.eff}%)</li>`;
+    });
+
+    const zeroCases = records.filter(r => (parseInt(r.efficiency) || 0) === 0);
+    let zeroLine = '';
+    if (zeroCases.length > 0) {
+        zeroLine = `<p class="summary-zero">⚡ 발전량이 <strong>0</strong>이 된 경우가 ${zeroCases.length}번 있었습니다. 신재생에너지가 조건에 따라 멈추는 이 성질을 <strong>간헐성</strong>이라고 합니다.</p>`;
+    }
+
+    summaryEl.innerHTML = `
+        <h5><i class="fa-solid fa-magnifying-glass-chart"></i> 기록에서 찾은 규칙</h5>
+        <ul>${lines.join('')}</ul>
+        ${zeroLine}
+    `;
+    summaryEl.classList.remove('hidden');
+}
+
+/* ------------------------------------------
+   2차시: 탐구 미션 + 에너지원 비교표
+   ------------------------------------------ */
+
+// 슬라이더 값을 숫자로 읽는 도우미
+function sv(id) { return parseFloat(document.getElementById(id).value); }
+
+/*
+   미션은 정답을 알려주지 않는다. 학생이 조건을 직접 찾아내면 자동으로 체크된다.
+   max 그룹 = 조건이 좋을 때 최대 출력 / stop 그룹 = 조건이 나쁘면 멈춤(간헐성)
+*/
+const LAB_QUESTS = [
+    {
+        id: 'hydro-max', group: 'max', energy: 'hydro', label: '수력',
+        text: '수문을 끝까지 열어 효율 100%를 만들어 보자',
+        reveal: '유량이 많을수록 수차를 더 세게 밀어 발전량이 늘어납니다.',
+        check: () => activeEnergy === 'hydro' && sv('hydro-flow') === 100
+    },
+    {
+        id: 'geo-hot', group: 'max', energy: 'geo', label: '지열',
+        text: '땅속 온도가 60℃를 넘어 증기가 만들어지는 깊이를 찾아보자',
+        reveal: '100m 내려갈 때마다 약 3℃씩 오릅니다. 1,500m부터 물이 끓기 시작했습니다.',
+        check: () => activeEnergy === 'geo' && sv('geo-depth') >= 1500
+    },
+    {
+        id: 'tidal-max', group: 'max', energy: 'tidal_barrage', label: '조력',
+        text: '밀물과 썰물의 수위차를 최대로 벌려 보자',
+        reveal: '수위차(낙차)가 클수록 방조제 아래 수차가 강하게 돌아갑니다.',
+        check: () => activeEnergy === 'tidal_barrage' && sv('tidal-head') === 9
+    },
+    {
+        id: 'wave-max', group: 'max', energy: 'wave', label: '파력',
+        text: '파도를 가장 높게 만들어 효율 100%를 내 보자',
+        reveal: '파고가 높을수록 부표가 크게 오르내리며 유압 실린더를 밀어 줍니다.',
+        check: () => activeEnergy === 'wave' && sv('wave-height') === 5
+    },
+    {
+        id: 'nuclear-max', group: 'max', energy: 'nuclear', label: '원자력',
+        text: '제어봉을 조절해 최대 출력을 내 보자',
+        reveal: '제어봉을 뽑을수록 핵분열이 활발해집니다. 그래서 제어봉은 원자로의 브레이크입니다.',
+        check: () => activeEnergy === 'nuclear' && sv('nuclear-rod') === 0
+    },
+
+    {
+        id: 'solar-dark', group: 'stop', energy: 'solar', label: '태양광',
+        text: '태양광 발전량이 0이 되는 시각을 찾아보자',
+        reveal: '해가 뜨기 전과 진 뒤에는 빛이 없어 전기를 전혀 만들지 못합니다.',
+        check: () => activeEnergy === 'solar' && (sv('solar-time') <= 6 || sv('solar-time') >= 18)
+    },
+    {
+        id: 'solar-rain', group: 'stop', energy: 'solar', label: '태양광',
+        text: '낮 12시인데도 발전량이 뚝 떨어지는 날씨를 찾아보자',
+        reveal: '같은 정오라도 비가 오면 효율이 5%까지 내려갑니다. 시각뿐 아니라 날씨도 변인입니다.',
+        check: () => activeEnergy === 'solar' && sv('solar-time') === 12 && sv('solar-weather') === 1
+    },
+    {
+        id: 'wind-calm', group: 'stop', energy: 'wind', label: '풍력',
+        text: '바람이 약해서 날개가 돌지 못하는 풍속을 찾아보자',
+        reveal: '3m/s보다 약한 바람은 무거운 날개를 돌릴 힘이 되지 못합니다.',
+        check: () => activeEnergy === 'wind' && sv('wind-speed') < 3
+    },
+    {
+        id: 'wind-cutout', group: 'stop', energy: 'wind', label: '풍력',
+        text: '바람이 너무 세서 발전기가 스스로 멈추는 풍속을 찾아보자',
+        reveal: '20m/s를 넘으면 부서지지 않도록 스스로 멈춥니다. 이것을 컷아웃(Cut-out)이라고 합니다.',
+        check: () => activeEnergy === 'wind' && sv('wind-speed') > 20
+    },
+    {
+        id: 'current-slow', group: 'stop', energy: 'tidal_current', label: '조류',
+        text: '해저 터빈이 돌지 못하는 느린 유속을 찾아보자',
+        reveal: '1.0m/s보다 느리면 물살이 터빈을 돌리지 못합니다. 그래서 물살이 빠른 좁은 물길에 짓습니다.',
+        check: () => activeEnergy === 'tidal_current' && sv('tidal-velocity') < 1.0
+    }
+];
+
+// 9가지 에너지원의 특성 (비교표 · 성취기준 [9기가03-10])
+const ENERGY_FACTS = {
+    solar: {
+        name: '태양광', icon: 'fa-sun', use: '햇빛(빛에너지)', carbon: '없음',
+        stop: '밤·흐린 날·비 오는 날에 크게 줄거나 멈춤',
+        place: '건물 옥상, 넓은 평지, 저수지 수면(수상 태양광)',
+        think: '넓은 땅이 필요해 농지·산림과 자리를 두고 다툴 수 있다'
+    },
+    wind: {
+        name: '풍력', icon: 'fa-wind', use: '바람(운동에너지)', carbon: '없음',
+        stop: '바람이 약해도(3m/s 미만), 너무 세도(20m/s 초과) 멈춤',
+        place: '제주도, 대관령 같은 고지대, 해안·해상',
+        think: '날개 소음과 그림자가 가까이 사는 주민에게 불편을 줄 수 있다'
+    },
+    hydro: {
+        name: '수력', icon: 'fa-droplet', use: '높은 곳의 물이 떨어지는 힘', carbon: '없음',
+        stop: '가뭄으로 댐 수위가 낮아지면 크게 줄어듦',
+        place: '비가 많고 산세가 험한 산간 계곡의 댐',
+        think: '댐을 만들면 마을과 숲이 물에 잠기고 물고기 길이 끊긴다'
+    },
+    geo: {
+        name: '지열', icon: 'fa-fire-flame-simple', use: '땅속 깊은 곳의 열', carbon: '없음',
+        stop: '날씨·밤낮과 관계없이 24시간 꾸준함',
+        place: '화산 지형이나 온천 지대 (우리나라는 조건이 제한적)',
+        think: '깊이 시추하는 과정에서 작은 지진이 생길 수 있다'
+    },
+    tidal_barrage: {
+        name: '조력', icon: 'fa-bridge', use: '밀물과 썰물의 수위차', carbon: '없음',
+        stop: '수위차가 벌어지는 하루 네 번 무렵에만 발전',
+        place: '조수 간만의 차가 큰 서해안(경기만)',
+        think: '방조제가 갯벌 생태계와 어민의 생활을 바꿀 수 있다'
+    },
+    tidal_current: {
+        name: '조류', icon: 'fa-water-ladder', use: '빠르게 흐르는 바닷물', carbon: '없음',
+        stop: '유속이 1.0m/s보다 느리면 터빈이 멈춤',
+        place: '울돌목처럼 물살이 빠른 좁은 물길',
+        think: '댐이 없어 갯벌 훼손은 적지만 배가 다니는 길과 겹칠 수 있다'
+    },
+    wave: {
+        name: '파력', icon: 'fa-wave-square', use: '파도가 오르내리는 힘', carbon: '없음',
+        stop: '바다가 잔잔하면 발전량이 크게 줄어듦',
+        place: '파도가 높은 동해안과 제주 앞바다',
+        think: '바닷물과 태풍에 시달려 시설이 잘 상하고 수리가 어렵다'
+    },
+    fossil: {
+        name: '화석연료', icon: 'fa-industry', use: '석탄·석유를 태운 열', carbon: '매우 많음',
+        stop: '연료만 넣으면 날씨와 관계없이 24시간 가동',
+        place: '전기를 많이 쓰는 대도시 가까운 화력 발전소',
+        think: '온실가스와 미세먼지의 가장 큰 원인이며 언젠가 고갈된다'
+    },
+    nuclear: {
+        name: '원자력', icon: 'fa-radiation', use: '우라늄의 핵분열 열', carbon: '발전 중에는 거의 없음',
+        stop: '날씨와 관계없이 24시간 꾸준함(기저 발전)',
+        place: '냉각수를 얻기 쉬운 바닷가',
+        think: '사고 위험과 수만 년 보관해야 하는 방사성 폐기물 문제가 남는다'
+    }
+};
+
+const ENERGY_ORDER = ['solar', 'wind', 'hydro', 'geo', 'tidal_barrage', 'tidal_current', 'wave', 'fossil', 'nuclear'];
+
+function initLabExploration() {
+    // 실험실에서 에너지원을 누르면 '탐험함'으로 기록된다
+    document.querySelectorAll('.energy-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            markEnergyExplored(tab.getAttribute('data-energy'));
+            checkLabQuests();
+        });
+    });
+
+    // 슬라이더를 움직일 때마다 미션 달성 여부를 살핀다
+    document.querySelectorAll('.energy-controls input[type="range"]').forEach(slider => {
+        slider.addEventListener('input', checkLabQuests);
+    });
+
+    markEnergyExplored('solar');   // 처음 화면에 열려 있는 태양광은 이미 만난 셈
+    renderQuests();
+    renderEnergyCompare();
+    checkLabQuests();
+}
+
+function markEnergyExplored(energy) {
+    if (!energy || classState.exploredEnergies.includes(energy)) return;
+    classState.exploredEnergies.push(energy);
+    saveClassState();
+    renderEnergyCompare();
+}
+
+function checkLabQuests() {
+    let newlyDone = null;
+
+    LAB_QUESTS.forEach(q => {
+        if (classState.questsDone.includes(q.id)) return;
+        let ok = false;
+        try { ok = q.check(); } catch (e) { ok = false; }
+        if (ok) {
+            classState.questsDone.push(q.id);
+            newlyDone = q;
+        }
+    });
+
+    if (newlyDone) {
+        saveClassState();
+        renderQuests();
+        showToast(`🔎 발견! ${newlyDone.label} — ${newlyDone.reveal}`, 'ok', 6000);
+    }
+}
+
+function renderQuests() {
+    const done = classState.questsDone;
+
+    ['max', 'stop'].forEach(group => {
+        const box = document.getElementById(`quest-list-${group}`);
+        box.innerHTML = LAB_QUESTS.filter(q => q.group === group).map(q => {
+            const isDone = done.includes(q.id);
+            return `
+                <div class="quest-item ${isDone ? 'quest-done' : ''}">
+                    <i class="fa-solid ${isDone ? 'fa-circle-check' : 'fa-circle'}"></i>
+                    <div>
+                        <span class="quest-label">${escapeHTML(q.label)}</span>
+                        <p class="quest-text">${escapeHTML(q.text)}</p>
+                        ${isDone ? `<p class="quest-reveal">${escapeHTML(q.reveal)}</p>` : ''}
+                    </div>
+                </div>
+            `;
+        }).join('');
+    });
+
+    document.getElementById('quest-count').textContent = `${done.length} / ${LAB_QUESTS.length}`;
+    document.getElementById('quest-bar').style.width = `${(done.length / LAB_QUESTS.length) * 100}%`;
+
+    renderQuestConclusion(done);
+}
+
+// 미션이 모이면 스스로 결론을 내리도록 발문을 띄운다
+function renderQuestConclusion(done) {
+    const box = document.getElementById('quest-conclusion');
+    const stopIds = LAB_QUESTS.filter(q => q.group === 'stop').map(q => q.id);
+    const stopDone = stopIds.filter(id => done.includes(id)).length;
+
+    if (done.length === LAB_QUESTS.length) {
+        box.className = 'quest-conclusion conclusion-all';
+        box.innerHTML = `
+            <h5>🎉 10가지 비밀을 모두 찾았습니다!</h5>
+            <p>같은 발전소라도 <strong>조건에 따라 0%가 되기도, 100%가 되기도</strong> 했습니다.
+            그렇다면 우리 도시에 발전소를 지을 때는 무엇을 함께 생각해야 할까요?
+            4차시 <strong>그린시티 건설</strong>에서 직접 골라 봅시다.</p>
+        `;
+    } else if (stopDone === stopIds.length) {
+        box.className = 'quest-conclusion conclusion-stop';
+        box.innerHTML = `
+            <h5>💡 멈추는 조건을 모두 찾았습니다</h5>
+            <p>태양광은 밤에, 풍력은 바람이 약하거나 너무 셀 때, 조류는 물살이 느릴 때 멈췄습니다.
+            이렇게 자연 조건에 따라 발전량이 들쭉날쭉한 성질을 <strong>간헐성</strong>이라고 합니다.
+            <br>그렇다면 <strong>밤에도, 태풍이 와도 멈추지 않는 발전소</strong>는 무엇이었나요? 비교표에서 찾아보세요.</p>
+        `;
+    } else {
+        box.className = 'quest-conclusion hidden';
+        return;
+    }
+    box.classList.remove('hidden');
+}
+
+function renderEnergyCompare() {
+    const body = document.getElementById('energy-compare-body');
+    if (!body) return;
+
+    const explored = classState.exploredEnergies;
+
+    body.innerHTML = ENERGY_ORDER.map(key => {
+        const f = ENERGY_FACTS[key];
+        if (!explored.includes(key)) {
+            return `
+                <tr class="row-locked">
+                    <td><i class="fa-solid fa-lock"></i> ???</td>
+                    <td colspan="5">실험실에서 <strong>${escapeHTML(f.name)}</strong>을(를) 눌러 보면 이 줄이 채워집니다.</td>
+                </tr>
+            `;
+        }
+        const carbonClass = f.carbon === '매우 많음' ? 'num-bad' : 'num-good';
+        return `
+            <tr>
+                <td><strong><i class="fa-solid ${f.icon}"></i> ${escapeHTML(f.name)}</strong></td>
+                <td class="cell-cond">${escapeHTML(f.use)}</td>
+                <td class="cell-num ${carbonClass}">${escapeHTML(f.carbon)}</td>
+                <td class="cell-cond">${escapeHTML(f.stop)}</td>
+                <td class="cell-cond">${escapeHTML(f.place)}</td>
+                <td class="cell-cond">${escapeHTML(f.think)}</td>
+            </tr>
+        `;
+    }).join('');
+
+    const n = explored.length;
+    document.getElementById('explore-count').textContent = `${n} / ${ENERGY_ORDER.length} 종`;
+    document.getElementById('explore-bar').style.width = `${(n / ENERGY_ORDER.length) * 100}%`;
+
+    const summary = document.getElementById('explore-summary');
+    if (n === ENERGY_ORDER.length) {
+        summary.innerHTML = `
+            <h5><i class="fa-solid fa-lightbulb"></i> 표를 다 채웠다면 이렇게 생각해 봅시다</h5>
+            <ul>
+                <li><strong>날씨와 관계없이 24시간 돌아가는 것</strong>은 무엇인가요? (지열 · 화석연료 · 원자력)</li>
+                <li>그중 <strong>탄소를 내뿜지 않는 것</strong>만 남기면 무엇이 남나요?</li>
+                <li>탄소가 없다고 해서 걱정거리까지 없는 것은 아닙니다. '함께 생각할 점' 칸을 다시 읽어 보세요.</li>
+            </ul>
+        `;
+        summary.classList.remove('hidden');
+    } else {
+        summary.classList.add('hidden');
+    }
+}
+
+/* ------------------------------------------
+   3차시: 입지 근거 기록장
+   ------------------------------------------ */
+function saveMapReason(id, name, energy, text) {
+    classState.mapReasons[id] = { name, energy, text };
+    saveClassState();
+    renderMapReasons();
+}
+
+function renderMapReasons() {
+    const list = document.getElementById('map-reason-list');
+    if (!list) return;
+
+    const ids = Object.keys(classState.mapReasons);
+    if (ids.length === 0) {
+        list.innerHTML = `<div class="record-empty">아직 완료한 지역이 없습니다. 지도의 마커부터 눌러 보세요.</div>`;
+        return;
+    }
+
+    list.innerHTML = ids.map(id => {
+        const r = classState.mapReasons[id];
+        return `
+            <div class="reason-item">
+                <div class="reason-head">
+                    <span class="reason-place">${escapeHTML(r.name)}</span>
+                    <span class="reason-energy">${escapeHTML(ENERGY_LABELS[r.energy] || r.energy)} 발전</span>
+                </div>
+                <textarea class="reason-edit" data-id="${escapeHTML(id)}" rows="2">${escapeHTML(r.text)}</textarea>
+            </div>
+        `;
+    }).join('');
+
+    list.querySelectorAll('.reason-edit').forEach(ta => {
+        ta.addEventListener('input', () => {
+            classState.mapReasons[ta.dataset.id].text = ta.value;
+            saveClassState();
+        });
+    });
+}
+
+/* ------------------------------------------
+   4차시: 설계 근거 기록지 · 시뮬레이션 회차 비교
+   ------------------------------------------ */
+function initGameWorksheet() {
+    document.getElementById('btn-pause-simulation').addEventListener('click', toggleSimPause);
+
+    document.querySelectorAll('.speed-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.speed-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            setSimSpeed(parseInt(btn.dataset.speed));
+        });
+    });
+
+    const fields = {
+        'rationale-condition': 'condition',
+        'rationale-choice': 'choice',
+        'rationale-revision': 'revision'
+    };
+    Object.keys(fields).forEach(elId => {
+        const el = document.getElementById(elId);
+        el.value = classState.rationale[fields[elId]] || '';
+        el.addEventListener('input', () => {
+            classState.rationale[fields[elId]] = el.value;
+            saveClassState();
+            const saved = document.getElementById('rationale-saved');
+            saved.textContent = '저장됨';
+            clearTimeout(saved._t);
+            saved._t = setTimeout(() => { saved.textContent = ''; }, 1200);
+        });
+    });
+
+    document.getElementById('btn-revise-city').addEventListener('click', reviseCity);
+    document.getElementById('btn-new-city').addEventListener('click', newCity);
+
+    renderCompareTable();
+}
+
+function recordSimulationRun(run) {
+    classState.simRuns.push(run);
+    saveClassState();
+    renderCompareTable();
+}
+
+function renderCompareTable() {
+    const panel = document.getElementById('compare-panel');
+    const body = document.getElementById('compare-body');
+    const verdict = document.getElementById('compare-verdict');
+    const runs = classState.simRuns;
+
+    if (runs.length === 0) {
+        panel.classList.add('hidden');
+        return;
+    }
+    panel.classList.remove('hidden');
+
+    body.innerHTML = runs.map((r, i) => `
+        <tr class="${i === runs.length - 1 ? 'row-latest' : ''}">
+            <td><strong>${i + 1}차</strong></td>
+            <td>${escapeHTML(r.scenario)}</td>
+            <td class="cell-cond">${escapeHTML(r.city || '없음')}</td>
+            <td class="cell-num">${r.usedBudget.toLocaleString()}만 원</td>
+            <td class="cell-num ${r.blackoutCount > 0 ? 'num-bad' : 'num-good'}">${r.blackoutCount}회</td>
+            <td class="cell-num ${r.avgCarbon > 0 ? 'num-bad' : 'num-good'}">${r.avgCarbon}%</td>
+            <td class="cell-num">안정 ${r.stabilityGrade} / 환경 ${r.ecoGrade}</td>
+        </tr>
+    `).join('');
+
+    if (runs.length < 2) {
+        verdict.className = 'compare-verdict';
+        verdict.innerHTML = `<i class="fa-solid fa-circle-info"></i> 설계를 고친 뒤 한 번 더 돌리면, 무엇이 좋아졌는지 여기에 비교해 드립니다.`;
+        return;
+    }
+
+    // 같은 시나리오끼리 견주어야 설계 변화의 효과를 알 수 있다
+    const last = runs[runs.length - 1];
+    const prevIndex = runs.slice(0, -1).map(r => r.scenario).lastIndexOf(last.scenario);
+
+    if (prevIndex === -1) {
+        verdict.className = 'compare-verdict';
+        verdict.innerHTML = `<i class="fa-solid fa-circle-info"></i>
+            <strong>${escapeHTML(last.scenario)}</strong> 시나리오는 이번이 처음입니다.
+            같은 시나리오로 한 번 더 돌려야 설계를 고친 효과를 견줄 수 있습니다.`;
+        return;
+    }
+
+    const prev = runs[prevIndex];
+    const dBlackout = prev.blackoutCount - last.blackoutCount;
+    const dCarbon = prev.avgCarbon - last.avgCarbon;
+    const sameCity = prev.city === last.city;
+
+    const parts = [];
+    if (dBlackout > 0) parts.push(`정전이 <strong>${dBlackout}회 줄었습니다</strong>`);
+    else if (dBlackout < 0) parts.push(`정전이 <strong>${-dBlackout}회 늘었습니다</strong>`);
+    else parts.push('정전 횟수는 그대로입니다');
+
+    if (dCarbon > 0) parts.push(`탄소 배출이 <strong>${dCarbon}%p 줄었습니다</strong>`);
+    else if (dCarbon < 0) parts.push(`탄소 배출이 <strong>${-dCarbon}%p 늘었습니다</strong>`);
+    else parts.push('탄소 배출은 그대로입니다');
+
+    const improved = dBlackout > 0 || dCarbon > 0;
+    const tail = sameCity
+        ? `<span class="verdict-ask">💬 설계를 바꾸지 않았으므로 결과도 같습니다. 발전소를 바꾼 뒤 다시 돌려 보세요.</span>`
+        : `<span class="verdict-ask">💬 <strong>무엇을 바꿔서</strong> 이런 결과가 나왔는지 설계 근거 기록지 ③에 적어 두세요.</span>`;
+
+    verdict.className = `compare-verdict ${improved ? 'verdict-good' : 'verdict-neutral'}`;
+    verdict.innerHTML = `<i class="fa-solid ${improved ? 'fa-arrow-trend-up' : 'fa-circle-question'}"></i>
+        ${prevIndex + 1}차 설계와 견주면 ${parts.join(', ')}.
+        <br>${tail}`;
+}
+
+/* ------------------------------------------
+   골든벨 결과 저장
+   ------------------------------------------ */
+function saveQuizResult(mode, score, correct, total, wrongList) {
+    classState.quiz[mode] = {
+        score, correct, total,
+        wrongCount: wrongList.length
+    };
+    saveClassState();
+}
+
+/* ------------------------------------------
+   5차시: 우리 도시 에너지 제안서
+   ------------------------------------------ */
+function initReport() {
+    const fields = {
+        'report-problem': 'problem',
+        'report-mix': 'mix',
+        'report-evidence': 'evidence',
+        'report-effect': 'effect'
+    };
+    Object.keys(fields).forEach(elId => {
+        const el = document.getElementById(elId);
+        el.value = classState.report[fields[elId]] || '';
+        el.addEventListener('input', () => {
+            classState.report[fields[elId]] = el.value;
+            saveClassState();
+        });
+    });
+
+    document.querySelectorAll('#peer-check input[type="checkbox"]').forEach(cb => {
+        const idx = parseInt(cb.dataset.peer);
+        cb.checked = !!classState.peer.checks[idx];
+        cb.addEventListener('change', () => {
+            classState.peer.checks[idx] = cb.checked;
+            saveClassState();
+        });
+    });
+
+    const pq = document.getElementById('peer-question');
+    pq.value = classState.peer.question || '';
+    pq.addEventListener('input', () => {
+        classState.peer.question = pq.value;
+        saveClassState();
+    });
+
+    document.getElementById('btn-build-report').addEventListener('click', buildReport);
+    document.getElementById('btn-copy-report').addEventListener('click', copyReport);
+    document.getElementById('btn-print-report').addEventListener('click', printReport);
+
+    renderCollectedData();
+}
+
+// 1~4차시에 남긴 기록을 모아 보여 준다
+function renderCollectedData() {
+    const box = document.getElementById('collected-list');
+    if (!box) return;
+
+    const items = [];
+
+    if (classState.questsDone.length > 0 || classState.exploredEnergies.length > 1) {
+        items.push({
+            icon: 'fa-binoculars', label: '2차시 탐구 미션',
+            text: `비밀 ${classState.questsDone.length}/${LAB_QUESTS.length}개 발견 · 에너지원 ${classState.exploredEnergies.length}/${ENERGY_ORDER.length}종 탐험`
+        });
+    }
+
+    if (classState.labRecords.length > 0) {
+        const noted = classState.labRecords.filter(r => r.note.trim()).length;
+        items.push({
+            icon: 'fa-flask', label: '2차시 실험 기록',
+            text: `${classState.labRecords.length}건 기록 (알게 된 점 ${noted}건 작성)`
+        });
+    }
+
+    const reasonIds = Object.keys(classState.mapReasons);
+    if (reasonIds.length > 0) {
+        items.push({
+            icon: 'fa-map-location-dot', label: '3차시 입지 근거',
+            text: reasonIds.map(id => `${classState.mapReasons[id].name}(${ENERGY_LABELS[classState.mapReasons[id].energy]})`).join(', ')
+        });
+    }
+
+    if (classState.simRuns.length > 0) {
+        const last = classState.simRuns[classState.simRuns.length - 1];
+        items.push({
+            icon: 'fa-city', label: '4차시 시뮬레이션',
+            text: `${classState.simRuns.length}회 실행 · 최종 설계 [${last.city}] · 정전 ${last.blackoutCount}회 · 탄소 ${last.avgCarbon}%`
+        });
+    }
+
+    if (classState.rationale.choice.trim()) {
+        items.push({ icon: 'fa-pen-to-square', label: '설계 근거', text: classState.rationale.choice });
+    }
+
+    if (classState.quiz.pre) {
+        items.push({ icon: 'fa-compass', label: '1차시 사전 진단', text: `${classState.quiz.pre.correct}/${classState.quiz.pre.total}문항 정답` });
+    }
+
+    if (items.length === 0) {
+        box.innerHTML = `<p class="collected-empty">아직 모인 자료가 없습니다. 1~4차시 활동을 먼저 해 보세요.</p>`;
+        return;
+    }
+
+    box.innerHTML = items.map(it => `
+        <div class="collected-item">
+            <i class="fa-solid ${it.icon}"></i>
+            <div><span class="ci-label">${escapeHTML(it.label)}</span><p>${escapeHTML(it.text)}</p></div>
+        </div>
+    `).join('');
+}
+
+function reportPlainText() {
+    const team = classState.team.trim() || '(모둠 이름을 적어 주세요)';
+    const r = classState.report;
+    const lines = [];
+
+    lines.push(`[우리 도시 에너지 제안서] ${team}`);
+    lines.push('');
+    lines.push('■ 우리 도시의 에너지 문제');
+    lines.push(r.problem.trim() || '(작성 전)');
+    lines.push('');
+    lines.push('■ 우리가 제안하는 에너지 조합');
+    lines.push(r.mix.trim() || '(작성 전)');
+    lines.push('');
+    lines.push('■ 그렇게 판단한 근거');
+    lines.push(r.evidence.trim() || '(작성 전)');
+    lines.push('');
+    lines.push('■ 좋은 점과 걱정되는 점');
+    lines.push(r.effect.trim() || '(작성 전)');
+
+    if (classState.simRuns.length > 0) {
+        const last = classState.simRuns[classState.simRuns.length - 1];
+        lines.push('');
+        lines.push('■ 시뮬레이션 결과 (학습용 모형값)');
+        lines.push(`시나리오: ${last.scenario} / 설계: ${last.city}`);
+        lines.push(`정전 ${last.blackoutCount}회, 평균 탄소 ${last.avgCarbon}%, 사용 예산 ${last.usedBudget.toLocaleString()}만 원`);
+        lines.push(`등급: 안정성 ${last.stabilityGrade} · 환경 ${last.ecoGrade}`);
+    }
+
+    const reasonIds = Object.keys(classState.mapReasons);
+    if (reasonIds.length > 0) {
+        lines.push('');
+        lines.push('■ 지역 조건에 대해 알아낸 것');
+        reasonIds.forEach(id => {
+            const m = classState.mapReasons[id];
+            lines.push(`· ${m.name} → ${ENERGY_LABELS[m.energy]}: ${m.text}`);
+        });
+    }
+
+    lines.push('');
+    lines.push('※ 위 수치는 수업용 시뮬레이터의 모형값으로 실제 발전량과 다릅니다.');
+    return lines.join('\n');
+}
+
+function buildReport() {
+    const r = classState.report;
+    const missing = [];
+    if (!r.problem.trim()) missing.push('①에너지 문제');
+    if (!r.mix.trim()) missing.push('②에너지 조합');
+    if (!r.evidence.trim()) missing.push('③근거');
+
+    if (missing.length > 0) {
+        showToast(`${missing.join(', ')} 칸이 비어 있습니다. 채운 만큼만 제안서에 담았어요.`, 'warn');
+    }
+
+    const team = classState.team.trim() || '우리 모둠';
+    const last = classState.simRuns.length > 0 ? classState.simRuns[classState.simRuns.length - 1] : null;
+    const reasonIds = Object.keys(classState.mapReasons);
+    const blank = '<span class="doc-blank">아직 작성하지 않았습니다.</span>';
+
+    let html = `
+        <div class="doc-title">
+            <span class="doc-eyebrow">우리 도시 에너지 제안서</span>
+            <h2>${escapeHTML(team)}</h2>
+        </div>
+        <section class="doc-sec">
+            <h3>1. 우리 도시의 에너지 문제</h3>
+            <p>${escapeHTML(r.problem).replace(/\n/g, '<br>') || blank}</p>
+        </section>
+        <section class="doc-sec">
+            <h3>2. 우리가 제안하는 에너지 조합</h3>
+            <p class="doc-mix">${escapeHTML(r.mix).replace(/\n/g, '<br>') || blank}</p>
+        </section>
+        <section class="doc-sec">
+            <h3>3. 그렇게 판단한 근거</h3>
+            <p>${escapeHTML(r.evidence).replace(/\n/g, '<br>') || blank}</p>
+        </section>
+        <section class="doc-sec">
+            <h3>4. 좋은 점과 걱정되는 점</h3>
+            <p>${escapeHTML(r.effect).replace(/\n/g, '<br>') || blank}</p>
+        </section>
+    `;
+
+    if (last) {
+        html += `
+        <section class="doc-sec doc-data">
+            <h3>5. 시뮬레이션으로 확인한 결과</h3>
+            <div class="doc-stats">
+                <div><span>시나리오</span><strong>${escapeHTML(last.scenario)}</strong></div>
+                <div><span>정전</span><strong>${last.blackoutCount}회</strong></div>
+                <div><span>평균 탄소</span><strong>${last.avgCarbon}%</strong></div>
+                <div><span>사용 예산</span><strong>${last.usedBudget.toLocaleString()}만 원</strong></div>
+            </div>
+            <p class="doc-city">설계: ${escapeHTML(last.city)}</p>
+        </section>`;
+    }
+
+    if (reasonIds.length > 0) {
+        html += `
+        <section class="doc-sec">
+            <h3>6. 지역 조건에 대해 알아낸 것</h3>
+            <ul class="doc-list">
+                ${reasonIds.map(id => {
+                    const m = classState.mapReasons[id];
+                    return `<li><strong>${escapeHTML(m.name)} · ${escapeHTML(ENERGY_LABELS[m.energy])}</strong> — ${escapeHTML(m.text)}</li>`;
+                }).join('')}
+            </ul>
+        </section>`;
+    }
+
+    html += `<p class="doc-note">※ 위 수치는 수업용 시뮬레이터의 <strong>모형값</strong>으로 실제 발전량과 다릅니다.</p>`;
+
+    document.getElementById('preview-doc').innerHTML = html;
+    document.getElementById('preview-doc').classList.remove('hidden');
+    document.getElementById('preview-placeholder').classList.add('hidden');
+
+    if (missing.length === 0) showToast('제안서를 완성했습니다! 복사해서 패들렛에 올려 보세요.', 'ok');
+}
+
+function copyReport() {
+    const text = reportPlainText();
+    const done = () => showToast('제안서를 복사했습니다. 패들렛에 붙여넣기(Ctrl+V) 하세요.', 'ok');
+
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(done).catch(() => fallbackCopy(text, done));
+    } else {
+        fallbackCopy(text, done);
+    }
+}
+
+function fallbackCopy(text, done) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try {
+        document.execCommand('copy');
+        done();
+    } catch (e) {
+        showToast('복사에 실패했습니다. 제안서 내용을 직접 선택해 복사해 주세요.', 'warn');
+    }
+    ta.remove();
+}
+
+function printReport() {
+    if (document.getElementById('preview-doc').classList.contains('hidden')) {
+        showToast('먼저 [제안서 만들기]를 눌러 제안서를 완성해 주세요.', 'warn');
+        return;
+    }
+    window.print();
+}
+
+/* ------------------------------------------
+   교사용 수업 안내
+   ------------------------------------------ */
+function initTeacherGuide() {
+    const flow = document.getElementById('guide-flow');
+    flow.innerHTML = Object.keys(LESSONS).map(n => {
+        const l = LESSONS[n];
+        return `
+            <div class="guide-step">
+                <div class="gs-head">
+                    <span class="gs-num">${n}차시</span>
+                    <h4>${escapeHTML(l.title)}</h4>
+                    <span class="gs-tool">${escapeHTML(l.tool)}</span>
+                </div>
+                <p class="gs-mission">${escapeHTML(l.mission)}</p>
+                <p class="gs-teacher"><strong>운영 팁</strong> ${escapeHTML(l.teacher)}</p>
+            </div>
+        `;
+    }).join('');
+
+    document.getElementById('btn-teacher-guide').addEventListener('click', () => {
+        document.getElementById('teacher-modal').classList.remove('hidden');
+    });
+    document.getElementById('btn-close-guide').addEventListener('click', () => {
+        document.getElementById('teacher-modal').classList.add('hidden');
+    });
+    document.getElementById('teacher-modal').addEventListener('click', (e) => {
+        if (e.target.id === 'teacher-modal') {
+            document.getElementById('teacher-modal').classList.add('hidden');
+        }
+    });
+}
