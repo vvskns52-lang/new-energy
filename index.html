@@ -597,130 +597,139 @@
                     </div>
                 </div>
 
-                <!-- 탐구 미션: 슬라이더를 직접 조작해 스스로 찾아내게 한다 -->
-                <div class="quest-panel card">
-                    <div class="record-head">
-                        <div>
-                            <h4><i class="fa-solid fa-binoculars"></i> 탐구 미션 — 10가지 비밀을 찾아라</h4>
-                            <p class="subtitle">답을 알려주지 않습니다. 슬라이더를 직접 움직여 조건을 찾아내면 자동으로 체크됩니다.</p>
-                        </div>
-                        <div class="quest-score">
-                            <span id="quest-count">0 / 10</span>
-                            <div class="progress-bar-container mini">
-                                <div class="progress-bar" id="quest-bar" style="width: 0%"></div>
+                <!-- 발전실험실 하단 서브 탭 시스템 (한눈에 보기 스크롤 방지) -->
+                <div class="lab-sub-container card">
+                    <div class="sub-nav-bar" id="lab-sub-nav">
+                        <button class="sub-nav-btn active" data-subtab="lab-info"><i class="fa-solid fa-book-open"></i> 원리 및 장단점</button>
+                        <button class="sub-nav-btn" data-subtab="lab-quest"><i class="fa-solid fa-binoculars"></i> 탐구 미션 (<span id="quest-count">0 / 10</span>)</button>
+                        <button class="sub-nav-btn" data-subtab="lab-compare"><i class="fa-solid fa-table-list"></i> 에너지원 비교표 (<span id="explore-count">0 / 9</span>)</button>
+                        <button class="sub-nav-btn" data-subtab="lab-record"><i class="fa-solid fa-clipboard-list"></i> 실험 기록표</button>
+                    </div>
+
+                    <!-- 1. 원리 및 장단점 서브 탭 -->
+                    <div class="sub-tab-content active" id="lab-tab-info">
+                        <div class="tech-info-card">
+                            <h4 id="tech-title">태양광 발전이란?</h4>
+                            <p id="tech-desc">태양의 빛에너지를 반도체 소자인 태양 전지판을 통해 직접 전기에너지로 변환하는 발전 방식입니다.</p>
+                            <div class="tech-method-box">
+                                <h5><i class="fa-solid fa-industry"></i> 현재 에너지 생산 방식</h5>
+                                <p id="tech-method">주로 주택 지붕, 대규모 태양광 발전 단지, 또는 건물의 외벽에 태양광 패널을 설치하여 에너지를 생산합니다.</p>
+                            </div>
+                            <div class="pros-cons-container">
+                                <div class="pc-panel pros-panel">
+                                    <h5><i class="fa-solid fa-thumbs-up"></i> 장점 (Pros)</h5>
+                                    <ul id="tech-pros" class="pc-list"></ul>
+                                </div>
+                                <div class="pc-panel cons-panel">
+                                    <h5><i class="fa-solid fa-thumbs-down"></i> 단점 (Cons)</h5>
+                                    <ul id="tech-cons" class="pc-list"></ul>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="quest-groups">
-                        <div class="quest-group">
-                            <h5 class="qg-title qg-max"><i class="fa-solid fa-arrow-up-right-dots"></i> 가장 많이 만들어 보기</h5>
-                            <div class="quest-list" id="quest-list-max"></div>
-                        </div>
-                        <div class="quest-group">
-                            <h5 class="qg-title qg-stop"><i class="fa-solid fa-ban"></i> 멈추는 조건 찾아내기</h5>
-                            <div class="quest-list" id="quest-list-stop"></div>
-                        </div>
-                    </div>
-
-                    <div class="quest-conclusion hidden" id="quest-conclusion"></div>
-                </div>
-
-                <!-- 원리 및 장단점 카드 (Pros/Cons 시각화 개편 - 하단 와이드 배치) -->
-                <div class="tech-info-card card">
-                    <h4 id="tech-title">태양광 발전이란?</h4>
-                    <p id="tech-desc">태양의 빛에너지를 반도체 소자인 태양 전지판을 통해 직접 전기에너지로 변환하는 발전 방식입니다.</p>
-                    <div class="tech-method-box">
-                        <h5><i class="fa-solid fa-industry"></i> 현재 에너지 생산 방식</h5>
-                        <p id="tech-method">주로 주택 지붕, 대규모 태양광 발전 단지, 또는 건물의 외벽에 태양광 패널을 설치하여 에너지를 생산합니다.</p>
-                    </div>
-                    
-                    <!-- 장단점 좌우 분할 보드 -->
-                    <div class="pros-cons-container">
-                        <div class="pc-panel pros-panel">
-                            <h5><i class="fa-solid fa-thumbs-up"></i> 장점 (Pros)</h5>
-                            <ul id="tech-pros" class="pc-list">
-                                <!-- JS에서 채워짐 -->
-                            </ul>
-                        </div>
-                        <div class="pc-panel cons-panel">
-                            <h5><i class="fa-solid fa-thumbs-down"></i> 단점 (Cons)</h5>
-                            <ul id="tech-cons" class="pc-list">
-                                <!-- JS에서 채워짐 -->
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 9가지 에너지원 비교표: 실험실에서 만나 본 것부터 채워진다 -->
-                <div class="record-panel card">
-                    <div class="record-head">
-                        <div>
-                            <h4><i class="fa-solid fa-table-list"></i> 에너지원 비교표</h4>
-                            <p class="subtitle">위 실험실에서 <strong>직접 눌러 본 에너지원</strong>만 표에 채워집니다. 9가지를 모두 만나 표를 완성해 보세요.</p>
-                        </div>
-                        <div class="quest-score">
-                            <span id="explore-count">0 / 9 종</span>
-                            <div class="progress-bar-container mini">
-                                <div class="progress-bar" id="explore-bar" style="width: 0%"></div>
+                    <!-- 2. 탐구 미션 서브 탭 -->
+                    <div class="sub-tab-content" id="lab-tab-quest">
+                        <div class="quest-panel">
+                            <div class="record-head">
+                                <div>
+                                    <h4><i class="fa-solid fa-binoculars"></i> 탐구 미션 — 10가지 비밀을 찾아라</h4>
+                                    <p class="subtitle">답을 알려주지 않습니다. 슬라이더를 직접 움직여 조건을 찾아내면 자동으로 체크됩니다.</p>
+                                </div>
+                                <div class="quest-score">
+                                    <div class="progress-bar-container mini">
+                                        <div class="progress-bar" id="quest-bar" style="width: 0%"></div>
+                                    </div>
+                                </div>
                             </div>
+
+                            <div class="quest-groups">
+                                <div class="quest-group">
+                                    <h5 class="qg-title qg-max"><i class="fa-solid fa-arrow-up-right-dots"></i> 가장 많이 만들어 보기</h5>
+                                    <div class="quest-list" id="quest-list-max"></div>
+                                </div>
+                                <div class="quest-group">
+                                    <h5 class="qg-title qg-stop"><i class="fa-solid fa-ban"></i> 멈추는 조건 찾아내기</h5>
+                                    <div class="quest-list" id="quest-list-stop"></div>
+                                </div>
+                            </div>
+                            <div class="quest-conclusion hidden" id="quest-conclusion"></div>
                         </div>
                     </div>
 
-                    <div class="table-scroll">
-                        <table class="record-table compare-energy">
-                            <thead>
-                                <tr>
-                                    <th style="width:11%">에너지원</th>
-                                    <th style="width:17%">무엇을 이용하나?</th>
-                                    <th style="width:11%">탄소 배출</th>
-                                    <th style="width:20%">언제 약해지거나 멈추나?</th>
-                                    <th style="width:20%">우리나라 주요 입지</th>
-                                    <th>함께 생각할 점</th>
-                                </tr>
-                            </thead>
-                            <tbody id="energy-compare-body"></tbody>
-                        </table>
-                    </div>
-                    <div class="record-summary hidden" id="explore-summary"></div>
-                </div>
+                    <!-- 3. 에너지원 비교표 서브 탭 -->
+                    <div class="sub-tab-content" id="lab-tab-compare">
+                        <div class="record-panel">
+                            <div class="record-head">
+                                <div>
+                                    <h4><i class="fa-solid fa-table-list"></i> 에너지원 비교표</h4>
+                                    <p class="subtitle">위 실험실에서 <strong>직접 눌러 본 에너지원</strong>만 표에 채워집니다. 9가지를 모두 만나 표를 완성해 보세요.</p>
+                                </div>
+                                <div class="quest-score">
+                                    <div class="progress-bar-container mini">
+                                        <div class="progress-bar" id="explore-bar" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                            </div>
 
-                <!-- 실험 기록표 (2차시 활동지) -->
-                <div class="record-panel card">
-                    <div class="record-head">
-                        <div>
-                            <h4><i class="fa-solid fa-clipboard-list"></i> 실험 기록표</h4>
-                            <p class="subtitle">조건을 바꿀 때마다 <strong>[현재 조건 기록하기]</strong>를 눌러 표를 채우세요. 표는 4·5차시 제안서에 그대로 쓰입니다.</p>
-                        </div>
-                        <div class="record-actions">
-                            <button class="btn btn-primary btn-sm" id="btn-record-lab">
-                                <i class="fa-solid fa-circle-plus"></i> 현재 조건 기록하기
-                            </button>
-                            <button class="ghost-btn" id="btn-clear-lab-records">
-                                <i class="fa-solid fa-trash-can"></i> 전체 지우기
-                            </button>
+                            <div class="table-scroll">
+                                <table class="record-table compare-energy">
+                                    <thead>
+                                        <tr>
+                                            <th style="width:11%">에너지원</th>
+                                            <th style="width:17%">무엇을 이용하나?</th>
+                                            <th style="width:11%">탄소 배출</th>
+                                            <th style="width:20%">언제 약해지거나 멈추나?</th>
+                                            <th style="width:20%">우리나라 주요 입지</th>
+                                            <th>함께 생각할 점</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="energy-compare-body"></tbody>
+                                </table>
+                            </div>
+                            <div class="record-summary hidden" id="explore-summary"></div>
                         </div>
                     </div>
 
-                    <div class="table-scroll">
-                        <table class="record-table">
-                            <thead>
-                                <tr>
-                                    <th style="width:14%">에너지원</th>
-                                    <th style="width:30%">바꾼 조건</th>
-                                    <th style="width:10%">효율</th>
-                                    <th style="width:12%">생산 전력</th>
-                                    <th>알게 된 점 (직접 입력)</th>
-                                    <th style="width:6%"></th>
-                                </tr>
-                            </thead>
-                            <tbody id="lab-record-body"></tbody>
-                        </table>
+                    <!-- 4. 실험 기록표 서브 탭 -->
+                    <div class="sub-tab-content" id="lab-tab-record">
+                        <div class="record-panel">
+                            <div class="record-head">
+                                <div>
+                                    <h4><i class="fa-solid fa-clipboard-list"></i> 실험 기록표</h4>
+                                    <p class="subtitle">조건을 바꿀 때마다 <strong>[현재 조건 기록하기]</strong>를 눌러 표를 채우세요. 표는 4·5차시 제안서에 그대로 쓰입니다.</p>
+                                </div>
+                                <div class="record-actions">
+                                    <button class="btn btn-primary btn-sm" id="btn-record-lab">
+                                        <i class="fa-solid fa-circle-plus"></i> 현재 조건 기록하기
+                                    </button>
+                                    <button class="ghost-btn" id="btn-clear-lab-records">
+                                        <i class="fa-solid fa-trash-can"></i> 전체 지우기
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="table-scroll">
+                                <table class="record-table">
+                                    <thead>
+                                        <tr>
+                                            <th style="width:14%">에너지원</th>
+                                            <th style="width:30%">바꾼 조건</th>
+                                            <th style="width:10%">효율</th>
+                                            <th style="width:12%">생산 전력</th>
+                                            <th>알게 된 점 (직접 입력)</th>
+                                            <th style="width:6%"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="lab-record-body"></tbody>
+                                </table>
+                            </div>
+                            <div class="record-empty" id="lab-record-empty">
+                                아직 기록이 없습니다. 슬라이더를 조절한 뒤 <strong>[현재 조건 기록하기]</strong> 버튼을 눌러 보세요.
+                            </div>
+                            <div class="record-summary hidden" id="lab-record-summary"></div>
+                        </div>
                     </div>
-                    <div class="record-empty" id="lab-record-empty">
-                        아직 기록이 없습니다. 슬라이더를 조절한 뒤 <strong>[현재 조건 기록하기]</strong> 버튼을 눌러 보세요.
-                    </div>
-                    <div class="record-summary hidden" id="lab-record-summary"></div>
                 </div>
             </section>
 
@@ -784,8 +793,8 @@
                             </div>
                         </div>
                         <div class="status-item">
-                            <span class="status-label"><i class="fa-solid fa-plug"></i> 총 발전 용량</span>
-                            <span class="status-value" id="game-total-power">0 / 1000 kW</span>
+                            <span class="status-label"><i class="fa-solid fa-plug"></i> 낮 최대 발전 용량</span>
+                            <span class="status-value" id="game-total-power">0 / 980 kW</span>
                             <div class="progress-bar-container mini">
                                 <div class="progress-bar bg-blue" id="game-power-bar" style="width: 0%"></div>
                             </div>
@@ -808,116 +817,50 @@
                         </div>
                     </div>
 
+                    <!-- 우리 도시가 필요한 전기 (짓기 전에 기준을 준다) -->
+                    <div class="demand-preview card">
+                        <div class="dp-left">
+                            <h3><i class="fa-solid fa-bolt"></i> 우리 도시가 하루에 쓰는 전기</h3>
+                            <p class="subtitle">사람들이 활동하는 시간에 전기를 많이 씁니다. <strong>가장 많이 쓰는 저녁 시간</strong>을 견뎌내야 정전이 나지 않습니다.</p>
+                            <div class="demand-chart" id="demand-chart"></div>
+                        </div>
+                        <div class="dp-right">
+                            <div class="dp-stat dp-need">
+                                <span class="dp-label">저녁에 가장 많이 필요한 양</span>
+                                <strong id="dp-peak">980 kW</strong>
+                            </div>
+                            <div class="dp-arrow"><i class="fa-solid fa-arrows-up-down"></i> 견주어 보세요</div>
+                            <div class="dp-stat">
+                                <span class="dp-label">지금 지은 시설 — 맑은 낮 최대</span>
+                                <strong id="dp-day" class="num-good">0 kW</strong>
+                            </div>
+                            <div class="dp-stat">
+                                <span class="dp-label">지금 지은 시설 — 조건이 나쁠 때 최소</span>
+                                <strong id="dp-night" class="num-bad">0 kW</strong>
+                            </div>
+                            <p class="dp-verdict" id="dp-verdict">아직 지은 시설이 없습니다. 오른쪽 빈 땅을 눌러 발전소를 지어 보세요.</p>
+                        </div>
+                    </div>
+
                     <div class="game-grid">
                         <!-- 발전기 상점 및 슬롯 (좌) -->
                         <div class="shop-panel card">
-                            <h3><i class="fa-solid fa-store"></i> 에너지 발전 시설 상점</h3>
-                            <p class="subtitle">도시 영토에 배치할 발전 시설을 골라주세요 (최대 6개 슬롯)</p>
-                            
-                            <div class="shop-list">
-                                <!-- 화석연료 발전소 -->
-                                <div class="shop-item" data-plant="fossil">
-                                    <div class="item-icon bg-gray"><i class="fa-solid fa-industry"></i></div>
-                                    <div class="item-info">
-                                        <h4>화석연료 발전소</h4>
-                                        <p class="specs">발전량: 400 kW | 탄소 배출: 높음 (80%)</p>
-                                        <p class="cost">비용: 800만 원</p>
-                                    </div>
-                                    <button class="btn-buy btn-sm" onclick="buyPlant('fossil')">건설</button>
-                                </div>
-                                <!-- 태양광 발전단지 -->
-                                <div class="shop-item" data-plant="solar">
-                                    <div class="item-icon bg-yellow"><i class="fa-solid fa-solar-panel"></i></div>
-                                    <div class="item-info">
-                                        <h4>태양광 발전단지</h4>
-                                        <p class="specs">발전량: 200 kW (맑을 때) | 탄소 배출: 없음 (0%)</p>
-                                        <p class="cost">비용: 1,000만 원</p>
-                                    </div>
-                                    <button class="btn-buy btn-sm" onclick="buyPlant('solar')">건설</button>
-                                </div>
-                                <!-- 풍력 발전단지 -->
-                                <div class="shop-item" data-plant="wind">
-                                    <div class="item-icon bg-teal"><i class="fa-solid fa-wind"></i></div>
-                                    <div class="item-info">
-                                        <h4>풍력 발전단지</h4>
-                                        <p class="specs">발전량: 300 kW (바람 불 때) | 탄소 배출: 없음 (0%)</p>
-                                        <p class="cost">비용: 1,200만 원</p>
-                                    </div>
-                                    <button class="btn-buy btn-sm" onclick="buyPlant('wind')">건설</button>
-                                </div>
-                                <!-- 지열 발전소 -->
-                                <div class="shop-item" data-plant="geothermal">
-                                    <div class="item-icon bg-orange"><i class="fa-solid fa-fire-flame-simple"></i></div>
-                                    <div class="item-info">
-                                        <h4>지열 발전소</h4>
-                                        <p class="specs">발전량: 350 kW (날씨 무관) | 탄소 배출: 없음 (0%)</p>
-                                        <p class="cost">비용: 1,500만 원</p>
-                                    </div>
-                                    <button class="btn-buy btn-sm" onclick="buyPlant('geothermal')">건설</button>
-                                </div>
-                                <!-- 조력 발전소 -->
-                                <div class="shop-item" data-plant="tidal_barrage">
-                                    <div class="item-icon bg-blue"><i class="fa-solid fa-bridge"></i></div>
-                                    <div class="item-info">
-                                        <h4>조력 발전소 (방조제)</h4>
-                                        <p class="specs">발전량: 450 kW (조석 피크) | 탄소: 0% | 환경 영향 다소</p>
-                                        <p class="cost">비용: 1,300만 원</p>
-                                    </div>
-                                    <button class="btn-buy btn-sm" onclick="buyPlant('tidal_barrage')">건설</button>
-                                </div>
-                                <!-- 조류 발전소 -->
-                                <div class="shop-item" data-plant="tidal_current">
-                                    <div class="item-icon bg-teal"><i class="fa-solid fa-water-ladder"></i></div>
-                                    <div class="item-info">
-                                        <h4>조류 발전소 (해저터빈)</h4>
-                                        <p class="specs">발전량: 250 kW (조류 지속 가동) | 탄소: 0% | 친환경</p>
-                                        <p class="cost">비용: 1,100만 원</p>
-                                    </div>
-                                    <button class="btn-buy btn-sm" onclick="buyPlant('tidal_current')">건설</button>
-                                </div>
-                                <!-- 파력 발전소 -->
-                                <div class="shop-item" data-plant="wave_power">
-                                    <div class="item-icon bg-purple"><i class="fa-solid fa-water"></i></div>
-                                    <div class="item-info">
-                                        <h4>파력 발전소 (부표형)</h4>
-                                        <p class="specs">발전량: 150 kW (불규칙 소출력) | 탄소: 0% | 저렴함</p>
-                                        <p class="cost">비용: 800만 원</p>
-                                    </div>
-                                    <button class="btn-buy btn-sm" onclick="buyPlant('wave_power')">건설</button>
-                                </div>
-                                <!-- 수력 발전소 -->
-                                <div class="shop-item" data-plant="hydro">
-                                    <div class="item-icon bg-blue"><i class="fa-solid fa-droplet"></i></div>
-                                    <div class="item-info">
-                                        <h4>수력 발전소 (댐)</h4>
-                                        <p class="specs">발전량: 500 kW (24시간 안정) | 탄소: 0% | 가뭄에 취약</p>
-                                        <p class="cost">비용: 1,400만 원</p>
-                                    </div>
-                                    <button class="btn-buy btn-sm" onclick="buyPlant('hydro')">건설</button>
-                                </div>
-                                <!-- 에너지 저장장치 (ESS) -->
-                                <div class="shop-item" data-plant="ess">
-                                    <div class="item-icon bg-purple"><i class="fa-solid fa-car-battery"></i></div>
-                                    <div class="item-info">
-                                        <h4>친환경 배터리 (ESS)</h4>
-                                        <p class="specs">남는 전력 저장 및 부족할 때 방출 (최대 300kWh)</p>
-                                        <p class="cost">비용: 700만 원</p>
-                                    </div>
-                                    <button class="btn-buy btn-sm" onclick="buyPlant('ess')">건설</button>
-                                </div>
-                            </div>
+                            <h3><i class="fa-solid fa-book-open"></i> 발전 시설 도감</h3>
+                            <p class="subtitle">각 시설이 <strong>맑은 낮</strong>과 <strong>조건이 나쁠 때</strong> 얼마나 만드는지 견주어 보세요.</p>
+                            <div class="shop-list" id="shop-list"></div>
                         </div>
 
                         <!-- 도시 맵 시각화 및 로그 (우) -->
                         <div class="city-map-panel card">
                             <h3><i class="fa-solid fa-map-location-dot"></i> 나만의 그린시티 영토</h3>
+                            <p class="subtitle build-guide"><i class="fa-solid fa-hand-pointer"></i> <strong>빈 땅을 누르면</strong> 무엇을 지을지 고를 수 있습니다. 지어진 땅을 누르면 철거됩니다.</p>
                             <div class="city-grid" id="city-slots">
-                                <div class="map-slot empty" data-slot="0" onclick="removePlant(0)"><i class="fa-solid fa-plus"></i> 빈 부지</div>
-                                <div class="map-slot empty" data-slot="1" onclick="removePlant(1)"><i class="fa-solid fa-plus"></i> 빈 부지</div>
-                                <div class="map-slot empty" data-slot="2" onclick="removePlant(2)"><i class="fa-solid fa-plus"></i> 빈 부지</div>
-                                <div class="map-slot empty" data-slot="3" onclick="removePlant(3)"><i class="fa-solid fa-plus"></i> 빈 부지</div>
-                                <div class="map-slot empty" data-slot="4" onclick="removePlant(4)"><i class="fa-solid fa-plus"></i> 빈 부지</div>
-                                <div class="map-slot empty" data-slot="5" onclick="removePlant(5)"><i class="fa-solid fa-plus"></i> 빈 부지</div>
+                                <div class="map-slot empty" data-slot="0"><i class="fa-solid fa-plus"></i> 빈 부지</div>
+                                <div class="map-slot empty" data-slot="1"><i class="fa-solid fa-plus"></i> 빈 부지</div>
+                                <div class="map-slot empty" data-slot="2"><i class="fa-solid fa-plus"></i> 빈 부지</div>
+                                <div class="map-slot empty" data-slot="3"><i class="fa-solid fa-plus"></i> 빈 부지</div>
+                                <div class="map-slot empty" data-slot="4"><i class="fa-solid fa-plus"></i> 빈 부지</div>
+                                <div class="map-slot empty" data-slot="5"><i class="fa-solid fa-plus"></i> 빈 부지</div>
                             </div>
 
                             <!-- 24시간 실시간 타임라인 시뮬레이션 인터페이스 -->
@@ -954,51 +897,81 @@
                         </div>
                     </div>
 
-                    <!-- 설계 근거 기록지 (본시 활동지) -->
-                    <div class="rationale-panel card">
-                        <h3><i class="fa-solid fa-pen-to-square"></i> 우리 모둠의 설계 근거 기록지</h3>
-                        <p class="subtitle">시뮬레이션을 돌리기 <strong>전에</strong> ①②를 먼저 적고, 결과를 본 뒤 ③을 채우세요.</p>
-                        <div class="rationale-grid">
-                            <label class="rationale-field">
-                                <span>① 우리 도시가 처한 조건은?</span>
-                                <textarea id="rationale-condition" rows="3" placeholder="예: 태풍 시나리오라 바람이 강해 풍력이 자주 멈추고, 비가 와서 태양광도 거의 못 쓴다."></textarea>
-                            </label>
-                            <label class="rationale-field">
-                                <span>② 이 조합을 고른 이유는? (한 문장)</span>
-                                <textarea id="rationale-choice" rows="3" placeholder="예: 날씨와 상관없이 24시간 돌아가는 지열을 기본으로 깔고, 남는 예산으로 ESS를 넣어 밤에 대비했다."></textarea>
-                            </label>
-                            <label class="rationale-field">
-                                <span>③ 시뮬레이션 뒤 무엇을 고쳤나? (1회 이상)</span>
-                                <textarea id="rationale-revision" rows="3" placeholder="예: 18~20시에 정전이 나서 태양광 1개를 빼고 ESS를 1개 더 지었다."></textarea>
-                            </label>
+                    <!-- 그린시티 건설 게임 하단 서브 탭 시스템 -->
+                    <div class="game-sub-container card">
+                        <div class="sub-nav-bar" id="game-sub-nav">
+                            <button class="sub-nav-btn active" data-subtab="game-result"><i class="fa-solid fa-chart-column"></i> 24시간 발전 결과 그래프</button>
+                            <button class="sub-nav-btn" data-subtab="game-rationale"><i class="fa-solid fa-pen-to-square"></i> 설계 근거 기록지</button>
+                            <button class="sub-nav-btn" data-subtab="game-history"><i class="fa-solid fa-code-compare"></i> 회차별 수정 비교표</button>
                         </div>
-                        <div class="rationale-foot">
-                            <span class="rationale-hint"><i class="fa-solid fa-circle-info"></i> 입력한 내용은 자동 저장되어 5차시 제안서로 옮겨집니다.</span>
-                            <span class="rationale-saved" id="rationale-saved"></span>
-                        </div>
-                    </div>
 
-                    <!-- 시뮬레이션 회차 비교표 -->
-                    <div class="compare-panel card hidden" id="compare-panel">
-                        <h3><i class="fa-solid fa-code-compare"></i> 설계 수정 전·후 비교</h3>
-                        <p class="subtitle">시뮬레이션을 돌릴 때마다 기록됩니다. 수정 뒤 결과가 어떻게 달라졌는지 확인해 보세요.</p>
-                        <div class="table-scroll">
-                            <table class="record-table">
-                                <thead>
-                                    <tr>
-                                        <th style="width:8%">회차</th>
-                                        <th style="width:16%">시나리오</th>
-                                        <th>발전 시설 구성</th>
-                                        <th style="width:12%">사용 예산</th>
-                                        <th style="width:10%">정전</th>
-                                        <th style="width:10%">탄소</th>
-                                        <th style="width:12%">등급</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="compare-body"></tbody>
-                            </table>
+                        <!-- 1. 24시간 발전 결과 그래프 서브 탭 -->
+                        <div class="sub-tab-content active" id="game-tab-result">
+                            <div class="timeline-panel" id="timeline-panel">
+                                <div class="record-head">
+                                    <div>
+                                        <h4><i class="fa-solid fa-chart-column"></i> 24시간 발전 결과 분석</h4>
+                                        <p class="subtitle">막대는 <strong>그 시각에 각 발전소가 만든 전기</strong>를 쌓은 것입니다. 검은 선이 필요 전력 수요이고, <strong style="color:#dc2626;">빨간 막대</strong>는 전기가 모자란 정전 시각입니다. 막대를 눌러 보세요.</p>
+                                    </div>
+                                </div>
+                                <div class="timeline-chart" id="timeline-chart"></div>
+                                <div class="timeline-legend" id="timeline-legend"></div>
+                                <div class="hour-detail" id="hour-detail">
+                                    <i class="fa-solid fa-hand-pointer"></i> 시뮬레이션을 실행하면 24시간 시간대별 발전량과 필요 전력이 한눈에 쌓여 보여집니다.
+                                </div>
+                            </div>
                         </div>
-                        <div class="compare-verdict" id="compare-verdict"></div>
+
+                        <!-- 2. 설계 근거 기록지 서브 탭 -->
+                        <div class="sub-tab-content" id="game-tab-rationale">
+                            <div class="rationale-panel">
+                                <h3><i class="fa-solid fa-pen-to-square"></i> 우리 모둠의 설계 근거 기록지</h3>
+                                <p class="subtitle">시뮬레이션을 돌리기 <strong>전에</strong> ①②를 먼저 적고, 결과를 본 뒤 ③을 채우세요.</p>
+                                <div class="rationale-grid">
+                                    <label class="rationale-field">
+                                        <span>① 우리 도시가 처한 조건은?</span>
+                                        <textarea id="rationale-condition" rows="3" placeholder="예: 태풍 시나리오라 바람이 강해 풍력이 자주 멈추고, 비가 와서 태양광도 거의 못 쓴다."></textarea>
+                                    </label>
+                                    <label class="rationale-field">
+                                        <span>② 이 조합을 고른 이유는? (한 문장)</span>
+                                        <textarea id="rationale-choice" rows="3" placeholder="예: 날씨와 상관없이 24시간 돌아가는 지열을 기본으로 깔고, 남는 예산으로 ESS를 넣어 밤에 대비했다."></textarea>
+                                    </label>
+                                    <label class="rationale-field">
+                                        <span>③ 시뮬레이션 뒤 무엇을 고쳤나? (1회 이상)</span>
+                                        <textarea id="rationale-revision" rows="3" placeholder="예: 18~20시에 정전이 나서 태양광 1개를 빼고 ESS를 1개 더 지었다."></textarea>
+                                    </label>
+                                </div>
+                                <div class="rationale-foot">
+                                    <span class="rationale-hint"><i class="fa-solid fa-circle-info"></i> 입력한 내용은 자동 저장되어 5차시 제안서로 옮겨집니다.</span>
+                                    <span class="rationale-saved" id="rationale-saved"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 3. 회차별 수정 비교표 서브 탭 -->
+                        <div class="sub-tab-content" id="game-tab-history">
+                            <div class="compare-panel" id="compare-panel">
+                                <h3><i class="fa-solid fa-code-compare"></i> 설계 수정 전·후 비교</h3>
+                                <p class="subtitle">시뮬레이션을 돌릴 때마다 기록됩니다. 수정 뒤 결과가 어떻게 달라졌는지 확인해 보세요.</p>
+                                <div class="table-scroll">
+                                    <table class="record-table">
+                                        <thead>
+                                            <tr>
+                                                <th style="width:8%">회차</th>
+                                                <th style="width:16%">시나리오</th>
+                                                <th>발전 시설 구성</th>
+                                                <th style="width:12%">사용 예산</th>
+                                                <th style="width:10%">정전</th>
+                                                <th style="width:10%">탄소</th>
+                                                <th style="width:12%">등급</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="compare-body"></tbody>
+                                    </table>
+                                </div>
+                                <div class="compare-verdict" id="compare-verdict"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -1248,37 +1221,59 @@
                         </div>
                     </div>
 
-                    <!-- 오른쪽: 미리보기 -->
-                    <div class="report-preview card" id="report-preview">
-                        <div class="preview-placeholder" id="preview-placeholder">
-                            왼쪽 칸을 채우고 <strong>[제안서 만들기]</strong>를 누르면<br>여기에 완성된 제안서가 나타납니다.
+                    <!-- 오른쪽: 서브 탭 (제안서 미리보기 vs 동료 상호 평가) -->
+                    <div class="report-side-container card">
+                        <div class="sub-nav-bar" id="report-sub-nav">
+                            <button class="sub-nav-btn active" data-subtab="report-preview"><i class="fa-solid fa-file-lines"></i> 제안서 미리보기</button>
+                            <button class="sub-nav-btn" data-subtab="report-peer"><i class="fa-solid fa-user-check"></i> 상호 평가 체크리스트</button>
                         </div>
-                        <div class="preview-doc hidden" id="preview-doc"></div>
-                    </div>
-                </div>
 
-                <!-- 동료 평가 체크리스트 -->
-                <div class="record-panel card">
-                    <div class="record-head">
-                        <div>
-                            <h4><i class="fa-solid fa-user-check"></i> 상호 평가 체크리스트</h4>
-                            <p class="subtitle">다른 모둠의 제안서를 읽고 아래 기준으로 살펴본 뒤, 질문 1개를 남겨 주세요.</p>
+                        <!-- 1. 제안서 미리보기 서브 탭 -->
+                        <div class="sub-tab-content active" id="report-tab-preview">
+                            <div class="report-preview" id="report-preview">
+                                <div class="preview-placeholder" id="preview-placeholder">
+                                    왼쪽 칸을 채우고 <strong>[제안서 만들기]</strong>를 누르면<br>여기에 완성된 제안서가 나타납니다.
+                                </div>
+                                <div class="preview-doc hidden" id="preview-doc"></div>
+                            </div>
+                        </div>
+
+                        <!-- 2. 상호 평가 서브 탭 -->
+                        <div class="sub-tab-content" id="report-tab-peer">
+                            <div class="peer-eval-panel">
+                                <div class="record-head">
+                                    <div>
+                                        <h4><i class="fa-solid fa-user-check"></i> 동료 모둠 상호 평가</h4>
+                                        <p class="subtitle">다른 모둠의 제안서를 읽고 아래 기준으로 살펴본 뒤, 질문 1개를 남겨 주세요.</p>
+                                    </div>
+                                </div>
+                                <div class="peer-check" id="peer-check">
+                                    <label><input type="checkbox" data-peer="0"> 에너지 조합을 고른 <strong>근거에 시뮬레이션 수치</strong>가 들어 있다.</label>
+                                    <label><input type="checkbox" data-peer="1"> 우리 지역의 <strong>기후·지형 조건</strong>을 고려했다.</label>
+                                    <label><input type="checkbox" data-peer="2"> <strong>정전(안정성)</strong>과 <strong>탄소(환경)</strong>를 함께 다루었다.</label>
+                                    <label><input type="checkbox" data-peer="3"> 예산 한도를 지키면서 설계했다.</label>
+                                    <label><input type="checkbox" data-peer="4"> 좋은 점뿐 아니라 <strong>걱정되는 점</strong>도 솔직히 적었다.</label>
+                                </div>
+                                <label class="report-field" style="margin-top: 1rem;">
+                                    <span>다른 모둠에게 남길 질문 1개</span>
+                                    <textarea id="peer-question" rows="3" placeholder="예: 태풍이 3일 이어져도 ESS 1개로 버틸 수 있을까요?"></textarea>
+                                </label>
+                            </div>
                         </div>
                     </div>
-                    <div class="peer-check" id="peer-check">
-                        <label><input type="checkbox" data-peer="0"> 에너지 조합을 고른 <strong>근거에 시뮬레이션 수치</strong>가 들어 있다.</label>
-                        <label><input type="checkbox" data-peer="1"> 우리 지역의 <strong>기후·지형 조건</strong>을 고려했다.</label>
-                        <label><input type="checkbox" data-peer="2"> <strong>정전(안정성)</strong>과 <strong>탄소(환경)</strong>를 함께 다루었다.</label>
-                        <label><input type="checkbox" data-peer="3"> 예산 한도를 지키면서 설계했다.</label>
-                        <label><input type="checkbox" data-peer="4"> 좋은 점뿐 아니라 <strong>걱정되는 점</strong>도 솔직히 적었다.</label>
-                    </div>
-                    <label class="report-field">
-                        <span>다른 모둠에게 남길 질문 1개</span>
-                        <textarea id="peer-question" rows="2" placeholder="예: 태풍이 3일 이어져도 ESS 1개로 버틸 수 있을까요?"></textarea>
-                    </label>
                 </div>
             </section>
         </main>
+    </div>
+
+    <!-- 발전소 건설 선택 모달 -->
+    <div class="modal-overlay hidden" id="build-modal">
+        <div class="modal-content card build-modal">
+            <button class="modal-close" id="btn-close-build" aria-label="닫기"><i class="fa-solid fa-xmark"></i></button>
+            <h2><i class="fa-solid fa-hammer"></i> <span id="build-slot-title">몇 번 땅</span>에 무엇을 지을까요?</h2>
+            <p class="build-budget">쓸 수 있는 예산 <strong id="build-budget-left">0만 원</strong></p>
+            <div class="build-grid" id="build-grid"></div>
+        </div>
     </div>
 
     <!-- 교사용 수업 안내 모달 -->

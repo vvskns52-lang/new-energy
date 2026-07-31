@@ -5,6 +5,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     loadClassState();      // 저장된 모둠 기록을 먼저 불러온다
     initTabs();
+    initSubTabs();         // 범용 서브 탭 시스템 초기화
     initClassroomBar();
     initLabSimulator();
     initLabExploration();
@@ -18,8 +19,34 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 /* ==========================================
-   1. 글로벌 탭 제어
+   1. 글로벌 탭 & 서브 탭 제어
    ========================================== */
+function initSubTabs() {
+    document.querySelectorAll('.sub-nav-bar').forEach(bar => {
+        const buttons = bar.querySelectorAll('.sub-nav-btn');
+        const container = bar.closest('.card') || bar.parentElement;
+
+        buttons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const subtabId = btn.getAttribute('data-subtab');
+                
+                buttons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                container.querySelectorAll('.sub-tab-content').forEach(content => {
+                    content.classList.remove('active');
+                    const cId = content.getAttribute('id');
+                    if (cId === subtabId || 
+                        cId === `lab-tab-${subtabId.replace('lab-', '')}` ||
+                        cId === `game-tab-${subtabId.replace('game-', '')}` ||
+                        cId === `report-tab-${subtabId.replace('report-', '')}`) {
+                        content.classList.add('active');
+                    }
+                });
+            });
+        });
+    });
+}
 function switchTab(targetTab, lessonNo) {
     document.querySelectorAll('.tab-content').forEach(tab => {
         tab.classList.toggle('active', tab.getAttribute('id') === targetTab);
@@ -963,25 +990,63 @@ function updateLabSimulator() {
 /* ==========================================
    3. 그린시티 건설 게임 (Green City Builder) 로직
    ========================================== */
+/*
+   day  = 맑은 낮처럼 조건이 가장 좋을 때 만드는 양
+   night= 해도 없고 바람도 없는 것처럼 조건이 나쁠 때 보장되는 양
+   이 두 값의 차이가 곧 '간판 용량과 실제의 차이'다.
+*/
+/* ==========================================
+   3. 그린시티 건설 게임 (Green City Builder) 로직
+   ========================================== */
+/*
+   day  = 맑은 낮처럼 조건이 가장 좋을 때 만드는 양
+   night= 해도 없고 바람도 없는 것처럼 조건이 나쁠 때 보장되는 양
+   이 두 값의 차이가 곧 '간판 용량과 실제의 차이'다.
+*/
 const PLANT_SPECS = {
-    fossil: { cost: 800, power: 400, carbon: 80, name: "화석연료 발전소", icon: "fa-industry", class: "built-fossil" },
-    solar: { cost: 1000, power: 200, carbon: 0, name: "태양광 발전단지", icon: "fa-solar-panel", class: "built-solar" },
-    wind: { cost: 1200, power: 300, carbon: 0, name: "풍력 발전단지", icon: "fa-wind", class: "built-wind" },
-    geothermal: { cost: 1500, power: 350, carbon: 0, name: "지열 발전소", icon: "fa-fire-flame-simple", class: "built-geothermal" },
-    tidal_barrage: { cost: 1300, power: 450, carbon: 0, name: "조력 발전소", icon: "fa-bridge", class: "built-tidal-barrage" },
-    tidal_current: { cost: 1100, power: 250, carbon: 0, name: "조류 발전소", icon: "fa-water-ladder", class: "built-tidal-current" },
-    wave_power: { cost: 800, power: 150, carbon: 0, name: "파력 발전소", icon: "fa-water", class: "built-wave-power" },
-    hydro: { cost: 1400, power: 500, carbon: 0, name: "수력 발전소", icon: "fa-droplet", class: "built-hydro" },
-    ess: { cost: 700, power: 0, carbon: 0, capacity: 300, name: "친환경 배터리 (ESS)", icon: "fa-car-battery", class: "built-ess" }
+    fossil: { cost: 800, power: 400, carbon: 80, day: 400, night: 400, color: '#64748b', bg: 'bg-gray',
+        name: "화석연료 발전소", icon: "fa-industry", class: "built-fossil",
+        blurb: "연료만 넣으면 밤에도 24시간 돌아가지만, 탄소를 가장 많이 내뿜습니다." },
+    solar: { cost: 1000, power: 200, carbon: 0, day: 200, night: 0, color: '#d97706', bg: 'bg-yellow',
+        name: "태양광 발전단지", icon: "fa-solar-panel", class: "built-solar",
+        blurb: "햇빛이 있어야 합니다. 밤과 비 오는 날에는 거의 만들지 못합니다." },
+    wind: { cost: 1200, power: 300, carbon: 0, day: 300, night: 0, color: '#059669', bg: 'bg-teal',
+        name: "풍력 발전단지", icon: "fa-wind", class: "built-wind",
+        blurb: "바람이 알맞게 불 때만 돕니다. 무풍에도, 태풍에도 멈춥니다." },
+    geothermal: { cost: 1500, power: 350, carbon: 0, day: 350, night: 350, color: '#ea580c', bg: 'bg-orange',
+        name: "지열 발전소", icon: "fa-fire-flame-simple", class: "built-geothermal",
+        blurb: "땅속 열을 쓰기 때문에 날씨·밤낮과 관계없이 늘 일정합니다." },
+    tidal_barrage: { cost: 1300, power: 450, carbon: 0, day: 450, night: 0, color: '#2563eb', bg: 'bg-blue',
+        name: "조력 발전소", icon: "fa-bridge", class: "built-tidal-barrage",
+        blurb: "한 번에 많이 만들지만 물이 드나드는 하루 네 번 무렵에만 돕니다." },
+    tidal_current: { cost: 1100, power: 250, carbon: 0, day: 250, night: 50, color: '#0d9488', bg: 'bg-teal',
+        name: "조류 발전소", icon: "fa-water-ladder", class: "built-tidal-current",
+        blurb: "물살이 빠른 시간에 세게 돌고, 느릴 때도 조금씩은 만듭니다." },
+    wave_power: { cost: 800, power: 150, carbon: 0, day: 150, night: 60, color: '#7c3aed', bg: 'bg-purple',
+        name: "파력 발전소", icon: "fa-water", class: "built-wave-power",
+        blurb: "값은 싸지만 만드는 양이 적고 파도에 따라 들쭉날쭉합니다." },
+    hydro: { cost: 1400, power: 500, carbon: 0, day: 500, night: 500, color: '#1d4ed8', bg: 'bg-blue',
+        name: "수력 발전소", icon: "fa-droplet", class: "built-hydro",
+        blurb: "가장 많이 만들고 밤에도 돌지만, 가뭄이 오면 크게 줄어듭니다." },
+    ess: { cost: 700, power: 0, carbon: 0, capacity: 300, day: 0, night: 0, color: '#9333ea', bg: 'bg-purple',
+        name: "친환경 배터리 (ESS)", icon: "fa-car-battery", class: "built-ess",
+        blurb: "스스로 전기를 만들지는 못합니다. 낮에 남는 전기를 담아 두었다가 밤에 꺼내 주는 큰 보조배터리입니다." }
 };
 
-/*
-   24시간 기상은 시나리오마다 미리 정해 둔다.
-   무작위로 만들면 같은 설계를 두 번 돌려도 결과가 달라져서
-   "무엇을 바꿨더니 무엇이 좋아졌다"는 판단을 학생이 할 수 없다.
-   문자는 시각별 상태 코드다.
-   날씨 C(맑음) O(흐림) R(비) D(황사) H(호우) / 바람 n(무풍) w(약함) s(센바람) x(컷아웃)
-*/
+// 도시가 시각마다 필요로 하는 전기 (사람들이 활동하는 시간에 많이 쓴다)
+const DEMAND_CURVE = [
+    450, 450, 450, 450, 450, 450,   // 0~5시 새벽
+    750, 750, 750,                  // 6~8시 아침
+    880, 880, 880, 880, 880, 880, 880, 880,  // 9~16시 낮
+    980, 980, 980, 980,             // 17~20시 저녁 (가장 많이 씀)
+    600, 600, 600                   // 21~23시 밤
+];
+
+const PEAK_DEMAND = Math.max(...DEMAND_CURVE);
+
+// 그래프에 쌓는 순서 (아래부터)
+const STACK_ORDER = ['hydro', 'geothermal', 'fossil', 'tidal_barrage', 'tidal_current', 'wave_power', 'wind', 'solar'];
+
 const WEATHER_PROFILES = {
     normal:  { sky: 'CCCCCCCCCOOCCCCCOOCRRCCC', wind: 'nnwwwsssswwwsssswwwwwwnn' },
     drought: { sky: 'DDDDDDDDDDDDDDDDDDDDDDDD', wind: 'nnwwwwwwwwnnwwwwwwwwnnnn' },
@@ -1003,11 +1068,9 @@ const WIND_INFO = {
     x: { desc: '초강력 태풍 — 컷아웃', coeff: 0.0 }
 };
 
-// 파력은 파도의 세기에 따라 시각마다 출력이 달라진다 (0.4~1.0)
 const WAVE_PROFILE = [0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 0.9, 0.8, 0.6, 0.5, 0.4, 0.5,
                       0.6, 0.7, 0.8, 0.9, 1.0, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.5];
 
-// 돌발 재난은 시나리오마다 정해진 시각에 일어난다 (교사가 미리 발문을 준비할 수 있도록)
 const SCENARIO_EVENTS = {
     normal: {
         15: { msg: '☁️ 돌발 상황: 초대형 먹구름이 도시를 덮쳤습니다! 태양광 발전량이 급감합니다.', weatherCoeff: 0.1 }
@@ -1030,20 +1093,22 @@ function getHourEnvironment(scenario, hour) {
         weatherCoeff: sky.coeff,
         windDesc: wind.desc,
         windCoeff: wind.coeff,
-        hydroCoeff: scenario === 'drought' ? 0.4 : 1.0   // 가뭄에는 수력 60% 감소
+        hydroCoeff: scenario === 'drought' ? 0.4 : 1.0
     };
 }
 
 let activeScenario = 'normal';
 let budget = 5000;
 let citySlots = [null, null, null, null, null, null];
+let targetBuildSlot = null; // 현재 건설 선택 중인 부지 번호
 let isSimulating = false;
 let simIntervalId = null;
 let simTickFn = null;
 let simSpeed = 400;
 let isSimPaused = false;
+let simHistory = []; // 24시간 발전 결과 기록 (Stacked Bar 렌더링용)
 
-// 시나리오 선택기 관리
+// 게임 시나리오 및 이벤트 연결
 function initGameScenario() {
     const cards = document.querySelectorAll('.scenario-card');
     cards.forEach(card => {
@@ -1060,6 +1125,21 @@ function initGameScenario() {
         });
     });
 
+    // 지도 부지(슬롯) 클릭 이벤트 연결
+    const slotElements = document.querySelectorAll('.map-slot');
+    slotElements.forEach((el, index) => {
+        el.addEventListener('click', () => onSlotClick(index));
+    });
+
+    // 건설 모달 닫기 버튼
+    const btnCloseBuild = document.getElementById('btn-close-build');
+    if (btnCloseBuild) {
+        btnCloseBuild.addEventListener('click', closeBuildModal);
+    }
+
+    // 미니 수요 그래프 및 상점 카드 목록 렌더링
+    renderDemandPreviewChart();
+    renderShopList();
     resetScenarioState();
 }
 
@@ -1077,80 +1157,131 @@ function resetScenarioState() {
     updateGameUI();
 }
 
-// 도시 UI 업데이트
-function updateGameUI() {
-    let usedBudget = 0;
-    let totalMaxPower = 0;
-    let averageCarbon = 0;
-    let activePlantsCount = 0;
-    let carbonSum = 0;
+// 1. 하루 전기 사용 미니 차트 렌더링
+function renderDemandPreviewChart() {
+    const chartContainer = document.getElementById('demand-chart');
+    if (!chartContainer) return;
 
-    citySlots.forEach(slot => {
-        if (slot) {
-            const spec = PLANT_SPECS[slot];
-            usedBudget += spec.cost;
-            totalMaxPower += spec.power;
-            
-            if (slot !== 'ess') {
-                carbonSum += spec.carbon;
-                activePlantsCount++;
-            }
+    chartContainer.innerHTML = '';
+    const maxDemand = PEAK_DEMAND;
+
+    DEMAND_CURVE.forEach((demand, h) => {
+        const col = document.createElement('div');
+        const isPeak = demand === PEAK_DEMAND;
+        col.className = `demand-bar-col ${isPeak ? 'peak-bar' : ''}`;
+        col.style.height = `${(demand / maxDemand) * 100}%`;
+        col.title = `${h}시: ${demand}kW ${isPeak ? '(저녁 최대 피크)' : ''}`;
+
+        if (h === 0 || h === 6 || h === 12 || h === 18 || h === 23) {
+            const label = document.createElement('span');
+            label.className = 'bar-label';
+            label.textContent = `${h}시`;
+            col.appendChild(label);
         }
-    });
 
-    const currentBudget = budget - usedBudget;
-    averageCarbon = activePlantsCount > 0 ? Math.round(carbonSum / activePlantsCount) : 0;
-
-    document.getElementById('game-budget').textContent = `${currentBudget.toLocaleString()}만 원`;
-    document.getElementById('game-carbon').textContent = `${averageCarbon}%`;
-    document.getElementById('game-carbon-bar').style.width = `${averageCarbon}%`;
-    document.getElementById('game-total-power').textContent = `${totalMaxPower} / 1000 kW`;
-    
-    const powerPercentage = Math.min(100, (totalMaxPower / 1000) * 100);
-    document.getElementById('game-power-bar').style.width = `${powerPercentage}%`;
-
-    const slotElements = document.querySelectorAll('.map-slot');
-    slotElements.forEach((el, index) => {
-        const plant = citySlots[index];
-        el.className = 'map-slot';
-
-        if (plant) {
-            const spec = PLANT_SPECS[plant];
-            el.classList.add('built', spec.class);
-            el.innerHTML = `<i class="fa-solid ${spec.icon}"></i> ${spec.name}`;
-        } else {
-            el.className = 'map-slot empty';
-            el.innerHTML = `<i class="fa-solid fa-plus"></i> 빈 부지`;
-        }
+        chartContainer.appendChild(col);
     });
 }
 
-// 발전시설 건설 구매
-function buyPlant(type) {
+// 2. 상점 도감 목록 렌더링 (시설 안내용)
+function renderShopList() {
+    const shopContainer = document.getElementById('shop-list');
+    if (!shopContainer) return;
+
+    shopContainer.innerHTML = Object.keys(PLANT_SPECS).map(key => {
+        const spec = PLANT_SPECS[key];
+        return `
+            <div class="shop-item">
+                <div class="item-icon ${spec.bg}"><i class="fa-solid ${spec.icon}"></i></div>
+                <div class="item-info">
+                    <h4>${spec.name}</h4>
+                    <p class="specs">낮 ${spec.day}kW · 밤/악조건 ${spec.night}kW · 탄소 ${spec.carbon}%</p>
+                </div>
+                <div class="cost">${spec.cost.toLocaleString()}만 원</div>
+            </div>
+        `;
+    }).join('');
+}
+
+// 3. 지형 부지(슬롯) 클릭 처리: 빈 땅은 건설, 지어진 땅은 철거
+function onSlotClick(index) {
     if (isSimulating) {
-        showToast("시뮬레이션이 도는 동안에는 도시를 바꿀 수 없어요. 먼저 시뮬레이션을 멈추세요.", "warn");
+        showToast("시뮬레이션이 진행 중입니다. 먼저 중단하세요.", "warn");
         return;
     }
 
-    const spec = PLANT_SPECS[type];
-
-    const emptyIndex = citySlots.findIndex(s => s === null);
-    if (emptyIndex === -1) {
-        showToast("빈 부지가 없습니다. 오른쪽 영토에서 시설을 눌러 철거한 뒤 다시 건설하세요.", "warn");
-        return;
+    if (citySlots[index] === null) {
+        openBuildModal(index);
+    } else {
+        removePlant(index);
     }
+}
+
+// 건설 선택 모달 열기
+function openBuildModal(slotIndex) {
+    targetBuildSlot = slotIndex;
+    const modal = document.getElementById('build-modal');
+    const slotTitle = document.getElementById('build-slot-title');
+    const budgetLeft = document.getElementById('build-budget-left');
+    const grid = document.getElementById('build-grid');
 
     let currentCost = 0;
     citySlots.forEach(s => { if (s) currentCost += PLANT_SPECS[s].cost; });
     const remaining = budget - currentCost;
+
+    slotTitle.textContent = `${slotIndex + 1}번 빈 부지`;
+    budgetLeft.textContent = `${remaining.toLocaleString()}만 원`;
+
+    grid.innerHTML = Object.keys(PLANT_SPECS).map(key => {
+        const spec = PLANT_SPECS[key];
+        const isAffordable = remaining >= spec.cost;
+        return `
+            <div class="build-card ${isAffordable ? '' : 'disabled'}" onclick="${isAffordable ? `selectPlantToBuild('${key}')` : ''}">
+                <div class="build-card-head">
+                    <i class="fa-solid ${spec.icon}" style="color: ${spec.color}"></i>
+                    <div>
+                        <h4>${spec.name}</h4>
+                        <span class="cost">${spec.cost.toLocaleString()}만 원</span>
+                    </div>
+                </div>
+                <p class="build-card-specs">${spec.blurb}</p>
+                <div class="build-card-foot">
+                    <span class="dp-label">맑은 낮 ${spec.day}kW / 밤 ${spec.night}kW</span>
+                    <span class="val-badge">${isAffordable ? '선택 건설' : '예산 부족'}</span>
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    modal.classList.remove('hidden');
+}
+
+function closeBuildModal() {
+    document.getElementById('build-modal').classList.add('hidden');
+    targetBuildSlot = null;
+}
+
+function selectPlantToBuild(type) {
+    if (targetBuildSlot === null) return;
+    buyPlantOnSlot(targetBuildSlot, type);
+    closeBuildModal();
+}
+
+// 지정한 부지(slotIndex)에 건설
+function buyPlantOnSlot(slotIndex, type) {
+    const spec = PLANT_SPECS[type];
+    let currentCost = 0;
+    citySlots.forEach(s => { if (s) currentCost += PLANT_SPECS[s].cost; });
+    const remaining = budget - currentCost;
+
     if (remaining < spec.cost) {
-        showToast(`예산이 부족합니다. 남은 예산 ${remaining.toLocaleString()}만 원 < ${spec.name} ${spec.cost.toLocaleString()}만 원`, "warn");
+        showToast(`예산이 부족합니다. (필요: ${spec.cost}만 원 > 남은 예산: ${remaining}만 원)`, "warn");
         return;
     }
 
-    citySlots[emptyIndex] = type;
+    citySlots[slotIndex] = type;
     updateGameUI();
-    showToast(`${spec.name} 건설 완료! (남은 예산 ${(remaining - spec.cost).toLocaleString()}만 원)`, "ok");
+    showToast(`${slotIndex + 1}번 부지에 [${spec.name}] 건설 완료!`, "ok");
 }
 
 // 발전시설 철거
@@ -1163,14 +1294,90 @@ function removePlant(index) {
 
     const spec = PLANT_SPECS[citySlots[index]];
     showConfirm(
-        "시설을 철거할까요?",
-        `${spec.name}를 철거하면 건설비 ${spec.cost.toLocaleString()}만 원이 예산으로 되돌아옵니다.`,
+        `${index + 1}번 부지 시설을 철거할까요?`,
+        `[${spec.name}]를 철거하면 건설비 ${spec.cost.toLocaleString()}만 원이 예산으로 되돌아옵니다.`,
         () => {
             citySlots[index] = null;
             updateGameUI();
             showToast(`${spec.name}를 철거했습니다.`, "ok");
         }
     );
+}
+
+// 도시 UI 업데이트 (사전 전력 예상치 및 진단 메시지 포함)
+function updateGameUI() {
+    let usedBudget = 0;
+    let dayPowerSum = 0;
+    let nightPowerSum = 0;
+    let activePlantsCount = 0;
+    let carbonSum = 0;
+
+    citySlots.forEach(slot => {
+        if (slot) {
+            const spec = PLANT_SPECS[slot];
+            usedBudget += spec.cost;
+            dayPowerSum += spec.day;
+            nightPowerSum += spec.night;
+            
+            if (slot !== 'ess') {
+                carbonSum += spec.carbon;
+                activePlantsCount++;
+            }
+        }
+    });
+
+    const currentBudget = budget - usedBudget;
+    const averageCarbon = activePlantsCount > 0 ? Math.round(carbonSum / activePlantsCount) : 0;
+
+    document.getElementById('game-budget').textContent = `${currentBudget.toLocaleString()}만 원`;
+    document.getElementById('game-carbon').textContent = `${averageCarbon}%`;
+    document.getElementById('game-carbon-bar').style.width = `${averageCarbon}%`;
+
+    // 상단 대시보드 저녁 필요량(980kW) 대비 맑은 낮 발전 용량 표기
+    document.getElementById('game-total-power').textContent = `${dayPowerSum} / 980 kW`;
+    const powerPercentage = Math.min(100, (dayPowerSum / 980) * 100);
+    document.getElementById('game-power-bar').style.width = `${powerPercentage}%`;
+
+    // 사전 발전량 실시간 갱신 (맑은 낮 vs 밤/악조건)
+    document.getElementById('dp-day').textContent = `${dayPowerSum} kW`;
+    document.getElementById('dp-night').textContent = `${nightPowerSum} kW`;
+
+    // 사전 정전 예측 진단 문구
+    const verdictEl = document.getElementById('dp-verdict');
+    const essCount = citySlots.filter(s => s === 'ess').length;
+    
+    if (dayPowerSum === 0 && nightPowerSum === 0) {
+        verdictEl.className = "dp-verdict";
+        verdictEl.innerHTML = "아직 지은 시설이 없습니다. 오른쪽 빈 땅을 눌러 발전소를 지어 보세요.";
+    } else if (nightPowerSum >= PEAK_DEMAND) {
+        verdictEl.className = "dp-verdict verdict-ok";
+        verdictEl.innerHTML = "✅ <strong>완벽합니다!</strong> 밤/악조건 최소 발전량이 저녁 피크(980kW)를 넘어서 24시간 정전 없이 안전하게 전기를 공급할 수 있습니다.";
+    } else if ((nightPowerSum + essCount * 150) >= PEAK_DEMAND) {
+        verdictEl.className = "dp-verdict verdict-ok";
+        verdictEl.innerHTML = "✅ <strong>안정적입니다!</strong> 기저 발전소와 ESS 배터리에 저장된 전력이 저녁 피크(980kW)를 충분히 보완해 줄 것으로 예상됩니다.";
+    } else if (dayPowerSum >= PEAK_DEMAND) {
+        verdictEl.className = "dp-verdict verdict-warn";
+        verdictEl.innerHTML = `⚠️ <strong>정전 주의!</strong> 맑은 낮(${dayPowerSum}kW)은 충분해 보이지만, 밤/악조건(${nightPowerSum}kW)에는 최대로 내도 부족합니다. 저녁 피크시간(17~20시)에 정전이 발생할 확률이 높습니다. 지열이나 ESS를 보강해 보세요.`;
+    } else {
+        verdictEl.className = "dp-verdict verdict-warn";
+        verdictEl.innerHTML = `⚠️ <strong>발전량 부족!</strong> 맑은 낮 최대 발전량(${dayPowerSum}kW)이 도시의 저녁 최대 필요량(980kW)에 못 미칩니다. 발전소를 추가로 더 건설해 주세요.`;
+    }
+
+    // 영토 맵 슬롯 업데이트
+    const slotElements = document.querySelectorAll('.map-slot');
+    slotElements.forEach((el, index) => {
+        const plant = citySlots[index];
+        el.className = 'map-slot';
+
+        if (plant) {
+            const spec = PLANT_SPECS[plant];
+            el.classList.add('built', spec.class);
+            el.innerHTML = `<i class="fa-solid ${spec.icon}"></i> ${index + 1}. ${spec.name}`;
+        } else {
+            el.className = 'map-slot empty';
+            el.innerHTML = `<i class="fa-solid fa-plus"></i> ${index + 1}번 빈 부지 (클릭하여 건설)`;
+        }
+    });
 }
 
 // 24시간 시뮬레이션 제어
@@ -1183,7 +1390,7 @@ document.getElementById('btn-start-simulation').addEventListener('click', () => 
 });
 
 function startGameSimulation() {
-    if (isSimulating) return;              // 이미 돌고 있으면 타이머가 겹치지 않도록 막는다
+    if (isSimulating) return;
     clearInterval(simIntervalId);
 
     const builtCount = citySlots.filter(s => s !== null).length;
@@ -1199,6 +1406,8 @@ function startGameSimulation() {
 
     isSimulating = true;
     isSimPaused = false;
+    simHistory = []; // 기록 초기화
+
     const btn = document.getElementById('btn-start-simulation');
     btn.innerHTML = `<i class="fa-solid fa-stop"></i> 시뮬레이션 중단`;
     btn.classList.add('btn-red');
@@ -1211,6 +1420,9 @@ function startGameSimulation() {
 
     const simScreen = document.getElementById('sim-screen');
     simScreen.classList.remove('hidden');
+
+    const timelinePanel = document.getElementById('timeline-panel');
+    timelinePanel.classList.remove('hidden');
     
     const slotsPanel = document.getElementById('city-slots');
     slotsPanel.style.opacity = '0.5';
@@ -1243,7 +1455,7 @@ function startGameSimulation() {
             return;
         }
 
-        // 1. 시나리오별 24시간 기상 (같은 시나리오면 항상 같은 날씨)
+        // 1. 기상 환경
         const env = getHourEnvironment(activeScenario, hour);
         let weather = env.weather;
         let weatherCoeff = env.weatherCoeff;
@@ -1251,7 +1463,7 @@ function startGameSimulation() {
         let windCoeff = env.windCoeff;
         let hydroCoeff = env.hydroCoeff;
 
-        // 1.5. 정해진 시각에 일어나는 돌발 기상 재난
+        // 1.5. 돌발 재난
         let disasterMessage = null;
         const disaster = SCENARIO_EVENTS[activeScenario][hour];
         if (disaster) {
@@ -1261,7 +1473,6 @@ function startGameSimulation() {
             disasterMessage = disaster.msg;
         }
 
-        // Show disaster alert UI
         const disasterAlert = document.getElementById('disaster-alert');
         if (disasterMessage) {
             disasterAlert.classList.remove('hidden');
@@ -1275,52 +1486,48 @@ function startGameSimulation() {
             disasterAlert.classList.add('hidden');
         }
 
-        // 2. 시간별 전력 수요 곡선 (1000kW 기준)
-        let demand = 450;
-        if (hour >= 6 && hour < 9) demand = 750;
-        else if (hour >= 9 && hour < 17) demand = 880;
-        else if (hour >= 17 && hour < 21) demand = 980;
-        else if (hour >= 21) demand = 600;
+        // 2. 시간별 전력 수요
+        const demand = DEMAND_CURVE[hour];
 
-        // 3. 공급 전력량 계산
+        // 3. 발전소별 전력 공급 계산
         let supply = 0;
+        const breakdown = {};
         citySlots.forEach(plant => {
+            if (!plant || plant === 'ess') return;
+            let amount = 0;
+
             if (plant === 'fossil') {
-                supply += PLANT_SPECS.fossil.power;
+                amount = PLANT_SPECS.fossil.power;
             } else if (plant === 'solar') {
                 let timeCoeff = 0;
                 if (hour >= 6 && hour <= 18) {
                     const radians = ((hour - 6) / 12) * Math.PI;
                     timeCoeff = Math.sin(radians);
                 }
-                supply += Math.round(PLANT_SPECS.solar.power * timeCoeff * weatherCoeff);
+                amount = Math.round(PLANT_SPECS.solar.power * timeCoeff * weatherCoeff);
             } else if (plant === 'wind') {
-                supply += Math.round(PLANT_SPECS.wind.power * windCoeff);
+                amount = Math.round(PLANT_SPECS.wind.power * windCoeff);
             } else if (plant === 'geothermal') {
-                supply += PLANT_SPECS.geothermal.power; // 지열 24시간 균일 가동
+                amount = PLANT_SPECS.geothermal.power;
             } else if (plant === 'hydro') {
-                supply += Math.round(PLANT_SPECS.hydro.power * hydroCoeff);
+                amount = Math.round(PLANT_SPECS.hydro.power * hydroCoeff);
             } else if (plant === 'tidal_barrage') {
-                // 조력: 수위차가 벌어지는 04, 10, 16, 22시에만 450kW 가동
-                if ([4, 10, 16, 22].includes(hour)) {
-                    supply += PLANT_SPECS.tidal_barrage.power;
-                }
+                amount = [4, 10, 16, 22].includes(hour) ? PLANT_SPECS.tidal_barrage.power : 0;
             } else if (plant === 'tidal_current') {
-                // 조류: 02~07시, 14~19시에 빠른 유속으로 250kW 가동, 그 외에는 50kW 기저
-                if ((hour >= 2 && hour <= 7) || (hour >= 14 && hour <= 19)) {
-                    supply += PLANT_SPECS.tidal_current.power;
-                } else {
-                    supply += 50;
-                }
+                amount = ((hour >= 2 && hour <= 7) || (hour >= 14 && hour <= 19))
+                    ? PLANT_SPECS.tidal_current.power : 50;
             } else if (plant === 'wave_power') {
-                // 파력: 파도 세기에 따라 40~100% 사이로 출렁인다 (시각마다 정해진 값)
-                supply += Math.round(PLANT_SPECS.wave_power.power * WAVE_PROFILE[hour]);
+                amount = Math.round(PLANT_SPECS.wave_power.power * WAVE_PROFILE[hour]);
             }
+
+            supply += amount;
+            breakdown[plant] = (breakdown[plant] || 0) + amount;
         });
 
-        // 4. 배터리(ESS) 연동
+        // 4. ESS 연동
         let netPower = supply - demand;
         let batteryActionLog = "";
+        let essDischargeAmount = 0;
 
         if (netPower > 0 && essCount > 0) {
             const charging = Math.min(netPower, maxBatteryCapacity - batteryLevel);
@@ -1330,6 +1537,7 @@ function startGameSimulation() {
             const discharging = Math.min(Math.abs(netPower), batteryLevel);
             batteryLevel -= discharging;
             supply += discharging;
+            essDischargeAmount = discharging;
             netPower = supply - demand;
             if (discharging > 0) batteryActionLog = ` [🔋 ESS 방출 -${Math.round(discharging)}kW]`;
         }
@@ -1342,7 +1550,23 @@ function startGameSimulation() {
             blackoutHours.push(hour);
         }
 
-        // 6. UI 업데이트 및 로그 출력
+        // 6. 24시간 실시간 차트 기록 데이터 축적 및 렌더링
+        simHistory.push({
+            hour,
+            weather,
+            windDesc,
+            demand,
+            supply,
+            breakdown,
+            essDischargeAmount,
+            batteryLevel,
+            isBlackout,
+            shortfall: isBlackout ? (demand - supply) : 0
+        });
+
+        renderTimelineChart(simHistory);
+
+        // UI 실시간 지표 갱신
         const clockFormatted = `${hour.toString().padStart(2, '0')}:00`;
         document.getElementById('sim-clock').innerHTML = `<i class="fa-regular fa-clock"></i> ${clockFormatted}`;
         document.getElementById('sim-env').innerHTML = `<i class="fa-solid fa-cloud-sun"></i> 날씨: ${weather} / 바람: ${windDesc}`;
@@ -1379,6 +1603,130 @@ function startGameSimulation() {
     simIntervalId = setInterval(simTickFn, simSpeed);
 }
 
+// 24시간 Stacked Bar Chart 렌더링 함수 (요구사항 1)
+function renderTimelineChart(history) {
+    const chart = document.getElementById('timeline-chart');
+    const legend = document.getElementById('timeline-legend');
+    if (!chart) return;
+
+    chart.innerHTML = '';
+    const maxAxis = 1300; // Y축 최대 기준 전력
+
+    history.forEach(item => {
+        const col = document.createElement('div');
+        col.className = `timeline-col ${item.isBlackout ? 'blackout-col' : ''}`;
+        col.setAttribute('data-hour', item.hour);
+
+        // 막대 누적(Stacked) 컨테이너
+        const stackContainer = document.createElement('div');
+        stackContainer.className = 'stack-container';
+        
+        let totalHeightPercent = 0;
+        
+        // 발전소별 기여량 쌓기
+        STACK_ORDER.forEach(plantKey => {
+            const amount = item.breakdown[plantKey] || 0;
+            if (amount > 0) {
+                const seg = document.createElement('div');
+                seg.className = 'stack-segment';
+                const heightPercent = (amount / maxAxis) * 100;
+                seg.style.height = `${heightPercent}%`;
+                seg.style.backgroundColor = PLANT_SPECS[plantKey].color;
+                seg.title = `${PLANT_SPECS[plantKey].name}: ${amount}kW`;
+                stackContainer.appendChild(seg);
+                totalHeightPercent += heightPercent;
+            }
+        });
+
+        // ESS 방출분 표시
+        if (item.essDischargeAmount > 0) {
+            const seg = document.createElement('div');
+            seg.className = 'stack-segment';
+            const heightPercent = (item.essDischargeAmount / maxAxis) * 100;
+            seg.style.height = `${heightPercent}%`;
+            seg.style.backgroundColor = PLANT_SPECS.ess.color;
+            seg.title = `ESS 방출 전력: ${item.essDischargeAmount}kW`;
+            stackContainer.appendChild(seg);
+            totalHeightPercent += heightPercent;
+        }
+
+        stackContainer.style.height = `${Math.min(100, (item.supply / maxAxis) * 100)}%`;
+
+        // 수요선(Demand Line Marker)
+        const demandMarker = document.createElement('div');
+        demandMarker.className = 'demand-line-marker';
+        demandMarker.style.bottom = `${(item.demand / maxAxis) * 100}%`;
+        col.appendChild(demandMarker);
+
+        col.appendChild(stackContainer);
+
+        // 시간 축 라벨
+        const label = document.createElement('span');
+        label.className = 'col-hour-label';
+        label.textContent = `${String(item.hour).padStart(2, '0')}시`;
+        col.appendChild(label);
+
+        // 클릭 시 상세 수치 툴팁 업데이트
+        col.addEventListener('click', () => showHourDetail(item));
+
+        chart.appendChild(col);
+    });
+
+    // 범례 (Legend) 생성
+    if (legend) {
+        const usedPlants = new Set();
+        history.forEach(h => {
+            Object.keys(h.breakdown).forEach(k => { if (h.breakdown[k] > 0) usedPlants.add(k); });
+            if (h.essDischargeAmount > 0) usedPlants.add('ess');
+        });
+
+        legend.innerHTML = Array.from(usedPlants).map(key => {
+            const spec = PLANT_SPECS[key];
+            return `
+                <div class="legend-item">
+                    <span class="legend-color" style="background-color: ${spec.color}"></span>
+                    <span>${spec.name}</span>
+                </div>
+            `;
+        }).join('') + `<div class="legend-item"><span class="legend-color" style="background-color: #0f172a"></span><span>검은선: 필요 전력(수요)</span></div>`;
+    }
+}
+
+// 클릭한 시각의 세부 발전 Breakdown 표시
+function showHourDetail(item) {
+    const detailBox = document.getElementById('hour-detail');
+    if (!detailBox) return;
+
+    document.querySelectorAll('.timeline-col').forEach(c => c.classList.remove('active-col'));
+    const targetCol = document.querySelector(`.timeline-col[data-hour="${item.hour}"]`);
+    if (targetCol) targetCol.classList.add('active-col');
+
+    const hourStr = `${String(item.hour).padStart(2, '0')}:00`;
+    let breakdownHTML = Object.keys(item.breakdown)
+        .filter(k => item.breakdown[k] > 0)
+        .map(k => `<strong>${PLANT_SPECS[k].name}</strong>: ${item.breakdown[k]}kW`)
+        .join(' · ');
+
+    if (item.essDischargeAmount > 0) {
+        breakdownHTML += ` · <strong>ESS 보조 방출</strong>: ${Math.round(item.essDischargeAmount)}kW`;
+    }
+
+    if (!breakdownHTML) breakdownHTML = "발전기 가동 없음 (0 kW)";
+
+    detailBox.innerHTML = `
+        <div style="font-size: 0.95rem; font-weight: bold; margin-bottom: 0.3rem;">
+            🕒 [${hourStr}] 기상: ${item.weather} (${item.windDesc})
+        </div>
+        <div>
+            ⚡ Total 공급: <strong>${item.supply} kW</strong> vs 💡 필요 수요: <strong>${item.demand} kW</strong>
+        </div>
+        <div style="margin-top: 0.3rem; font-size: 0.82rem; color: #475569;">
+            📊 발전소별 기여: ${breakdownHTML}
+        </div>
+        ${item.isBlackout ? `<div style="color:#dc2626; font-weight:bold; margin-top:0.4rem;">⚠️ 전력 부족: ${item.shortfall}kW 정전 발생!</div>` : `<div style="color:#059669; margin-top:0.4rem;">✅ 전력 공급 정상</div>`}
+    `;
+}
+
 // 시뮬레이션 속도 변경 / 일시정지
 function setSimSpeed(ms) {
     simSpeed = ms;
@@ -1404,7 +1752,7 @@ function toggleSimPause() {
     }
 }
 
-// 시뮬레이션 중단
+// 시뮬레이션 중단 (결과 차트는 닫히지 않고 영속 유지됨)
 function stopGameSimulation() {
     clearInterval(simIntervalId);
     isSimulating = false;
@@ -1423,9 +1771,11 @@ function stopGameSimulation() {
 
     document.querySelectorAll('.scenario-card').forEach(c => c.style.pointerEvents = 'auto');
 
+    // 실시간 시뮬레이션 창만 닫고 24시간 결과 그래프(timeline-panel)는 그대로 유지!
     document.getElementById('sim-screen').classList.add('hidden');
     document.getElementById('disaster-alert').classList.add('hidden');
     document.getElementById('city-slots').style.opacity = '1';
+    document.getElementById('timeline-panel').classList.remove('hidden');
 }
 
 const SCENARIO_LABELS = {
@@ -1436,7 +1786,7 @@ const SCENARIO_LABELS = {
 
 // 시뮬레이션 결과 판정
 function endGameSimulation(blackoutCount, avgCarbon, essCount, blackoutHours = []) {
-    if (!isSimulating) return;             // 타이머가 겹쳐 두 번 불려도 결과는 한 번만 기록한다
+    if (!isSimulating) return;
     stopGameSimulation();
 
     let stabilityGrade = 'S';
@@ -1460,16 +1810,15 @@ function endGameSimulation(blackoutCount, avgCarbon, essCount, blackoutHours = [
     } else if (stabilityGrade !== 'S' && ecoGrade === 'S') {
         summaryText = `🌱 <strong>탄소는 0인데 전기가 끊겼습니다(${blackoutCount}회).</strong> 신재생에너지만으로 채우면 날씨가 나쁠 때 발전이 멈춥니다. <strong>지열·조력</strong>처럼 꾸준한 발전원이나 <strong>ESS</strong>로 간헐성을 메워 보세요.`;
     } else {
-        summaryText = `🔧 <strong>정전 ${blackoutCount}회 · 평균 탄소 ${Math.round(avgCarbon)}%</strong> — 안정성과 환경 둘 다 아쉽습니다. 정전이 난 시각에 어떤 발전소가 쉬고 있었는지 기록을 다시 살펴보세요.`;
+        summaryText = `🔧 <strong>정전 ${blackoutCount}회 · 평균 탄소 ${Math.round(avgCarbon)}%</strong> — 안정성과 환경 둘 다 아쉽습니다. 하단 막대그래프에서 정전이 난 시각에 어떤 발전소가 쉬고 있었는지 확인해 보세요.`;
     }
 
-    // 정전 시각을 근거 자료로 제시
     let detailHTML = `<div class="rd-row"><span class="rd-key">시나리오</span><span>${scenarioLabel}</span></div>`;
     detailHTML += `<div class="rd-row"><span class="rd-key">발전 시설</span><span>${describeCity() || '없음'}</span></div>`;
     if (blackoutHours.length > 0) {
         const hoursText = blackoutHours.map(h => `${String(h).padStart(2, '0')}시`).join(', ');
         detailHTML += `<div class="rd-row rd-warn"><span class="rd-key">정전 시각</span><span>${hoursText}</span></div>`;
-        detailHTML += `<div class="rd-tip">💬 이 시각에 <strong>어떤 발전소가 멈춰 있었는지</strong>, 그때 수요는 왜 높았는지 모둠에서 이야기해 보세요.</div>`;
+        detailHTML += `<div class="rd-tip">💬 하단의 <strong>24시간 발전 결과 그래프</strong>에서 이 시각에 어떤 발전소가 멈춰 있었는지 손가락으로 짚으며 모둠 토의해 보세요.</div>`;
     } else {
         detailHTML += `<div class="rd-row rd-ok"><span class="rd-key">정전 시각</span><span>없음 — 24시간 모두 정상 공급</span></div>`;
     }
@@ -1591,6 +1940,18 @@ const QUIZ_BANK = [
     },
     {
         modes: ['pre', 'final'],
+        question: "다음 중 자연에서 지속해서 얻을 수 있는 '신재생에너지'의 종류로 올바르게 짝지어진 것은 무엇일까요?",
+        options: [
+            "석탄, 석유, 천연가스",
+            "태양광, 풍력, 지열",
+            "우라늄, 석탄, 휘발유",
+            "디젤, 벙커C유, 석탄"
+        ],
+        answer: 1,
+        explanation: "해설: 태양광, 풍력, 지열, 수력, 조력 등 자연의 힘을 이용해 계속 다시 채워지는 에너지가 신재생에너지입니다. 석탄, 석유, 천연가스는 사용하면 사라지는 화석연료입니다."
+    },
+    {
+        modes: ['final'],
         question: "바람의 힘으로 발전을 하는 풍력 발전기에서, 태풍처럼 너무 강한 바람이 불 때 기기가 파손되는 것을 방지하기 위해 날개를 정지시키는 안전 기능을 무엇이라 부를까요?",
         options: [
             "스타트인 (Start-in)",

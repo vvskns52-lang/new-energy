@@ -3151,6 +3151,422 @@ input[type="range"]::-webkit-slider-thumb:hover {
     .doc-sec { page-break-inside: avoid; }
 }
 
+/* ==========================================
+   개선 1: 24시간 발전 결과 Stacked Bar Chart & 미니 수요 차트 & 건설 모달 스타일
+   ========================================== */
+
+/* 1. 하루 전기 사용 미니 차트 */
+.demand-preview {
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    border-radius: 20px;
+    padding: 1.5rem 1.8rem;
+    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.05);
+}
+
+.demand-preview .dp-left {
+    flex: 1;
+}
+
+.demand-preview .dp-right {
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    padding: 1.2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    min-width: 280px;
+}
+
+.demand-chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 3px;
+    height: 70px;
+    margin-top: 1rem;
+    padding-bottom: 5px;
+    border-bottom: 2px solid #cbd5e1;
+    position: relative;
+}
+
+.demand-bar-col {
+    flex: 1;
+    background: rgba(59, 130, 246, 0.25);
+    border-radius: 3px 3px 0 0;
+    position: relative;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.demand-bar-col:hover {
+    background: rgba(59, 130, 246, 0.6);
+}
+
+.demand-bar-col.peak-bar {
+    background: rgba(245, 158, 11, 0.7);
+}
+
+.demand-bar-col .bar-label {
+    position: absolute;
+    bottom: -18px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.65rem;
+    color: var(--text-muted);
+}
+
+.dp-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.dp-label {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+}
+
+.dp-need strong {
+    font-size: 1.5rem;
+    color: #dc2626;
+}
+
+.num-good {
+    color: #059669;
+    font-size: 1.25rem;
+}
+
+.num-bad {
+    color: #ea580c;
+    font-size: 1.25rem;
+}
+
+.dp-verdict {
+    font-size: 0.82rem;
+    line-height: 1.5;
+    padding: 0.7rem;
+    border-radius: 10px;
+    background: #f1f5f9;
+    color: #334155;
+    font-weight: 600;
+}
+
+.dp-verdict.verdict-warn {
+    background: #fef2f2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+}
+
+.dp-verdict.verdict-ok {
+    background: #ecfdf5;
+    color: #065f46;
+    border: 1px solid #a7f3d0;
+}
+
+/* 2. 24시간 발전 결과 Stacked Bar Chart */
+.timeline-panel {
+    background: #ffffff;
+    border: 2px solid rgba(59, 130, 246, 0.3);
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(59, 130, 246, 0.08);
+}
+
+.timeline-chart {
+    display: grid;
+    grid-template-columns: repeat(24, 1fr);
+    gap: 4px;
+    height: 240px;
+    margin: 1.5rem 0 1rem 0;
+    padding: 1.5rem 0.5rem 0.5rem 0.5rem;
+    background: #f8fafc;
+    border-radius: 14px;
+    border: 1px solid var(--border-color);
+    position: relative;
+}
+
+.timeline-col {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    position: relative;
+    height: 100%;
+    cursor: pointer;
+    border-radius: 6px;
+    padding: 2px;
+    transition: all 0.2s ease;
+}
+
+.timeline-col:hover, .timeline-col.active-col {
+    background: rgba(59, 130, 246, 0.1);
+    transform: translateY(-2px);
+}
+
+.timeline-col.blackout-col {
+    background: rgba(239, 68, 68, 0.12);
+    border: 1px dashed #ef4444;
+}
+
+.timeline-col.blackout-col::before {
+    content: "⚠️";
+    position: absolute;
+    top: -18px;
+    font-size: 0.75rem;
+}
+
+.stack-container {
+    width: 100%;
+    display: flex;
+    flex-direction: column-reverse;
+    border-radius: 4px 4px 0 0;
+    overflow: hidden;
+    position: relative;
+    background: rgba(226, 232, 240, 0.4);
+}
+
+.stack-segment {
+    width: 100%;
+    transition: height 0.3s ease;
+}
+
+.demand-line-marker {
+    position: absolute;
+    width: 120%;
+    left: -10%;
+    height: 3px;
+    background: #0f172a;
+    z-index: 10;
+    box-shadow: 0 0 4px rgba(15, 23, 42, 0.5);
+    pointer-events: none;
+}
+
+.col-hour-label {
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    margin-top: 6px;
+    font-weight: bold;
+}
+
+.timeline-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+    margin-top: 1rem;
+    padding: 0.8rem 1rem;
+    background: #f1f5f9;
+    border-radius: 12px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #334155;
+}
+
+.legend-color {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+}
+
+.hour-detail {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: #f0f9ff;
+    border: 1px solid #bae6fd;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    color: #0369a1;
+    line-height: 1.6;
+}
+
+/* 3. 빈 땅 클릭 / 건설 모달 스타일 추가 */
+.map-slot.empty {
+    border: 2px dashed #94a3b8;
+    background: #f8fafc;
+}
+
+.map-slot.empty:hover {
+    border-color: #2563eb;
+    background: #eff6ff;
+    transform: scale(1.02);
+}
+
+.map-slot.built {
+    position: relative;
+}
+
+.map-slot.built:hover {
+    border-color: #ef4444;
+    transform: scale(1.02);
+}
+
+.build-modal {
+    width: 680px;
+    max-width: 90vw;
+    text-align: left;
+}
+
+.build-budget {
+    font-size: 0.95rem;
+    color: var(--text-muted);
+    margin-bottom: 1.2rem;
+}
+
+.build-budget strong {
+    color: #d97706;
+}
+
+.build-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    max-height: 480px;
+    overflow-y: auto;
+    padding-right: 0.3rem;
+}
+
+.build-card {
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 0.8rem;
+    cursor: pointer;
+    transition: all 0.25 ease;
+}
+
+.build-card:hover:not(.disabled) {
+    border-color: #2563eb;
+    box-shadow: 0 6px 18px rgba(37, 99, 235, 0.12);
+    transform: translateY(-2px);
+}
+
+.build-card.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: #f1f5f9;
+}
+
+.build-card-head {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+}
+
+.build-card-head i {
+    font-size: 1.5rem;
+}
+
+.build-card-head h4 {
+    font-size: 0.95rem;
+    color: #1e293b;
+}
+
+.build-card-specs {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+}
+
+.build-card-foot {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px dashed #e2e8f0;
+    padding-top: 0.6rem;
+}
+
+.build-cost {
+    font-weight: bold;
+    color: #b45309;
+    font-size: 0.85rem;
+}
+
+/* 반응형 모바일 고려 */
+@media (max-width: 768px) {
+    .build-grid { grid-template-columns: 1fr; }
+    .timeline-chart { height: 180px; gap: 2px; }
+}
+
+/* ==========================================
+   공통 서브 탭 (Sub-Tabs) 시스템 스타일 (한눈에 보기)
+   ========================================== */
+.sub-nav-bar {
+    display: flex;
+    background: #f1f5f9;
+    padding: 0.35rem;
+    border-radius: 14px;
+    gap: 0.3rem;
+    margin-bottom: 1.2rem;
+    border: 1px solid var(--border-color);
+    flex-wrap: wrap;
+}
+
+.sub-nav-btn {
+    flex: 1;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    padding: 0.65rem 0.8rem;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    white-space: nowrap;
+}
+
+.sub-nav-btn:hover {
+    color: var(--text-main);
+    background: rgba(255, 255, 255, 0.6);
+}
+
+.sub-nav-btn.active {
+    color: #1e3a8a;
+    background: #ffffff;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.sub-tab-content {
+    display: none;
+    animation: subTabFadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.sub-tab-content.active {
+    display: block;
+}
+
+@keyframes subTabFadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* 서브 탭 컨테이너 레이아웃 */
+.lab-sub-container, .game-sub-container, .report-side-container {
+    margin-top: 1.2rem;
+}
+
+/* 리포트 분할 뷰 레이아웃 */
+.report-container {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap: 1.8rem;
+}
+
+
 /* --- 반응형 --- */
 @media (max-width: 1024px) {
     .lesson-brief { grid-template-columns: 1fr; gap: 1rem; }
