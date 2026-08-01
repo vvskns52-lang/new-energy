@@ -154,192 +154,193 @@ function renderEnergyPrinciple(key) {
     const dataMap = {
         solar: {
             title: "☀️ 태양광 발전: 빛에너지 ➔ 전기에너지 (무터빈 직접 변환)",
-            physics: "<strong>핵심 물리학 원리 — 광전 효과 (Photovoltaic Effect)</strong><br>태양 전지판은 P형 반도체와 N형 반도체가 만나는 접합 구조로 이루어져 있습니다. 햇빛(빛 알갱이인 광자)이 전지판에 부딪히면 반도체 내부의 전자가 에너지를 얻어 튀어나가 자유 전자가 됩니다. 자유 전자(-)는 N형 쪽으로, 양공(+)은 P형 쪽으로 모이면서 전압이 발생하고, 전선으로 연결하면 전자가 흘러 직류(DC) 전기가 곧바로 생산됩니다. 회전하는 터빈이 전혀 필요 없는 유일한 청정 직접 발전입니다.",
+            physics: "<strong>이렇게 전기가 만들어져요 — 광전 효과</strong><br>태양 전지판 속에는 성질이 다른 두 반도체 층(P형, N형)이 겹쳐 붙어 있습니다. 여기에 햇빛(작은 빛 알갱이인 '광자')이 부딪히면, 반도체 속에 갇혀 있던 전자가 에너지를 받아 자유롭게 움직이기 시작해요. 튀어나온 전자(-)는 한쪽으로, 전자가 빠져나간 자리(+)는 반대쪽으로 몰리면서 마치 건전지처럼 (+)극과 (-)극이 생깁니다. 여기에 전선을 연결하면 전자가 흐르면서 전기(직류, DC)가 만들어져요. 빙글빙글 돌아가는 터빈이 하나도 없이 빛을 바로 전기로 바꾸는 신기한 발전 방식입니다.",
             turbineInfo: "💡 <strong>터빈 사용 여부:</strong> 터빈 없음 (회전 부품 0개)",
             steps: [
-                "1단계: 태양 광자(빛)가 태양 전지판 표면 흡수",
-                "2단계: 반도체 내부 전자(-)와 양공(+) 분리 (광전 효과)",
-                "3단계: N형/P형 기판 양끝으로 전자 이동하며 전압 발생",
-                "4단계: 인버터를 거쳐 직류(DC) ➔ 교류(AC) 전기로 변환 공급"
+                "1단계: 태양 전지판이 햇빛(광자)을 흡수해요",
+                "2단계: 반도체 속 전자가 에너지를 받아 자유롭게 움직여요 (광전 효과)",
+                "3단계: 전자가 한쪽으로 몰리면서 (+)와 (-)가 생겨요",
+                "4단계: 인버터가 직류(DC) 전기를 우리가 쓰는 교류(AC) 전기로 바꿔줘요"
             ],
             components: [
                 {
                     name: "☀️ 태양 전지판 셀 (PV Cell)",
-                    desc: "햇빛을 받아 직접 전자를 분리해내는 실리콘 반도체판입니다. 터빈 없이 전기를 생산합니다.",
-                    svg: `<svg viewBox="0 0 160 100"><rect x="10" y="10" width="140" height="80" fill="#1d4ed8" rx="6"/><line x1="10" y1="36" x2="150" y2="36" stroke="#93c5fd" stroke-width="2"/><line x1="10" y1="64" x2="150" y2="64" stroke="#93c5fd" stroke-width="2"/><line x1="56" y1="10" x2="56" y2="90" stroke="#93c5fd" stroke-width="2"/><line x1="104" y1="10" x2="104" y2="90" stroke="#93c5fd" stroke-width="2"/></svg>`
+                    desc: "햇빛을 받아 직접 전자를 분리해내는 실리콘 반도체판입니다. 은색 알루미늄 테두리 안에 여러 개의 작은 셀이 나뉘어 있고, 셀마다 가는 은색 배선(버스바)이 지나갑니다. 터빈 없이 전기를 생산합니다.",
+                    svg: `<svg viewBox="0 0 160 100"><rect x="8" y="8" width="144" height="84" fill="#94a3b8" rx="4"/><rect x="14" y="14" width="132" height="72" fill="#0f2a52" rx="2"/><line x1="58" y1="14" x2="58" y2="86" stroke="#1e3a5f" stroke-width="2"/><line x1="102" y1="14" x2="102" y2="86" stroke="#1e3a5f" stroke-width="2"/><line x1="14" y1="50" x2="146" y2="50" stroke="#1e3a5f" stroke-width="2"/><g stroke="#93c5fd" stroke-width="1"><animate attributeName="opacity" values="0.35;1;0.35" dur="1.8s" repeatCount="indefinite"/><line x1="20" y1="26" x2="52" y2="26"/><line x1="20" y1="38" x2="52" y2="38"/><line x1="64" y1="26" x2="96" y2="26"/><line x1="64" y1="38" x2="96" y2="38"/><line x1="108" y1="26" x2="140" y2="26"/><line x1="108" y1="38" x2="140" y2="38"/><line x1="20" y1="62" x2="52" y2="62"/><line x1="20" y1="74" x2="52" y2="74"/><line x1="64" y1="62" x2="96" y2="62"/><line x1="64" y1="74" x2="96" y2="74"/><line x1="108" y1="62" x2="140" y2="62"/><line x1="108" y1="74" x2="140" y2="74"/></g></svg>`
                 },
                 {
                     name: "⚡ 직류-교류 인버터 (Inverter)",
-                    desc: "태양 전지판에서 나온 직류(DC) 전기를 우리가 집에서 쓰는 220V 교류(AC) 전기로 바꾸어주는 장치입니다.",
-                    svg: `<svg viewBox="0 0 160 100"><rect x="20" y="15" width="120" height="70" fill="#334155" rx="8"/><circle cx="50" cy="50" r="18" fill="#1e293b" stroke="#38bdf8" stroke-width="3"/><text x="42" y="55" fill="#38bdf8" font-size="14" font-weight="bold">DC</text><path d="M 80 50 L 95 50" stroke="#f59e0b" stroke-width="4"/><circle cx="115" cy="50" r="18" fill="#1e293b" stroke="#ef4444" stroke-width="3"/><text x="107" y="55" fill="#ef4444" font-size="14" font-weight="bold">AC</text></svg>`
+                    desc: "태양 전지판에서 나온 직류(DC) 전기를 우리가 집에서 쓰는 220V 교류(AC) 전기로 바꾸어주는 장치입니다. 열이 많이 나기 때문에 겉면에 냉각핀이 달려 있습니다.",
+                    svg: `<svg viewBox="0 0 160 100"><rect x="35" y="8" width="90" height="84" rx="6" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/><rect x="45" y="18" width="70" height="22" rx="3" fill="#1e293b"/><text x="52" y="33" fill="#38bdf8" font-size="9" font-weight="bold">DC → AC</text><circle cx="50" cy="29" r="3" fill="#fbbf24"><animate attributeName="cx" values="50;110;50" dur="1.6s" repeatCount="indefinite"/></circle><line x1="45" y1="52" x2="115" y2="52" stroke="#94a3b8" stroke-width="2"/><line x1="45" y1="60" x2="115" y2="60" stroke="#94a3b8" stroke-width="2"/><line x1="45" y1="68" x2="115" y2="68" stroke="#94a3b8" stroke-width="2"/><line x1="45" y1="76" x2="115" y2="76" stroke="#94a3b8" stroke-width="2"/><circle cx="45" cy="6" r="4" fill="#f59e0b"/><circle cx="115" cy="94" r="4" fill="#ef4444"/></svg>`
                 }
             ]
         },
         wind: {
             title: "💨 풍력 발전: 바람 운동에너지 ➔ 풍력 터빈 회전 ➔ 전자기 유도",
-            physics: "<strong>핵심 물리학 원리 — 양력 발생 & 전자기 유도 법칙 (Faraday's Law)</strong><br>비행기 날개처럼 유선형으로 설계된 풍력 터빈의 3개 날개에 바람이 불어오면, 날개 앞뒤의 공기 압력 차이로 강력한 '양력(Lift)'이 발생하여 터빈이 회전합니다. 이 회전축이 증속기(Gearbox)를 거쳐 분당 1,500회 이상의 고속 회전으로 바뀐 뒤 발전기 내부의 대형 자석을 돌립니다. 자석이 회전하면서 내부 코일을 통과하는 자속(자기장)이 연속적으로 변하고, 패러데이 전자기 유도 법칙에 의해 코일에 강력한 교류 전기가 쏟아져 나옵니다.",
+            physics: "<strong>이렇게 전기가 만들어져요 — 양력과 전자기 유도</strong><br>풍력 터빈의 날개는 비행기 날개처럼 휘어진 모양이에요. 바람이 이 날개에 부딪히면 날개 앞뒤로 공기 압력 차이가 생기면서 날개를 밀어 올리는 힘인 '양력'이 생겨 날개가 빙글빙글 돌아갑니다. 이 회전은 기어(증속기)를 거치면서 훨씬 빠른 회전으로 바뀌어 발전기 속 자석을 돌립니다. 자석이 돌면 그 주변을 감싼 전선(코일)을 지나가는 자기장이 계속 바뀌는데, 이렇게 자석과 전선이 서로 움직이면 전기가 만들어진다는 것이 바로 '전자기 유도'라는 원리예요.",
             turbineInfo: "💡 <strong>터빈 종류:</strong> 수평축 3엽 풍력 터빈 (Wind Turbine)",
             steps: [
-                "1단계: 바람이 유선형 회전 날개를 지나며 양력(Lift) 발생",
-                "2단계: 풍력 터빈 회전축이 돌며 증속기(Gearbox)로 회전수 가속",
-                "3단계: 발전기 내부 회전 자석이 고속으로 회전",
-                "4단계: 자기장 변화로 패러데이 전자기 유도 법칙 전기 생성"
+                "1단계: 바람이 날개에 부딪히면서 날개를 밀어 올리는 힘(양력)이 생겨요",
+                "2단계: 날개가 돌면서 기어(증속기)를 거쳐 회전 속도가 더 빨라져요",
+                "3단계: 발전기 속 자석이 빠르게 돌아가요",
+                "4단계: 자석 주변 자기장이 바뀌면서 전선에 전기가 만들어져요 (전자기 유도)"
             ],
             components: [
                 {
                     name: "⚙️ 풍력 터빈 날개 (Wind Turbine Blade)",
-                    desc: "바람을 받아 회전하는 대형 회전 날개입니다. 비행기 날개 모양(유선형)으로 만들어져 바람이 불 때 회전력이 극대화됩니다.",
-                    svg: `<svg viewBox="0 0 160 100"><circle cx="80" cy="50" r="14" fill="#1e293b"/><path d="M 80 50 Q 60 10 80 0 Q 100 10 80 50 Z" fill="#cbd5e1" stroke="#475569"/><path d="M 80 50 Q 120 70 145 50 Q 120 30 80 50 Z" fill="#cbd5e1" stroke="#475569"/><path d="M 80 50 Q 40 85 20 65 Q 40 45 80 50 Z" fill="#cbd5e1" stroke="#475569"/></svg>`
+                    desc: "바람을 받아 회전하는 대형 회전 날개입니다. 비행기 날개 모양(유선형)으로 만들어져 바람이 불 때 회전력이 극대화됩니다. 뒤에 있는 상자(나셀) 안에 증속기와 발전기가 들어 있습니다.",
+                    svg: `<svg viewBox="0 0 160 100"><rect x="58" y="42" width="32" height="18" rx="4" fill="#cbd5e1" stroke="#64748b"/><g><animateTransform attributeName="transform" type="rotate" from="0 80 50" to="360 80 50" dur="2s" repeatCount="indefinite"/><path d="M 80 50 Q 60 10 80 0 Q 100 10 80 50 Z" fill="#f1f5f9" stroke="#475569"/><path d="M 80 50 Q 120 68 145 50 Q 118 32 80 50 Z" fill="#f1f5f9" stroke="#475569"/><path d="M 80 50 Q 40 82 20 64 Q 42 46 80 50 Z" fill="#f1f5f9" stroke="#475569"/></g><circle cx="80" cy="50" r="10" fill="#1e293b"/></svg>`
                 },
                 {
                     name: "🧲 발전기 (Generator) & 회전 자석",
-                    desc: "터빈 회전축에 연결되어 대형 자석이 돌면서 코일에 전기를 유도해내는 전력 생산의 핵심 기계입니다.",
-                    svg: `<svg viewBox="0 0 160 100"><rect x="25" y="20" width="110" height="60" fill="#1e293b" rx="6"/><circle cx="55" cy="50" r="16" fill="#ef4444"/><text x="49" y="55" fill="#fff" font-size="12" font-weight="bold">N</text><circle cx="105" cy="50" r="16" fill="#3b82f6"/><text x="100" y="55" fill="#fff" font-size="12" font-weight="bold">S</text><line x1="10" y1="50" x2="150" y2="50" stroke="#f59e0b" stroke-width="4" stroke-dasharray="6,4"/></svg>`
+                    desc: "터빈 회전축에 연결된 N-S 자석 막대가 둘레를 감싼 코일 속에서 빙글빙글 돌면서 전기를 유도해내는 전력 생산의 핵심 기계입니다.",
+                    svg: `<svg viewBox="0 0 160 100"><rect x="10" y="15" width="140" height="70" rx="8" fill="#1e293b"/><rect x="30" y="25" width="100" height="50" rx="25" fill="none" stroke="#f59e0b" stroke-width="4"/><rect x="40" y="32" width="80" height="36" rx="18" fill="none" stroke="#f59e0b" stroke-width="3" stroke-dasharray="3,3"/><g><animateTransform attributeName="transform" type="rotate" from="0 80 50" to="360 80 50" dur="1.5s" repeatCount="indefinite"/><line x1="30" y1="50" x2="130" y2="50" stroke="#64748b" stroke-width="4"/><rect x="55" y="42" width="25" height="16" rx="4" fill="#ef4444"/><rect x="80" y="42" width="25" height="16" rx="4" fill="#3b82f6"/><text x="62" y="54" fill="#fff" font-size="10" font-weight="bold">N</text><text x="86" y="54" fill="#fff" font-size="10" font-weight="bold">S</text></g></svg>`
                 }
             ]
         },
         hydro: {
             title: "🌊 수력 발전: 물의 위치에너지 ➔ 낙하 운동에너지 ➔ 수차 터빈 회전 ➔ 전기 생성",
-            physics: "<strong>핵심 물리학 원리 — 위치에너지의 운동에너지 전환 & 수차 터빈 역학</strong><br>댐에 가두어 둔 높은 곳의 물은 거대한 위치에너지를 가집니다. 수문을 열면 물이 수압관(Penstock)을 따라 가파르게 떨어지면서 엄청난 낙하 수압의 운동에너지로 변환됩니다. 이 거센 물살이 하부에 설치된 '수차 터빈(Water Turbine)'의 묵직한 쇠날개를 강하게 때려 분당 수백 회 회전시킵니다. 수차 터빈의 수직 회전축이 상부 발전기의 대형 자석을 돌려 전자기 유도 전기를 생산합니다.",
+            physics: "<strong>이렇게 전기가 만들어져요 — 위치에너지가 운동에너지로 바뀜</strong><br>댐에 가두어 놓은 높은 곳의 물은 '위치에너지'라는 힘을 가지고 있어요. 수문을 열면 물이 관을 타고 아래로 세차게 떨어지면서 이 위치에너지가 빠르게 움직이는 힘인 '운동에너지'로 바뀝니다. 이 거센 물살이 아래에 있는 '수차 터빈'이라는 묵직한 쇠날개 바퀴를 세게 때려서 돌립니다. 수차가 돌면 그 위에 연결된 발전기 속 자석도 함께 돌면서 전기가 만들어집니다.",
             turbineInfo: "💡 <strong>터빈 종류:</strong> 프랜시스 / 카플란 수차 터빈 (Water Turbine)",
             steps: [
-                "1단계: 높은 댐에 갇힌 물의 높은 위치에너지 확보",
-                "2단계: 수로 낙하를 통해 거센 물살의 수압 운동에너지 변환",
-                "3단계: 수차 터빈(Water Turbine) 쇠날개 회전",
-                "4단계: 발전기 축 자석 회전으로 전자기 유도 전력 생성"
+                "1단계: 댐에 가둔 물이 높은 곳에서 위치에너지를 갖고 있어요",
+                "2단계: 물이 아래로 떨어지면서 힘센 운동에너지로 바뀌어요",
+                "3단계: 물살이 수차 터빈의 쇠날개를 밀어서 돌려요",
+                "4단계: 터빈과 연결된 발전기 자석이 돌면서 전기가 만들어져요"
             ],
             components: [
                 {
                     name: "⚙️ 수차 터빈 (Water Turbine Wheel)",
-                    desc: "댐에서 떨어지는 거센 물살의 힘을 직접 받아 빙글빙글 도는 묵직한 금속 회전날개 기계입니다.",
-                    svg: `<svg viewBox="0 0 160 100"><circle cx="80" cy="50" r="32" fill="none" stroke="#64748b" stroke-width="8"/><line x1="48" y1="50" x2="112" y2="50" stroke="#94a3b8" stroke-width="5"/><line x1="80" y1="18" x2="80" y2="82" stroke="#94a3b8" stroke-width="5"/><line x1="57" y1="27" x2="103" y2="73" stroke="#94a3b8" stroke-width="5"/><line x1="57" y1="73" x2="103" y2="27" stroke="#94a3b8" stroke-width="5"/><circle cx="80" cy="50" r="10" fill="#1e293b"/></svg>`
+                    desc: "댐에서 떨어지는 거센 물살의 힘을 받아 곡선 모양 날개(러너 블레이드)가 빙글빙글 도는 묵직한 금속 회전 기계입니다.",
+                    svg: `<svg viewBox="0 0 160 100"><circle cx="80" cy="50" r="34" fill="#334155"/><g><animateTransform attributeName="transform" type="rotate" from="0 80 50" to="360 80 50" dur="1.2s" repeatCount="indefinite"/><g fill="none" stroke="#94a3b8" stroke-width="4"><path d="M 80 50 Q 96 20 112 28"/><path d="M 80 50 Q 112 54 120 76"/><path d="M 80 50 Q 90 86 64 88"/><path d="M 80 50 Q 44 80 40 56"/><path d="M 80 50 Q 44 24 66 14"/><path d="M 80 50 Q 62 14 82 16"/></g></g><circle cx="80" cy="50" r="11" fill="#1e293b"/></svg>`
                 },
                 {
                     name: "🧲 수력 발전기 (Hydro Generator)",
-                    desc: "수차 터빈의 수직 회전축 위쪽에 위치하여 자석이 돌며 대용량 전기를 만드는 발전기입니다.",
-                    svg: `<svg viewBox="0 0 160 100"><rect x="30" y="15" width="100" height="70" fill="#334155" rx="8"/><circle cx="80" cy="50" r="22" fill="#ef4444"/><text x="71" y="56" fill="#fff" font-size="14" font-weight="bold">N-S</text></svg>`
+                    desc: "수차 터빈의 수직 회전축 위쪽에 위치하며, N극·S극이 번갈아 배치된 회전자가 둘레의 코일(고정자) 속을 돌면서 대용량 전기를 만드는 발전기입니다.",
+                    svg: `<svg viewBox="0 0 160 100"><rect x="30" y="10" width="100" height="80" rx="8" fill="#1e293b"/><circle cx="80" cy="50" r="32" fill="none" stroke="#f59e0b" stroke-width="4" stroke-dasharray="3,3"/><g><animateTransform attributeName="transform" type="rotate" from="0 80 50" to="360 80 50" dur="1.8s" repeatCount="indefinite"/><circle cx="80" cy="50" r="20" fill="#334155"/><rect x="76" y="18" width="8" height="16" fill="#ef4444"/><rect x="76" y="66" width="8" height="16" fill="#3b82f6"/><rect x="46" y="42" width="16" height="8" fill="#3b82f6"/><rect x="98" y="42" width="16" height="8" fill="#ef4444"/></g></svg>`
                 }
             ]
         },
         geo: {
             title: "🌋 지열 발전: 지하 마그마 열 ➔ 고온 고압 증기 팽창 ➔ 증기 터빈 초고속 회전",
-            physics: "<strong>핵심 물리학 원리 — 열역학 증기 팽창 (Steam Expansion)</strong><br>지하 수 킬로미터 아래의 마그마 열원은 150~300°C 이상의 거대한 지열 에너지를 품고 있습니다. 시추 파이프를 통해 지하수를 끌어올리거나 물을 투입하면 즉시 팽창하는 고온·고압 수증기가 발생합니다. 이 증기가 노즐을 통해 초속 수십 미터로 뿜어져 나오며 '증기 터빈(Steam Turbine)'의 촘촘한 블레이드를 때립니다. 팽창하는 증기 압력으로 증기 터빈이 분당 3,600회 고속 회전하고, 축에 연결된 발전기가 24시간 멈춤 없이 전기를 만듭니다.",
+            physics: "<strong>이렇게 전기가 만들어져요 — 뜨거운 물이 수증기로 팽창</strong><br>땅속 수 킬로미터 아래에는 마그마의 열 때문에 150~300°C나 되는 아주 뜨거운 곳이 있어요. 이곳까지 파이프를 뚫어 물을 넣으면 순식간에 뜨거워지면서 부피가 크게 부풀어 오른 고온·고압의 수증기가 생깁니다. 이 강한 수증기가 힘차게 뿜어져 나오면서 '증기 터빈'이라는 촘촘한 날개바퀴를 세게 밀어 아주 빠르게 돌립니다. 터빈과 연결된 발전기가 돌면서 전기를 만드는데, 땅속 열은 날씨와 상관없이 항상 있어서 하루 종일 쉬지 않고 발전할 수 있어요.",
             turbineInfo: "💡 <strong>터빈 종류:</strong> 고압 고속 증기 터빈 (Steam Turbine)",
             steps: [
-                "1단계: 지하 깊은 곳 마그마 지열로 지하수 100°C 이상 가열",
-                "2단계: 고온 고압 수증기 노즐 뿜어짐 (열에너지 ➔ 운동에너지)",
-                "3단계: 증기 터빈(Steam Turbine) 블레이드 날개 고속 회전",
-                "4단계: 발전기 축 회전으로 24시간 기상 무관 연속 전력 공급"
+                "1단계: 땅속 마그마의 열이 지하수를 100°C 넘게 뜨겁게 데워요",
+                "2단계: 뜨거워진 물이 강한 수증기가 되어 세게 뿜어져 나와요",
+                "3단계: 수증기가 증기 터빈의 날개를 밀어서 빠르게 돌려요",
+                "4단계: 발전기가 돌면서 날씨와 상관없이 하루 종일 전기를 만들어요"
             ],
             components: [
                 {
                     name: "⚙️ 증기 터빈 (Steam Turbine Rotor)",
-                    desc: "고온 고압의 수증기가 뿜어져 나올 때 수천 개의 촘촘한 블레이드 날개가 분당 3,600회 초고속으로 회전하는 기계입니다.",
-                    svg: `<svg viewBox="0 0 160 100"><rect x="30" y="20" width="100" height="60" fill="#475569" rx="6"/><circle cx="80" cy="50" r="22" fill="none" stroke="#fbbf24" stroke-width="6" stroke-dasharray="8,5"/><circle cx="80" cy="50" r="8" fill="#78350f"/></svg>`
+                    desc: "고온 고압의 수증기가 뿜어져 나올 때 회전축에 붙은 여러 단의 날개(블레이드)가 분당 3,600회 초고속으로 회전하는 기계입니다. 증기가 지나갈수록 날개 크기가 점점 커집니다.",
+                    svg: `<svg viewBox="0 0 160 100"><rect x="12" y="46" width="136" height="8" fill="#334155" rx="2"/><rect x="15" y="25" width="130" height="50" rx="8" fill="none" stroke="#475569" stroke-width="2"/><g fill="#94a3b8" stroke="#64748b" stroke-width="1"><polygon points="28,50 28,32 34,34 34,48"><animate attributeName="opacity" values="1;0.35;1" dur="0.8s" begin="0s" repeatCount="indefinite"/></polygon><polygon points="42,50 42,29 50,31 50,48"><animate attributeName="opacity" values="1;0.35;1" dur="0.8s" begin="0.15s" repeatCount="indefinite"/></polygon><polygon points="60,50 60,26 70,28 70,48"><animate attributeName="opacity" values="1;0.35;1" dur="0.8s" begin="0.3s" repeatCount="indefinite"/></polygon><polygon points="82,50 82,23 94,25 94,48"><animate attributeName="opacity" values="1;0.35;1" dur="0.8s" begin="0.45s" repeatCount="indefinite"/></polygon><polygon points="108,50 108,19 123,21 123,48"><animate attributeName="opacity" values="1;0.35;1" dur="0.8s" begin="0.6s" repeatCount="indefinite"/></polygon></g></svg>`
                 },
                 {
                     name: "🌋 지열 시추 파이프 (Geothermal Pipe)",
-                    desc: "지하 깊은 곳 마그마층까지 뚫고 내려가 고온의 수증기와 열을 지상으로 끌어올리는 파이프입니다.",
-                    svg: `<svg viewBox="0 0 160 100"><rect x="65" y="10" width="30" height="80" fill="#334155"/><path d="M 80 90 L 80 10" stroke="#f59e0b" stroke-width="6" stroke-dasharray="6,4"/></svg>`
+                    desc: "지하 깊은 곳 마그마층까지 뚫고 내려가는 이중 파이프입니다. 바깥쪽 튼튼한 케이싱 안에 생산관이 있고, 그 속으로 고온의 수증기(주황색)가 지상으로 올라옵니다.",
+                    svg: `<svg viewBox="0 0 160 100"><rect x="60" y="14" width="40" height="86" fill="#44403c"/><rect x="68" y="14" width="24" height="86" fill="#1e293b"/><rect x="74" y="14" width="12" height="86" fill="#f59e0b" opacity="0.6"><animate attributeName="opacity" values="0.35;0.8;0.35" dur="1s" repeatCount="indefinite"/></rect><circle r="3" fill="#fde68a"><animateMotion path="M 80 96 L 80 16" dur="1.2s" repeatCount="indefinite"/></circle><circle r="2.5" fill="#fde68a"><animateMotion path="M 76 96 L 76 16" dur="1.5s" begin="0.4s" repeatCount="indefinite"/></circle><rect x="52" y="0" width="56" height="16" rx="3" fill="#334155"/></svg>`
                 }
             ]
         },
         tidal_barrage: {
             title: "🌉 조력 발전: 밀물·썰물 바다 수위 차 ➔ 수문 수압 ➔ 수중 양방향 터빈 회전",
-            physics: "<strong>핵심 물리학 원리 — 조석 수위 차 낙차 & 양방향 수중 터빈 역학</strong><br>달과 태양의 이끌림으로 밀물 때 바닷물이 들어와 방조제 안쪽 수위가 낮을 때 수문을 열면, 강한 수압으로 바닷물이 댐 안으로 쏟아져 들어옵니다. 반대로 썰물 때는 댐 안쪽 수위가 높아 바닷물이 밖으로 빠져나갑니다. 이 수문 사이에 누워있는 '양방향 수중 터빈(Bulb Turbine)'은 물이 들어올 때나 빠져나갈 때 모두 프로펠러 날개가 회전하도록 특수 설계되어 무한 자연 바닷물 낙차로 전기를 만듭니다.",
+            physics: "<strong>이렇게 전기가 만들어져요 — 밀물과 썰물의 높이 차</strong><br>달이 지구를 끌어당기는 힘 때문에 바닷물 높이가 하루에도 오르락내리락하는 밀물과 썰물이 생겨요. 밀물 때 바닷물이 들어와 방조제 바깥쪽 수위가 안쪽보다 높아지면 수문을 열어 물을 세게 흘려보내고, 반대로 썰물 때는 안쪽 수위가 높아져 물이 밖으로 빠져나갑니다. 수문 사이에 누워 있는 특별한 터빈은 물이 들어올 때도 나갈 때도 똑같이 돌아가도록 만들어져서, 자연스러운 물의 오르내림만으로 전기를 계속 만들 수 있어요.",
             turbineInfo: "💡 <strong>터빈 종류:</strong> 양방향 수중 벌브 터빈 (Bulb Turbine)",
             steps: [
-                "1단계: 달/태양 인력으로 밀물·썰물 해수면 수위 차 발생",
-                "2단계: 방조제 수문을 열어 거센 바닷물 유입/유출 수압 생성",
-                "3단계: 수문 하부 양방향 수중 터빈(Bulb Turbine) 프로펠러 회전",
-                "4단계: 회전력으로 발전기 구동 전자기 유도 전력 생성"
+                "1단계: 달의 인력으로 밀물과 썰물 때 바닷물 높이 차이가 생겨요",
+                "2단계: 방조제 수문을 열면 바닷물이 세게 드나들어요",
+                "3단계: 수문 아래 있는 터빈 날개가 물살에 밀려 돌아가요",
+                "4단계: 터빈이 돌면서 발전기가 전기를 만들어요"
             ],
             components: [
                 {
                     name: "⚙️ 수중 양방향 터빈 (Bulb Turbine)",
-                    desc: "방조제 수문에 눕혀 설치하여 바닷물이 댐 안으로 들어올 때나 밖으로 빠져나갈 때 모두 회전하는 프로펠러 터빈입니다.",
-                    svg: `<svg viewBox="0 0 160 100"><rect x="25" y="30" width="110" height="40" fill="#475569" rx="20"/><circle cx="80" cy="50" r="18" fill="none" stroke="#f59e0b" stroke-width="5"/></svg>`
+                    desc: "방조제 수문에 눕혀 설치하는 물고기 모양(벌브)의 발전기 몸통과, 그 끝에 달린 프로펠러 날개입니다. 바닷물이 댐 안으로 들어올 때나 밖으로 빠져나갈 때 모두 날개가 돌아갑니다.",
+                    svg: `<svg viewBox="0 0 160 100"><ellipse cx="55" cy="50" rx="38" ry="22" fill="#475569"/><rect x="90" y="45" width="18" height="10" fill="#334155"/><g><animateTransform attributeName="transform" type="rotate" from="0 118 50" to="360 118 50" dur="1.4s" repeatCount="indefinite"/><g stroke="#f59e0b" stroke-width="4" fill="none"><path d="M 118 50 Q 132 28 145 33"/><path d="M 118 50 Q 138 55 148 48"/><path d="M 118 50 Q 130 74 140 70"/><path d="M 118 50 Q 128 38 122 26"/></g></g><circle cx="118" cy="50" r="7" fill="#1e293b"/></svg>`
                 }
             ]
         },
         tidal_current: {
             title: "🌊 조류 발전: 댐 없는 빠르는 바닷물 유속 ➔ 수중 프로펠러 터빈 회전",
-            physics: "<strong>핵심 물리학 원리 — 유체 유속 운동에너지 (Fluid Kinetic Energy)</strong><br>울돌목처럼 폭이 좁은 해협을 지나는 바닷물은 유속이 2~4m/s 이상으로 매우 빠릅니다. 조류 발전은 댐을 쌓지 않고 바다 밑바닥에 '수중 프로펠러 터빈'을 직접 세웁니다. 바닷물의 빠른 흐름이 수중 날개를 직접 밀어붙여 회전시키며, 바닷속에 차단막이 전혀 없어 갯벌 파괴나 해양 생물 이동 통제 문제 없이 청정 전기를 만듭니다.",
+            physics: "<strong>이렇게 전기가 만들어져요 — 빠르게 흐르는 바닷물의 힘</strong><br>울돌목처럼 폭이 좁은 바닷길에서는 물살이 초속 2~4m나 될 정도로 매우 빠르게 흘러요. 조류 발전은 댐을 쌓지 않고 바다 밑바닥에 프로펠러처럼 생긴 터빈을 그대로 세워 놓습니다. 빠르게 흐르는 바닷물이 이 날개를 직접 밀어서 돌리는 거예요. 댐이 없어서 갯벌을 없애지 않고 물고기가 다니는 길도 막지 않는 깨끗한 발전 방식입니다.",
             turbineInfo: "💡 <strong>터빈 종류:</strong> 수중 해저 프로펠러 터빈 (Tidal Current Turbine)",
             steps: [
-                "1단계: 좁은 해협을 통과하는 빠른 바닷물 조류 유속 형성",
-                "2단계: 해저 바닥에 세워진 수중 프로펠러 터빈 날개 직접 회전",
-                "3단계: 수중 터빈 회전축이 발전기 자석 회전",
-                "4단계: 방조제 없는 100% 친환경 해양 전력 생산"
+                "1단계: 좁은 바닷길을 지나며 바닷물이 아주 빠르게 흘러요",
+                "2단계: 바다 밑에 세워둔 프로펠러 터빈이 물살에 밀려 돌아가요",
+                "3단계: 터빈과 연결된 발전기 자석이 함께 돌아가요",
+                "4단계: 댐 없이도 깨끗한 전기를 만들 수 있어요"
             ],
             components: [
                 {
                     name: "⚙️ 수중 해저 프로펠러 터빈 (Tidal Turbine)",
-                    desc: "댐을 쌓지 않고 바다 밑바닥에 직접 세워 빠른 물살 유속으로 돌리는 바닷속 바람개비 형태의 터빈입니다.",
-                    svg: `<svg viewBox="0 0 160 100"><rect x="72" y="45" width="16" height="50" fill="#334155"/><circle cx="80" cy="45" r="22" fill="none" stroke="#38bdf8" stroke-width="5"/><line x1="58" y1="45" x2="102" y2="45" stroke="#cbd5e1" stroke-width="4"/><line x1="80" y1="23" x2="80" y2="67" stroke="#cbd5e1" stroke-width="4"/></svg>`
+                    desc: "댐을 쌓지 않고 바다 밑바닥에 기둥(모노파일)을 세워 그 위에 나셀과 3개의 프로펠러 날개를 매단, 물속에 잠긴 풍력 터빈과 비슷한 모양의 기계입니다.",
+                    svg: `<svg viewBox="0 0 160 100"><rect x="74" y="55" width="14" height="45" fill="#334155"/><rect x="58" y="44" width="42" height="16" rx="4" fill="#64748b"/><g><animateTransform attributeName="transform" type="rotate" from="0 100 52" to="360 100 52" dur="1.3s" repeatCount="indefinite"/><g stroke="#38bdf8" stroke-width="4" fill="none"><path d="M 100 52 Q 90 24 106 18"/><path d="M 100 52 Q 126 60 137 44"/><path d="M 100 52 Q 94 80 74 83"/></g></g><circle cx="100" cy="52" r="6" fill="#1e293b"/></svg>`
                 }
             ]
         },
         wave: {
             title: "🌊 파력 발전: 파도 오르내림 파동 ➔ 공기 압축 ➔ 공기 터빈 회전",
-            physics: "<strong>핵심 물리학 원리 — 공기 압축 파동 & 웰스 공기 터빈 (Wells Turbine)</strong><br>파도가 칠 때 바다 표면의 부표나 진동 수주관 내부의 물 수위가 위아래로 둥실둥실 출렁입니다. 수위가 올라갈 때는 내부 공기실의 공기를 밀어 올려 고압으로 압축 분사하고, 내려갈 때는 공기를 빨아들입니다. 이때 공기가 들어오거나 빠져나갈 때 모두 같은 방향으로만 회전하는 '웰스 공기 터빈(Wells Turbine)'이 강력히 돌며 발전기를 가동합니다.",
+            physics: "<strong>이렇게 전기가 만들어져요 — 파도가 만드는 공기의 흐름</strong><br>파도가 칠 때마다 바다 위에 뜬 부표나 통 안의 물 높이가 둥실둥실 위아래로 움직여요. 물이 올라올 때는 위쪽 공기실의 공기를 세게 밀어내고, 물이 내려갈 때는 공기를 다시 빨아들입니다. 신기하게도 이 특수한 터빈(웰스 터빈)은 공기가 나가든 들어오든 상관없이 항상 같은 방향으로 돌아가도록 만들어져 있어서, 파도가 칠 때마다 계속 전기를 만들 수 있어요.",
             turbineInfo: "💡 <strong>터빈 종류:</strong> 웰스 공기 터빈 (Wells Air Turbine)",
             steps: [
-                "1단계: 바다 표면 파도의 상하 파동 출렁임 발생",
-                "2단계: 공기실 내부 수위 변화로 공기 압축 및 흡입 뿜어냄",
-                "3단계: 일방향 회전 특수 공기 터빈(Wells Air Turbine) 회전",
-                "4단계: 터빈 축 회전으로 분산형 청정 해양 전력 생산"
+                "1단계: 파도가 치면서 물 높이가 위아래로 출렁여요",
+                "2단계: 공기실 속 공기가 밀려 나갔다 들어왔다 해요",
+                "3단계: 특수 터빈이 공기 방향과 상관없이 한쪽으로 계속 돌아가요",
+                "4단계: 터빈이 돌면서 깨끗한 전기가 만들어져요"
             ],
             components: [
                 {
                     name: "⚙️ 웰스 공기 터빈 (Wells Turbine)",
-                    desc: "바람(공기)이 위로 뿜어지든 아래로 들어오든 상관없이 한 방향으로만 계속 회전하는 파력 발전 특수 공기 터빈입니다.",
-                    svg: `<svg viewBox="0 0 160 100"><circle cx="80" cy="50" r="20" fill="none" stroke="#38bdf8" stroke-width="5"/><line x1="60" y1="50" x2="100" y2="50" stroke="#cbd5e1" stroke-width="3"/><line x1="80" y1="30" x2="80" y2="70" stroke="#cbd5e1" stroke-width="3"/></svg>`
+                    desc: "둥근 통(덕트) 안에 좌우 대칭 모양의 곧은 날개 여러 개가 방사형으로 붙어 있어, 공기가 위로 뿜어지든 아래로 들어오든 상관없이 한 방향으로만 계속 회전하는 파력 발전 특수 공기 터빈입니다.",
+                    svg: `<svg viewBox="0 0 160 100"><circle cx="80" cy="50" r="38" fill="none" stroke="#64748b" stroke-width="4"/><g><animateTransform attributeName="transform" type="rotate" from="0 80 50" to="60 80 50" dur="0.6s" repeatCount="indefinite"/><g stroke="#38bdf8" stroke-width="5" stroke-linecap="round"><line x1="80" y1="50" x2="80" y2="16"/><line x1="80" y1="50" x2="109" y2="33"/><line x1="80" y1="50" x2="109" y2="67"/><line x1="80" y1="50" x2="80" y2="84"/><line x1="80" y1="50" x2="51" y2="67"/><line x1="80" y1="50" x2="51" y2="33"/></g></g><circle cx="80" cy="50" r="10" fill="#334155"/></svg>`
                 }
             ]
         },
         fossil: {
             title: "🏭 화석연료 발전: 화석연료 연소 열 ➔ 보일러 물 끓임 ➔ 증기 터빈 회전",
-            physics: "<strong>핵심 물리학 원리 — 화학에너지의 열/운동에너지 전환 & 증기 터빈 3,600 RPM</strong><br>석탄, 석유, 천연가스(LNG)의 화학결합 에너지에 불을 붙여 1,000°C 이상의 고온 보일러에서 연소시킵니다. 이 막대한 열로 보일러 내부 물을 끓여 고온·고압 증기를 만들고, 노즐에서 분사되는 증기 힘으로 '증기 터빈(Steam Turbine)'의 수천 개 블레이드를 분당 3,600회 초고속 회전시킵니다. 터빈 축이 대형 발전기 자석을 돌려 대규모 전기를 내지만, 연소 시 다량의 CO₂와 미세먼지가 방출됩니다.",
+            physics: "<strong>이렇게 전기가 만들어져요 — 연료를 태워 얻는 열</strong><br>석탄이나 석유, 가스 속에는 불에 탈 때 나오는 화학 에너지가 들어 있어요. 이것을 1,000°C가 넘는 뜨거운 보일러 안에서 태우면 엄청난 열이 나옵니다. 이 열로 보일러 속 물을 끓여 강한 수증기를 만들고, 이 수증기가 '증기 터빈'의 수많은 날개를 아주 빠르게(1분에 3,600바퀴) 돌립니다. 터빈이 돌면 발전기 자석도 함께 돌면서 많은 전기를 만들 수 있지만, 태우는 과정에서 이산화탄소와 미세먼지가 많이 나옵니다.",
             turbineInfo: "💡 <strong>터빈 종류:</strong> 초고속 대형 증기 터빈 (Steam Turbine)",
             steps: [
-                "1단계: 석탄/가스 연소로 고온 열에너지 발생 (탄소 배출)",
-                "2단계: 보일러 물을 끓여 고온 고압 수증기 생성",
-                "3단계: 증기 터빈(Steam Turbine) 분당 3,600회 초고속 회전",
-                "4단계: 발전기 전자기 유도로 대규모 기저 전력 공급"
+                "1단계: 석탄이나 가스를 태워 뜨거운 열을 만들어요 (이산화탄소 발생)",
+                "2단계: 그 열로 보일러 속 물을 끓여 강한 수증기를 만들어요",
+                "3단계: 수증기가 증기 터빈을 아주 빠르게 돌려요",
+                "4단계: 터빈과 연결된 발전기가 많은 전기를 만들어요"
             ],
-            svg: `
-                <div class="pv-visual-card">
-                    <span class="pv-tag">🎨 화석연료 보일러 연소 & 증기 터빈 작동 구조도</span>
-                    <svg viewBox="0 0 400 240" width="100%" height="100%">
-                        <rect x="60" y="100" width="100%" height="100" fill="#334155"/>
-                        <path d="M 80 180 L 100 150 L 120 180 Z" fill="#ef4444"/>
-                        <rect x="220" y="80" width="60" height="40" fill="#475569" rx="4"/>
-                        <circle cx="250" cy="100" r="14" fill="none" stroke="#fbbf24" stroke-width="4"/>
-                    </svg>
-                </div>
-            `
+            components: [
+                {
+                    name: "🔥 보일러 (Boiler)",
+                    desc: "석탄, 석유, 가스를 태운 불꽃의 열로 내부의 물이 지나가는 수많은 관을 데워 고온·고압 수증기를 만들어내는 대형 압력 용기입니다.",
+                    svg: `<svg viewBox="0 0 160 100"><rect x="30" y="10" width="100" height="70" rx="4" fill="#334155"/><g stroke="#f59e0b" stroke-width="2"><animate attributeName="opacity" values="0.5;1;0.5" dur="1s" repeatCount="indefinite"/><line x1="42" y1="14" x2="42" y2="76"/><line x1="56" y1="14" x2="56" y2="76"/><line x1="70" y1="14" x2="70" y2="76"/><line x1="84" y1="14" x2="84" y2="76"/><line x1="98" y1="14" x2="98" y2="76"/><line x1="112" y1="14" x2="112" y2="76"/></g><path d="M 62 92 L 78 62 L 94 92 Z" fill="#ef4444"><animate attributeName="d" values="M 62 92 L 78 62 L 94 92 Z;M 64 92 L 78 68 L 92 92 Z;M 62 92 L 78 62 L 94 92 Z" dur="0.5s" repeatCount="indefinite"/></path></svg>`
+                },
+                {
+                    name: "⚙️ 증기 터빈 & 발전기 (Steam Turbine)",
+                    desc: "보일러에서 만들어진 고압 수증기를 받아 회전축의 여러 단 날개를 아주 빠르게 돌려 발전기 자석을 회전시키는 핵심 장치입니다.",
+                    svg: `<svg viewBox="0 0 160 100"><rect x="12" y="46" width="136" height="8" fill="#334155" rx="2"/><rect x="15" y="25" width="130" height="50" rx="8" fill="none" stroke="#475569" stroke-width="2"/><g fill="#94a3b8" stroke="#64748b" stroke-width="1"><polygon points="28,50 28,32 34,34 34,48"><animate attributeName="opacity" values="1;0.35;1" dur="0.8s" begin="0s" repeatCount="indefinite"/></polygon><polygon points="42,50 42,29 50,31 50,48"><animate attributeName="opacity" values="1;0.35;1" dur="0.8s" begin="0.15s" repeatCount="indefinite"/></polygon><polygon points="60,50 60,26 70,28 70,48"><animate attributeName="opacity" values="1;0.35;1" dur="0.8s" begin="0.3s" repeatCount="indefinite"/></polygon><polygon points="82,50 82,23 94,25 94,48"><animate attributeName="opacity" values="1;0.35;1" dur="0.8s" begin="0.45s" repeatCount="indefinite"/></polygon><polygon points="108,50 108,19 123,21 123,48"><animate attributeName="opacity" values="1;0.35;1" dur="0.8s" begin="0.6s" repeatCount="indefinite"/></polygon></g></svg>`
+                }
+            ]
         },
         nuclear: {
             title: "⚛️ 원자력 발전: 우라늄 핵분열 열 ➔ 증기발생기 물 끓임 ➔ 증기 터빈 회전",
-            physics: "<strong>핵심 물리학 원리 — 원자핵 질량 결손 에너지 (E=mc²) & 증기 터빈</strong><br>원자로 격납건물 내부에서 우라늄(U-235) 원자핵이 중성자와 부딪치며 쪼개질 때, 질량이 일부 사라지며 아이슈타인의 법칙(E=mc²)에 따라 천문학적인 핵분열 열이 발생합니다. 제어봉으로 반응 속도를 조절하며, 이 열로 증기발생기의 물을 끓여 고온·고압 증기를 만듭니다. 이 증기가 '증기 터빈(Steam Turbine)'을 고속 회전시켜 발전기 자석을 돌려 대량의 전기를 생성합니다.",
+            physics: "<strong>이렇게 전기가 만들어져요 — 원자핵이 쪼개질 때 나오는 열</strong><br>원자로 안에서 우라늄이라는 물질의 원자핵에 작은 알갱이(중성자)를 부딪치면 원자핵이 쪼개지면서(핵분열) 아주 큰 열이 나옵니다. 아주 작은 질량이 사라지는 대신 엄청나게 큰 에너지로 바뀌는 것인데, 이것이 바로 아인슈타인이 밝혀낸 원리예요. 제어봉을 넣었다 뺐다 하면서 이 반응의 속도를 조절합니다. 이렇게 생긴 열로 물을 끓여 수증기를 만들고, 화력 발전과 똑같이 이 수증기가 증기 터빈을 돌려 전기를 만듭니다.",
             turbineInfo: "💡 <strong>터빈 종류:</strong> 원자력 전용 대형 증기 터빈 (Steam Turbine)",
             steps: [
-                "1단계: 원자로 내부 우라늄(U-235) 핵분열 반응 열 방출",
-                "2단계: 1차 냉각재가 증기발생기 물을 끓여 고압 증기 팽창",
-                "3단계: 증기 터빈(Steam Turbine) 고속 회전",
-                "4단계: 발전기 축 자석 회전으로 무탄소 대규모 기저 전력 공급"
+                "1단계: 원자로 속 우라늄 원자핵이 쪼개지면서 큰 열이 나와요",
+                "2단계: 그 열로 물을 끓여 강한 수증기를 만들어요",
+                "3단계: 수증기가 증기 터빈을 빠르게 돌려요",
+                "4단계: 터빈과 연결된 발전기가 이산화탄소 없이 전기를 만들어요"
             ],
             components: [
                 {
                     name: "⚛️ 원자로 노심 (Reactor Core)",
-                    desc: "우라늄 연료봉이 핵분열을 일으켜 막대한 열을 생산하는 원자력 발전의 핵심 안전 용기입니다.",
-                    svg: `<svg viewBox="0 0 160 100"><path d="M 45 80 L 45 35 A 35 35 0 0 1 115 35 L 115 80 Z" fill="#94a3b8"/><circle cx="80" cy="55" r="16" fill="#10b981"/></svg>`
+                    desc: "우라늄 연료봉 다발(회색)이 물속(파란색)에 잠겨 핵분열로 막대한 열을 내고, 검은색 제어봉을 넣었다 빼면서 반응 속도를 조절하는 원자력 발전의 핵심 부분입니다.",
+                    svg: `<svg viewBox="0 0 160 100"><path d="M 45 90 L 45 40 A 35 35 0 0 1 115 40 L 115 90 Z" fill="#cbd5e1"/><rect x="52" y="45" width="56" height="42" fill="#1d4ed8" opacity="0.25"><animate attributeName="opacity" values="0.15;0.35;0.15" dur="1.6s" repeatCount="indefinite"/></rect><g fill="#475569"><rect x="58" y="48" width="4" height="36"/><rect x="66" y="48" width="4" height="36"/><rect x="74" y="48" width="4" height="36"/><rect x="82" y="48" width="4" height="36"/><rect x="90" y="48" width="4" height="36"/><rect x="98" y="48" width="4" height="36"/></g><g fill="#0f172a"><rect x="70" y="48" width="6" height="18"><animate attributeName="y" values="48;58;48" dur="2.4s" repeatCount="indefinite"/></rect><rect x="94" y="48" width="6" height="18"><animate attributeName="y" values="48;58;48" dur="2.4s" begin="1.2s" repeatCount="indefinite"/></rect></g></svg>`
                 },
                 {
                     name: "⚙️ 원자력 증기 터빈 (Steam Turbine)",
-                    desc: "원자로의 열로 만들어진 고압 수증기를 받아 대형 자석 발전기를 돌리는 핵심 터빈입니다.",
-                    svg: `<svg viewBox="0 0 160 100"><rect x="30" y="20" width="100" height="60" fill="#475569" rx="6"/><circle cx="80" cy="50" r="20" fill="none" stroke="#fbbf24" stroke-width="5"/></svg>`
+                    desc: "원자로의 열로 만들어진 고압 수증기를 받아 회전축의 여러 단 날개를 돌려 대형 자석 발전기를 회전시키는 핵심 터빈입니다.",
+                    svg: `<svg viewBox="0 0 160 100"><rect x="12" y="46" width="136" height="8" fill="#334155" rx="2"/><rect x="15" y="25" width="130" height="50" rx="8" fill="none" stroke="#475569" stroke-width="2"/><g fill="#94a3b8" stroke="#64748b" stroke-width="1"><polygon points="28,50 28,32 34,34 34,48"><animate attributeName="opacity" values="1;0.35;1" dur="0.8s" begin="0s" repeatCount="indefinite"/></polygon><polygon points="42,50 42,29 50,31 50,48"><animate attributeName="opacity" values="1;0.35;1" dur="0.8s" begin="0.15s" repeatCount="indefinite"/></polygon><polygon points="60,50 60,26 70,28 70,48"><animate attributeName="opacity" values="1;0.35;1" dur="0.8s" begin="0.3s" repeatCount="indefinite"/></polygon><polygon points="82,50 82,23 94,25 94,48"><animate attributeName="opacity" values="1;0.35;1" dur="0.8s" begin="0.45s" repeatCount="indefinite"/></polygon><polygon points="108,50 108,19 123,21 123,48"><animate attributeName="opacity" values="1;0.35;1" dur="0.8s" begin="0.6s" repeatCount="indefinite"/></polygon></g></svg>`
                 }
             ]
         }
