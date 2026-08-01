@@ -156,6 +156,7 @@ function renderEnergyPrinciple(key) {
             title: "☀️ 태양광 발전: 빛에너지 ➔ 전기에너지 (무터빈 직접 변환)",
             physics: "<strong>이렇게 전기가 만들어져요 — 광전 효과</strong><br>태양 전지판 속에는 성질이 다른 두 반도체 층(P형, N형)이 겹쳐 붙어 있습니다. 여기에 햇빛(작은 빛 알갱이인 '광자')이 부딪히면, 반도체 속에 갇혀 있던 전자가 에너지를 받아 자유롭게 움직이기 시작해요. 튀어나온 전자(-)는 한쪽으로, 전자가 빠져나간 자리(+)는 반대쪽으로 몰리면서 마치 건전지처럼 (+)극과 (-)극이 생깁니다. 여기에 전선을 연결하면 전자가 흐르면서 전기(직류, DC)가 만들어져요. 빙글빙글 돌아가는 터빈이 하나도 없이 빛을 바로 전기로 바꾸는 신기한 발전 방식입니다.",
             turbineInfo: "💡 <strong>터빈 사용 여부:</strong> 터빈 없음 (회전 부품 0개)",
+            video: { id: "h6_MsneSmP8", title: "실제 태양광 발전소는 이렇게 생겼어요", source: "EDF" },
             steps: [
                 "1단계: 태양 전지판이 햇빛(광자)을 흡수해요",
                 "2단계: 반도체 속 전자가 에너지를 받아 자유롭게 움직여요 (광전 효과)",
@@ -179,6 +180,7 @@ function renderEnergyPrinciple(key) {
             title: "💨 풍력 발전: 바람 운동에너지 ➔ 풍력 터빈 회전 ➔ 전자기 유도",
             physics: "<strong>이렇게 전기가 만들어져요 — 양력과 전자기 유도</strong><br>풍력 터빈의 날개는 비행기 날개처럼 휘어진 모양이에요. 바람이 이 날개에 부딪히면 날개 앞뒤로 공기 압력 차이가 생기면서 날개를 밀어 올리는 힘인 '양력'이 생겨 날개가 빙글빙글 돌아갑니다. 이 회전은 기어(증속기)를 거치면서 훨씬 빠른 회전으로 바뀌어 발전기 속 자석을 돌립니다. 자석이 돌면 그 주변을 감싼 전선(코일)을 지나가는 자기장이 계속 바뀌는데, 이렇게 자석과 전선이 서로 움직이면 전기가 만들어진다는 것이 바로 '전자기 유도'라는 원리예요.",
             turbineInfo: "💡 <strong>터빈 종류:</strong> 수평축 3엽 풍력 터빈 (Wind Turbine)",
+            video: { id: "tUse6mSeU-I", title: "실제 풍력 터빈 나셀(발전기 내부) 투어", source: "EDP Renewables" },
             steps: [
                 "1단계: 바람이 날개에 부딪히면서 날개를 밀어 올리는 힘(양력)이 생겨요",
                 "2단계: 날개가 돌면서 기어(증속기)를 거쳐 회전 속도가 더 빨라져요",
@@ -202,6 +204,7 @@ function renderEnergyPrinciple(key) {
             title: "🌊 수력 발전: 물의 위치에너지 ➔ 낙하 운동에너지 ➔ 수차 터빈 회전 ➔ 전기 생성",
             physics: "<strong>이렇게 전기가 만들어져요 — 위치에너지가 운동에너지로 바뀜</strong><br>댐에 가두어 놓은 높은 곳의 물은 '위치에너지'라는 힘을 가지고 있어요. 수문을 열면 물이 관을 타고 아래로 세차게 떨어지면서 이 위치에너지가 빠르게 움직이는 힘인 '운동에너지'로 바뀝니다. 이 거센 물살이 아래에 있는 '수차 터빈'이라는 묵직한 쇠날개 바퀴를 세게 때려서 돌립니다. 수차가 돌면 그 위에 연결된 발전기 속 자석도 함께 돌면서 전기가 만들어집니다.",
             turbineInfo: "💡 <strong>터빈 종류:</strong> 프랜시스 / 카플란 수차 터빈 (Water Turbine)",
+            video: { id: "h4ddyPwmHXo", title: "실제 수력 발전소는 어떻게 작동할까?", source: "Meridian Energy" },
             steps: [
                 "1단계: 댐에 가둔 물이 높은 곳에서 위치에너지를 갖고 있어요",
                 "2단계: 물이 아래로 떨어지면서 힘센 운동에너지로 바뀌어요",
@@ -225,6 +228,7 @@ function renderEnergyPrinciple(key) {
             title: "🌋 지열 발전: 지하 마그마 열 ➔ 고온 고압 증기 팽창 ➔ 증기 터빈 초고속 회전",
             physics: "<strong>이렇게 전기가 만들어져요 — 뜨거운 물이 수증기로 팽창</strong><br>땅속 수 킬로미터 아래에는 마그마의 열 때문에 150~300°C나 되는 아주 뜨거운 곳이 있어요. 이곳까지 파이프를 뚫어 물을 넣으면 순식간에 뜨거워지면서 부피가 크게 부풀어 오른 고온·고압의 수증기가 생깁니다. 이 강한 수증기가 힘차게 뿜어져 나오면서 '증기 터빈'이라는 촘촘한 날개바퀴를 세게 밀어 아주 빠르게 돌립니다. 터빈과 연결된 발전기가 돌면서 전기를 만드는데, 땅속 열은 날씨와 상관없이 항상 있어서 하루 종일 쉬지 않고 발전할 수 있어요.",
             turbineInfo: "💡 <strong>터빈 종류:</strong> 고압 고속 증기 터빈 (Steam Turbine)",
+            video: { id: "ZGTqMIy82t4", title: "세계 최대급 지열 발전소(아이슬란드 헬리스헤이디) 탐방", source: "Generation Atomic" },
             steps: [
                 "1단계: 땅속 마그마의 열이 지하수를 100°C 넘게 뜨겁게 데워요",
                 "2단계: 뜨거워진 물이 강한 수증기가 되어 세게 뿜어져 나와요",
@@ -248,6 +252,7 @@ function renderEnergyPrinciple(key) {
             title: "🌉 조력 발전: 밀물·썰물 바다 수위 차 ➔ 수문 수압 ➔ 수중 양방향 터빈 회전",
             physics: "<strong>이렇게 전기가 만들어져요 — 밀물과 썰물의 높이 차</strong><br>달이 지구를 끌어당기는 힘 때문에 바닷물 높이가 하루에도 오르락내리락하는 밀물과 썰물이 생겨요. 밀물 때 바닷물이 들어와 방조제 바깥쪽 수위가 안쪽보다 높아지면 수문을 열어 물을 세게 흘려보내고, 반대로 썰물 때는 안쪽 수위가 높아져 물이 밖으로 빠져나갑니다. 수문 사이에 누워 있는 특별한 터빈은 물이 들어올 때도 나갈 때도 똑같이 돌아가도록 만들어져서, 자연스러운 물의 오르내림만으로 전기를 계속 만들 수 있어요.",
             turbineInfo: "💡 <strong>터빈 종류:</strong> 양방향 수중 벌브 터빈 (Bulb Turbine)",
+            video: { id: "s9TInMSVV6Q", title: "세계 최대 시화호 조력발전소 현장 방문", source: "기후에너지환경부" },
             steps: [
                 "1단계: 달의 인력으로 밀물과 썰물 때 바닷물 높이 차이가 생겨요",
                 "2단계: 방조제 수문을 열면 바닷물이 세게 드나들어요",
@@ -266,6 +271,7 @@ function renderEnergyPrinciple(key) {
             title: "🌊 조류 발전: 댐 없는 빠르는 바닷물 유속 ➔ 수중 프로펠러 터빈 회전",
             physics: "<strong>이렇게 전기가 만들어져요 — 빠르게 흐르는 바닷물의 힘</strong><br>울돌목처럼 폭이 좁은 바닷길에서는 물살이 초속 2~4m나 될 정도로 매우 빠르게 흘러요. 조류 발전은 댐을 쌓지 않고 바다 밑바닥에 프로펠러처럼 생긴 터빈을 그대로 세워 놓습니다. 빠르게 흐르는 바닷물이 이 날개를 직접 밀어서 돌리는 거예요. 댐이 없어서 갯벌을 없애지 않고 물고기가 다니는 길도 막지 않는 깨끗한 발전 방식입니다.",
             turbineInfo: "💡 <strong>터빈 종류:</strong> 수중 해저 프로펠러 터빈 (Tidal Current Turbine)",
+            video: { id: "7D-9XT1pyck", title: "세계 최강 조류 발전 터빈 'O2' 설치 실제 영상", source: "Orbital Marine Power" },
             steps: [
                 "1단계: 좁은 바닷길을 지나며 바닷물이 아주 빠르게 흘러요",
                 "2단계: 바다 밑에 세워둔 프로펠러 터빈이 물살에 밀려 돌아가요",
@@ -284,6 +290,7 @@ function renderEnergyPrinciple(key) {
             title: "🌊 파력 발전: 파도 오르내림 파동 ➔ 공기 압축 ➔ 공기 터빈 회전",
             physics: "<strong>이렇게 전기가 만들어져요 — 파도가 만드는 공기의 흐름</strong><br>파도가 칠 때마다 바다 위에 뜬 부표나 통 안의 물 높이가 둥실둥실 위아래로 움직여요. 물이 올라올 때는 위쪽 공기실의 공기를 세게 밀어내고, 물이 내려갈 때는 공기를 다시 빨아들입니다. 신기하게도 이 특수한 터빈(웰스 터빈)은 공기가 나가든 들어오든 상관없이 항상 같은 방향으로 돌아가도록 만들어져 있어서, 파도가 칠 때마다 계속 전기를 만들 수 있어요.",
             turbineInfo: "💡 <strong>터빈 종류:</strong> 웰스 공기 터빈 (Wells Air Turbine)",
+            video: { id: "9qu2OIw4-p8", title: "실제 파력 발전 부표는 바다에서 이렇게 움직여요", source: "CorPower Ocean" },
             steps: [
                 "1단계: 파도가 치면서 물 높이가 위아래로 출렁여요",
                 "2단계: 공기실 속 공기가 밀려 나갔다 들어왔다 해요",
@@ -302,6 +309,7 @@ function renderEnergyPrinciple(key) {
             title: "🏭 화석연료 발전: 화석연료 연소 열 ➔ 보일러 물 끓임 ➔ 증기 터빈 회전",
             physics: "<strong>이렇게 전기가 만들어져요 — 연료를 태워 얻는 열</strong><br>석탄이나 석유, 가스 속에는 불에 탈 때 나오는 화학 에너지가 들어 있어요. 이것을 1,000°C가 넘는 뜨거운 보일러 안에서 태우면 엄청난 열이 나옵니다. 이 열로 보일러 속 물을 끓여 강한 수증기를 만들고, 이 수증기가 '증기 터빈'의 수많은 날개를 아주 빠르게(1분에 3,600바퀴) 돌립니다. 터빈이 돌면 발전기 자석도 함께 돌면서 많은 전기를 만들 수 있지만, 태우는 과정에서 이산화탄소와 미세먼지가 많이 나옵니다.",
             turbineInfo: "💡 <strong>터빈 종류:</strong> 초고속 대형 증기 터빈 (Steam Turbine)",
+            video: { id: "RaRc0oHBk5M", title: "화력발전소 안 거대한 증기 터빈을 직접 들여다보다", source: "Smithsonian Channel" },
             steps: [
                 "1단계: 석탄이나 가스를 태워 뜨거운 열을 만들어요 (이산화탄소 발생)",
                 "2단계: 그 열로 보일러 속 물을 끓여 강한 수증기를 만들어요",
@@ -325,6 +333,7 @@ function renderEnergyPrinciple(key) {
             title: "⚛️ 원자력 발전: 우라늄 핵분열 열 ➔ 증기발생기 물 끓임 ➔ 증기 터빈 회전",
             physics: "<strong>이렇게 전기가 만들어져요 — 원자핵이 쪼개질 때 나오는 열</strong><br>원자로 안에서 우라늄이라는 물질의 원자핵에 작은 알갱이(중성자)를 부딪치면 원자핵이 쪼개지면서(핵분열) 아주 큰 열이 나옵니다. 아주 작은 질량이 사라지는 대신 엄청나게 큰 에너지로 바뀌는 것인데, 이것이 바로 아인슈타인이 밝혀낸 원리예요. 제어봉을 넣었다 뺐다 하면서 이 반응의 속도를 조절합니다. 이렇게 생긴 열로 물을 끓여 수증기를 만들고, 화력 발전과 똑같이 이 수증기가 증기 터빈을 돌려 전기를 만듭니다.",
             turbineInfo: "💡 <strong>터빈 종류:</strong> 원자력 전용 대형 증기 터빈 (Steam Turbine)",
+            video: { id: "JVROsxtjoCw", title: "세계 최초의 원자력 발전소를 직접 탐사하다", source: "Smarter Every Day" },
             steps: [
                 "1단계: 원자로 속 우라늄 원자핵이 쪼개지면서 큰 열이 나와요",
                 "2단계: 그 열로 물을 끓여 강한 수증기를 만들어요",
@@ -360,12 +369,22 @@ function renderEnergyPrinciple(key) {
         </div>
     `).join('');
 
+    const videoHTML = target.video ? `
+        <div class="p-video-section">
+            <h5><i class="fa-solid fa-video text-red"></i> 🎬 실제로 가동되는 모습 영상으로 보기</h5>
+            <div class="video-embed-wrap">
+                <iframe src="https://www.youtube.com/embed/${target.video.id}" title="${target.video.title}" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+            </div>
+            <p class="video-caption">${target.video.title} <span class="video-source">— ${target.video.source}</span></p>
+        </div>
+    ` : '';
+
     textPanel.innerHTML = `
         <div class="principle-main-card">
             <h3>${target.title}</h3>
             <p class="p-physics-desc">${target.physics}</p>
             <div class="p-turbine-info">${target.turbineInfo}</div>
-            
+
             <div class="p-steps-box">
                 <h5><i class="fa-solid fa-list-ol"></i> 단계별 발전 프로세스</h5>
                 <ol class="p-steps-list">${stepsHTML}</ol>
@@ -378,6 +397,8 @@ function renderEnergyPrinciple(key) {
                     ${componentsHTML}
                 </div>
             </div>
+
+            ${videoHTML}
         </div>
     `;
 }

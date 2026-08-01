@@ -4156,6 +4156,50 @@ input[type="range"]::-webkit-slider-thumb:hover {
     line-height: 1.45;
 }
 
+/* 🎬 실제로 가동되는 모습 영상 섹션 */
+.p-video-section {
+    margin-top: 1.5rem;
+    padding-top: 1.2rem;
+    border-top: 1px dashed #cbd5e1;
+}
+
+.p-video-section h5 {
+    font-size: 0.95rem;
+    color: #1e293b;
+    font-weight: 800;
+    margin-bottom: 1rem;
+}
+
+.video-embed-wrap {
+    position: relative;
+    width: 100%;
+    max-width: 640px;
+    aspect-ratio: 16 / 9;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #000;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+}
+
+.video-embed-wrap iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+}
+
+.video-caption {
+    margin-top: 0.6rem;
+    font-size: 0.8rem;
+    color: #475569;
+}
+
+.video-source {
+    color: #94a3b8;
+}
+
 /* 터빈 고속 회전 유도 비주얼 애니메이션 */
 .pv-spin-fast {
     transform-box: fill-box;
