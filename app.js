@@ -12,6 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
     safeRun(initTabs, 'initTabs');
     safeRun(initSubTabs, 'initSubTabs');
     safeRun(initClimateTimeMachine, 'initClimateTimeMachine');
+    safeRun(initClimateNews, 'initClimateNews');
     safeRun(initPrincipleTabs, 'initPrincipleTabs');
     safeRun(initClassroomBar, 'initClassroomBar');
     safeRun(initLabSimulator, 'initLabSimulator');
@@ -89,7 +90,7 @@ function initClimateTimeMachine() {
         scenarioTitle.innerHTML = '<i class="fa-solid fa-smog"></i> 2050년 예상 시나리오: 화석연료 연소 지속';
         scenarioDesc.textContent = '석탄과 석유를 계속 태우면서 매연과 이산화 탄소가 대기에 가득 차 지구 온도가 2°C 이상 치솟습니다. 북극의 빙하가 녹아 해수면이 상승하고, 매년 극심한 폭염과 가뭄, 초대형 태풍이 도시를 위협합니다.';
 
-        missionCallout.innerHTML = '<span><i class="fa-solid fa-bullhorn"></i> <strong>연구원 미션:</strong> 정전 없이 24시간 동안 탄소 배출 0%인 그린시티를 설계하여 지구의 잿빛 미래를 푸른빛으로 바꿔 주세요!</span>';
+        missionCallout.innerHTML = '<span><i class="fa-solid fa-bullhorn"></i> <strong>연구원 미션:</strong> 정전 없이 24시간 동안 탄소 배출 0%인 그린시티를 설계하여 지구의 잿빛 미래를 푸른빛으로 바꿔 주세요!<br><em class="ct-mission-note">※ 이것은 <strong>도전 목표</strong>입니다. 예산이 정해져 있어 한 번에 이루지 못하는 것이 당연하며, 실제 연구원들도 그렇습니다. <strong>정전이 몇 시에 왜 났는지 설명할 수 있으면 그것으로 성공입니다.</strong></em></span>';
     });
 
     btnGreen.addEventListener('click', () => {
@@ -114,6 +115,215 @@ function initClimateTimeMachine() {
 
         missionCallout.innerHTML = '<span><i class="fa-solid fa-trophy text-green"></i> <strong>축하합니다!</strong> 여러분의 스마트한 에너지 믹스로 지구가 건강을 되찾고 지속 가능한 그린 미래가 완성되었습니다!</span>';
     });
+}
+
+/* ==========================================
+   1-1. 📰 기후 뉴스 — 카드를 누르면 기사 전문을 읽는다
+   ========================================== */
+
+/*
+   헤드라인만 보고 지나치지 않도록, 눌러서 본문·숫자·낱말·토의거리까지 읽게 한다.
+   교실에서 인터넷 없이 쓰는 자료이므로 기사 본문은 앱 안에 담아 둔다.
+   수치는 공개된 국제 기관 발표를 학생 수준으로 옮긴 것이고, 특정 언론사의 기사를
+   그대로 옮긴 것이 아니라는 점을 화면에도 밝혀 둔다.
+*/
+const NEWS_ARTICLES = {
+    heat: {
+        tag: '환경 속보', tagClass: 'red',
+        title: '지구 평균 기온 사상 최고치 경신… UN "인류에 빨간불"',
+        lead: '2024년은 사람이 온도를 재기 시작한 이래 가장 더운 해로 기록됐습니다. 산업화 이전보다 지구 평균 기온이 약 1.5℃ 높아진 것으로, 세계 각국이 지키기로 약속한 선에 이미 닿은 것입니다.',
+        figures: [
+            { num: '약 1.5℃', label: '산업화 이전 대비<br>지구 평균 기온 상승' },
+            { num: '420 ppm 이상', label: '대기 중 이산화탄소 농도<br>(산업화 이전 280 ppm)' },
+            { num: '2015년', label: '1.5℃를 넘지 말자고 약속한<br>파리협정이 맺어진 해' }
+        ],
+        body: [
+            {
+                h: '무슨 일이 일어났나요?',
+                p: '세계기상기구(WMO)는 2024년이 관측 사상 가장 더운 해였다고 발표했습니다. 산업화 이전(1850~1900년 무렵)과 견주면 지구 평균 기온이 약 1.5℃ 올랐습니다. "겨우 1.5도?"라고 생각할 수 있지만, 이것은 <strong>지구 전체의 평균</strong>이라는 점이 중요합니다. 우리 동네 기온이 하루 사이 10℃씩 오르내리는 것과 달리, 지구 전체의 평균이 1℃ 움직이려면 어마어마한 양의 열이 쌓여야 합니다.'
+            },
+            {
+                h: '왜 더워졌나요? — 이 수업과 이어지는 부분',
+                p: '석탄·석유·가스를 태워 전기를 만들 때 이산화탄소가 나옵니다. 이 기체는 지구가 우주로 내보내려는 열을 붙잡아 두는데, 비닐하우스가 안을 따뜻하게 하는 것과 같은 원리라서 <strong>온실가스</strong>라고 부릅니다. 산업화 이전 대기 중 이산화탄소 농도는 280 ppm이었지만 지금은 420 ppm을 넘었습니다. 사람이 화석연료를 태워 온 만큼 그대로 쌓인 것입니다.'
+            },
+            {
+                h: '무엇이 달라지나요?',
+                p: '기온이 오르면 빙하와 만년설이 녹아 해수면이 높아지고, 낮은 섬나라와 해안 도시가 물에 잠길 위험이 커집니다. 바닷물이 따뜻해지면 태풍이 품는 힘도 세지고, 어떤 지역은 극심한 가뭄에, 다른 지역은 기록적인 폭우에 시달립니다. 폭염 때문에 온열 질환으로 목숨을 잃는 사람도 늘어납니다.'
+            }
+        ],
+        terms: [
+            { word: '온실가스', easy: '지구를 비닐하우스처럼 감싸 열을 가두는 기체. 이산화탄소·메탄 등이 있습니다.' },
+            { word: 'ppm', easy: '백만 개 중에 몇 개가 들어 있는지를 나타내는 단위. 420 ppm은 공기 알갱이 백만 개 중 이산화탄소가 420개라는 뜻입니다.' },
+            { word: '산업화 이전', easy: '공장에서 석탄을 본격적으로 태우기 시작하기 전인 1850~1900년 무렵. 기후 변화를 이야기할 때 비교의 기준점으로 씁니다.' },
+            { word: '파리협정', easy: '2015년 세계 195개국이 맺은 약속. 지구 평균 기온 상승을 2℃보다 훨씬 아래로, 되도록 1.5℃ 안에서 막자는 내용입니다.' }
+        ],
+        think: [
+            '지구 평균 기온이 1.5℃ 오른 것과, 우리 동네 기온이 어제보다 1.5℃ 오른 것은 왜 전혀 다른 이야기일까요?',
+            '이산화탄소를 가장 많이 내보낸 나라와, 해수면 상승으로 가장 먼저 피해를 보는 나라가 서로 다르다면 그 책임은 누가 져야 할까요?'
+        ],
+        link: '1차시 <strong>기후 위기 타임머신</strong>에서 화석연료를 계속 썼을 때와 그린시티로 바꿨을 때의 ppm 수치를 직접 비교해 보세요.'
+    },
+
+    re100: {
+        tag: '경제·산업', tagClass: 'orange',
+        title: 'RE100 못 지키면 납품길 막힌다… "신재생에너지는 곧 국가 경쟁력"',
+        lead: '기업이 쓰는 전기를 100% 재생에너지로 바꾸겠다는 약속, RE100. 애플·구글 같은 세계적 기업들이 여기에 참여하면서, 부품을 만들어 파는 우리나라 기업들에게도 발등의 불이 됐습니다.',
+        figures: [
+            { num: '100%', label: '기업이 쓰는 전기를 재생에너지로<br>바꾸겠다는 목표 비율' },
+            { num: '2014년', label: 'RE100 캠페인이<br>시작된 해' },
+            { num: '400곳 이상', label: '참여를 선언한<br>전 세계 기업 수' }
+        ],
+        body: [
+            {
+                h: 'RE100이 무엇인가요?',
+                p: 'RE100은 <strong>R</strong>enewable <strong>E</strong>lectricity <strong>100</strong>%의 줄임말로, "우리 회사가 쓰는 전기를 모두 재생에너지로 채우겠다"고 기업이 스스로 선언하는 국제 캠페인입니다. 2014년에 시작됐고 지금은 400곳이 넘는 기업이 참여하고 있습니다.'
+            },
+            {
+                h: '헤드라인을 정확하게 읽어 봅시다',
+                p: '"수출 규제"라는 말 때문에 나라가 법으로 수출을 막는 것처럼 보이지만, <strong>사실은 조금 다릅니다.</strong> RE100은 법이 아니라 기업들끼리의 자발적인 약속입니다. 다만 애플처럼 RE100을 선언한 회사가 <strong>"우리에게 부품을 팔려면 당신 회사도 재생에너지로 만들어 오라"</strong>고 요구하면서, 그 조건을 못 맞춘 기업은 거래가 끊길 수 있게 된 것입니다. 법의 강제가 아니라 <strong>거래처의 요구</strong>인 셈이지요. 뉴스 제목은 눈길을 끌기 위해 세게 쓰이는 일이 많으니, 본문까지 읽고 판단하는 습관이 필요합니다.'
+            },
+            {
+                h: '왜 우리나라 기업에게 어려운 문제인가요?',
+                p: '우리나라는 전기의 상당 부분을 석탄과 가스를 태워 만들고, 국토가 좁아 태양광·풍력을 지을 자리를 넓게 잡기 어렵습니다. 그래서 기업이 재생에너지 전기를 사고 싶어도 살 수 있는 양 자체가 넉넉하지 않습니다. 반대로 재생에너지가 풍부한 나라의 기업은 같은 조건을 훨씬 쉽게 맞출 수 있습니다. 에너지 전환이 환경 문제인 동시에 <strong>경제와 일자리 문제</strong>이기도 한 이유입니다.'
+            }
+        ],
+        terms: [
+            { word: 'RE100', easy: 'Renewable(재생 가능한) Electricity(전기) 100%. 기업이 쓰는 전기를 모두 재생에너지로 채우겠다는 자발적 약속입니다.' },
+            { word: '재생에너지', easy: '햇빛·바람·물·땅속 열처럼 써도 다시 채워지는 에너지. 석탄·석유는 한 번 쓰면 없어지므로 여기에 들지 않습니다.' },
+            { word: '공급망', easy: '부품을 만드는 회사 → 조립하는 회사 → 파는 회사로 이어지는 사슬. 한 곳이 조건을 걸면 사슬 전체가 따라 움직입니다.' },
+            { word: '탄소 중립', easy: '내보낸 이산화탄소만큼 다시 흡수하거나 줄여서 실제 배출량을 0으로 만드는 것. 넷제로라고도 합니다.' }
+        ],
+        think: [
+            '"수출 규제"라는 제목과 실제 내용(거래처의 요구)은 어떻게 달랐나요? 제목만 읽고 판단하면 어떤 오해가 생길까요?',
+            '재생에너지를 지을 땅이 좁은 우리나라는 어떤 방법으로 RE100 조건을 맞출 수 있을까요? 바다를 쓰는 방법도 생각해 봅시다.'
+        ],
+        link: '2차시 <strong>발전 실험실</strong>에서 우리나라 조건(좁은 땅, 긴 해안선)에 어떤 발전원이 어울릴지 확인해 보세요.'
+    },
+
+    peak: {
+        tag: '전력망', tagClass: 'blue',
+        title: '저녁 피크타임 블랙아웃 경고… "저장장치(ESS) 확보 시급"',
+        lead: '해가 지면 태양광 발전은 0이 됩니다. 그런데 사람들이 집에 돌아와 전기를 가장 많이 쓰는 시간도 바로 그때입니다. 이 어긋남이 정전 위험을 키우고 있습니다.',
+        figures: [
+            { num: '17~20시', label: '전기를 가장 많이 쓰는<br>하루 중 피크 시간' },
+            { num: '0 kW', label: '해가 진 뒤<br>태양광 발전량' },
+            { num: '2011.9.15.', label: '우리나라에서 실제로 일어난<br>대규모 순환정전' }
+        ],
+        body: [
+            {
+                h: '전기는 쌓아 둘 수 없습니다',
+                p: '이 뉴스를 이해하는 열쇠는 이것입니다. <strong>전기는 만든 그 순간에 바로 써야 합니다.</strong> 쌀처럼 창고에 쌓아 두었다가 꺼내 쓸 수 없습니다. 그래서 전력망은 매 순간 <strong>만드는 양과 쓰는 양을 똑같이</strong> 맞춰야 하고, 쓰는 양이 만드는 양을 넘어서면 발전소가 보호를 위해 스스로 멈추면서 정전이 번져 나갑니다.'
+            },
+            {
+                h: '왜 하필 저녁일까요?',
+                p: '낮 동안 태양광은 열심히 전기를 만들지만, 오후 5시가 지나 해가 기울면 발전량이 빠르게 줄어 결국 0이 됩니다. 그런데 바로 그 시간에 사람들이 집으로 돌아와 에어컨·조명·밥솥·텔레비전을 한꺼번에 켭니다. <strong>공급은 뚝 떨어지는데 수요는 치솟는</strong> 이 어긋남이 하루 중 가장 위험한 구간을 만듭니다. 이 모양이 오리를 닮았다고 해서 전문가들은 "덕 커브(오리 곡선)"라고 부릅니다.'
+            },
+            {
+                h: '해결책은 무엇인가요?',
+                p: '첫째, <strong>ESS</strong>라는 대형 배터리에 낮 동안 남는 태양광 전기를 저장했다가 저녁에 꺼내 쓰는 방법입니다. 둘째, 지열·조력처럼 <strong>날씨와 밤낮에 관계없이 꾸준한</strong> 발전원을 함께 두는 방법입니다. 셋째, 사람들이 전기를 덜 쓰거나 사용 시간을 옮기는 방법도 있습니다. 실제로 우리나라에서는 2011년 9월 15일, 늦더위로 전기 사용이 갑자기 늘면서 지역을 돌아가며 전기를 끊는 순환정전이 일어나 엘리베이터에 갇히거나 신호등이 꺼지는 일이 벌어졌습니다.'
+            }
+        ],
+        terms: [
+            { word: '피크 (peak)', easy: '하루 중 전기를 가장 많이 쓰는 시간대. 산봉우리처럼 그래프가 가장 높이 솟은 지점입니다.' },
+            { word: '블랙아웃', easy: '전기가 모자라 넓은 지역의 전기가 한꺼번에 나가는 대규모 정전.' },
+            { word: 'ESS', easy: 'Energy Storage System(에너지 저장 장치). 남는 전기를 담아 두었다가 필요할 때 꺼내 쓰는 아주 큰 배터리입니다.' },
+            { word: '간헐성', easy: '태양광·풍력처럼 자연 조건에 따라 발전량이 들쭉날쭉하고 때로는 아예 멈추는 성질.' }
+        ],
+        think: [
+            '전기를 쌓아 둘 수 없다는 사실이 왜 이 문제의 핵심일까요? 만약 전기를 쌀처럼 저장할 수 있다면 무엇이 달라질까요?',
+            '우리 집에서 저녁 피크 시간의 전기 사용을 줄이려면 무엇을 다른 시간으로 옮길 수 있을까요?'
+        ],
+        link: '4차시 <strong>그린시티 건설</strong>에서 태양광만으로 도시를 채운 뒤 18~20시에 정전이 나는지 직접 확인하고, ESS를 넣어 비교해 보세요.'
+    }
+};
+
+function initClimateNews() {
+    const cards = document.querySelectorAll('.news-item[data-news]');
+    if (!cards.length) return;
+
+    cards.forEach(card => {
+        const key = card.getAttribute('data-news');
+        card.addEventListener('click', () => openNewsArticle(key));
+        // 마우스 없이 키보드만으로도 열 수 있어야 한다
+        card.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                openNewsArticle(key);
+            }
+        });
+    });
+
+    const modal = document.getElementById('news-modal');
+    const closeBtns = [document.getElementById('btn-close-news'), document.getElementById('btn-close-news-bottom')];
+    closeBtns.forEach(btn => btn && btn.addEventListener('click', closeNewsArticle));
+
+    if (modal) {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeNewsArticle();
+        });
+    }
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal && !modal.classList.contains('hidden')) closeNewsArticle();
+    });
+}
+
+function openNewsArticle(key) {
+    const a = NEWS_ARTICLES[key];
+    const modal = document.getElementById('news-modal');
+    const box = document.getElementById('news-article');
+    if (!a || !modal || !box) return;
+
+    box.innerHTML = `
+        <span class="news-tag ${a.tagClass}">${escapeHTML(a.tag)}</span>
+        <h2 class="na-title">${escapeHTML(a.title)}</h2>
+        <p class="na-lead">${escapeHTML(a.lead)}</p>
+
+        <div class="na-figures">
+            ${a.figures.map(f => `
+                <div class="na-fig">
+                    <strong>${f.num}</strong>
+                    <span>${f.label}</span>
+                </div>
+            `).join('')}
+        </div>
+
+        ${a.body.map(sec => `
+            <div class="na-section">
+                <h4>${escapeHTML(sec.h)}</h4>
+                <p>${sec.p}</p>
+            </div>
+        `).join('')}
+
+        <div class="na-terms">
+            <h4><i class="fa-solid fa-book-open"></i> 기사에 나온 어려운 낱말</h4>
+            <dl>
+                ${a.terms.map(t => `
+                    <dt>${escapeHTML(t.word)}</dt>
+                    <dd>${escapeHTML(t.easy)}</dd>
+                `).join('')}
+            </dl>
+        </div>
+
+        <div class="na-think">
+            <h4><i class="fa-solid fa-comments"></i> 모둠에서 이야기해 볼 점</h4>
+            <ol>
+                ${a.think.map(q => `<li>${escapeHTML(q)}</li>`).join('')}
+            </ol>
+        </div>
+
+        <div class="na-link"><i class="fa-solid fa-link"></i> ${a.link}</div>
+        <p class="na-source">※ 이 기사는 <strong>세계기상기구(WMO)·파리협정·RE100 등 공개된 자료를 중학생이 읽기 쉽게 다시 쓴 수업용 자료</strong>입니다. 특정 언론사의 기사를 그대로 옮긴 것이 아니며, 최신 수치는 기상청·한국전력 등 공식 누리집에서 확인해 보세요.</p>
+    `;
+
+    modal.classList.remove('hidden');
+    box.scrollTop = 0;
+    const closeBtn = document.getElementById('btn-close-news');
+    if (closeBtn) closeBtn.focus();
+}
+
+function closeNewsArticle() {
+    const modal = document.getElementById('news-modal');
+    if (modal) modal.classList.add('hidden');
 }
 
 /* ==========================================
@@ -154,7 +364,13 @@ function renderEnergyPrinciple(key) {
     const dataMap = {
         solar: {
             title: "☀️ 태양광 발전: 빛에너지 ➔ 전기에너지 (무터빈 직접 변환)",
-            physics: "<strong>이렇게 전기가 만들어져요 — 광전 효과</strong><br>태양 전지판 속에는 성질이 다른 두 반도체 층(P형, N형)이 겹쳐 붙어 있습니다. 여기에 햇빛(작은 빛 알갱이인 '광자')이 부딪히면, 반도체 속에 갇혀 있던 전자가 에너지를 받아 자유롭게 움직이기 시작해요. 튀어나온 전자(-)는 한쪽으로, 전자가 빠져나간 자리(+)는 반대쪽으로 몰리면서 마치 건전지처럼 (+)극과 (-)극이 생깁니다. 여기에 전선을 연결하면 전자가 흐르면서 전기(직류, DC)가 만들어져요. 빙글빙글 돌아가는 터빈이 하나도 없이 빛을 바로 전기로 바꾸는 신기한 발전 방식입니다.",
+            terms: [
+                { word: "광자 (光子)", easy: "빛을 아주 잘게 쪼갠 <strong>빛 알갱이</strong>. 햇빛은 이 알갱이가 우수수 쏟아지는 것이라고 생각하면 됩니다.", tip: "光(빛 광) + 子(알갱이 자) = 빛 알갱이" },
+                { word: "반도체", easy: "구리처럼 전기가 <em>잘 통하는 물질</em>과 고무처럼 <em>안 통하는 물질</em>의 <strong>중간</strong> 물질. 조건에 따라 전기를 통하게 했다 막았다 할 수 있습니다.", tip: "半(반 반) + 導體(전기를 통하게 하는 물체) = 반쯤 통하는 물체" },
+                { word: "P형 · N형", easy: "태양 전지판에 <strong>겹쳐 붙여 놓은 두 장의 반도체</strong>. N형은 전자(-)가 <em>남는</em> 쪽, P형은 전자가 <em>모자란</em> 쪽입니다. 성질이 다른 두 장을 붙여 놓아야 전자가 한 방향으로만 흘러갑니다.", tip: "자석의 N극·S극처럼 서로 다른 짝이라고 생각하면 쉬워요" },
+                { word: "광전 효과", easy: "<strong>빛이 닿으면 전기가 생기는 현상</strong>. 이 단원에서 가장 중요한 낱말이며, 뜻은 한자 순서 그대로입니다.", tip: "光(빛) + 電(전기) + 效果(생기는 일) = 빛 ➔ 전기" }
+            ],
+            physics: "<strong>이렇게 전기가 만들어져요 — 광전 효과</strong><br>태양 전지판 속에는 성질이 다른 두 장의 반도체(P형·N형)가 겹쳐 붙어 있습니다. 여기에 햇빛, 즉 <strong>빛 알갱이(광자)</strong>가 부딪히면 반도체 속에 붙잡혀 있던 전자가 그 힘을 받아 톡 떨어져 나옵니다. 떨어져 나온 전자(-)는 한쪽으로, 전자가 빠져나가고 남은 빈자리(+)는 반대쪽으로 몰려서 마치 건전지처럼 (+)극과 (-)극이 생깁니다. 여기에 전선을 이어 주면 전자가 줄줄이 흘러가는데, 이 흐름이 바로 전기(직류, DC)입니다. <strong>빛이 닿으니 전기가 생겼다 — 이것이 '광전 효과'입니다.</strong> 빙글빙글 도는 터빈이 하나도 없이 빛을 곧바로 전기로 바꾸는 신기한 발전 방식이에요.",
             turbineInfo: "💡 <strong>터빈 사용 여부:</strong> 터빈 없음 (회전 부품 0개)",
             video: { id: "h6_MsneSmP8", title: "실제 태양광 발전소는 이렇게 생겼어요", source: "EDF" },
             steps: [
@@ -178,6 +394,11 @@ function renderEnergyPrinciple(key) {
         },
         wind: {
             title: "💨 풍력 발전: 바람 운동에너지 ➔ 풍력 터빈 회전 ➔ 전자기 유도",
+            terms: [
+                { word: "양력 (揚力)", easy: "<strong>물체를 위로 밀어 올리는 힘</strong>. 비행기가 뜨는 힘과 같은 힘이며, 휘어진 날개 위아래로 공기가 지나가는 빠르기가 달라서 생깁니다.", tip: "揚(오를 양) + 力(힘 력) = 떠오르게 하는 힘" },
+                { word: "전자기 유도", easy: "<strong>자석과 전선을 서로 움직여 주면 전선에 전기가 생기는 현상</strong>. 발전소 아홉 곳 중 태양광을 뺀 여덟 곳이 모두 이 원리로 전기를 만듭니다.", tip: "誘導(유도) = 없던 것을 끌어내어 만든다" },
+                { word: "증속기", easy: "느리게 도는 날개의 <strong>회전을 훨씬 빠르게 바꿔 주는 톱니바퀴 장치</strong>. 자전거 기어를 바꾸면 페달 한 번에 바퀴가 더 많이 도는 것과 같습니다.", tip: "增(더할 증) + 速(빠를 속) = 속도를 더한다" }
+            ],
             physics: "<strong>이렇게 전기가 만들어져요 — 양력과 전자기 유도</strong><br>풍력 터빈의 날개는 비행기 날개처럼 휘어진 모양이에요. 바람이 이 날개에 부딪히면 날개 앞뒤로 공기 압력 차이가 생기면서 날개를 밀어 올리는 힘인 '양력'이 생겨 날개가 빙글빙글 돌아갑니다. 이 회전은 기어(증속기)를 거치면서 훨씬 빠른 회전으로 바뀌어 발전기 속 자석을 돌립니다. 자석이 돌면 그 주변을 감싼 전선(코일)을 지나가는 자기장이 계속 바뀌는데, 이렇게 자석과 전선이 서로 움직이면 전기가 만들어진다는 것이 바로 '전자기 유도'라는 원리예요.",
             turbineInfo: "💡 <strong>터빈 종류:</strong> 수평축 3엽 풍력 터빈 (Wind Turbine)",
             video: { id: "tUse6mSeU-I", title: "실제 풍력 터빈 나셀(발전기 내부) 투어", source: "EDP Renewables" },
@@ -202,6 +423,11 @@ function renderEnergyPrinciple(key) {
         },
         hydro: {
             title: "🌊 수력 발전: 물의 위치에너지 ➔ 낙하 운동에너지 ➔ 수차 터빈 회전 ➔ 전기 생성",
+            terms: [
+                { word: "위치에너지", easy: "<strong>높은 곳에 있다는 것만으로 가지게 되는 힘</strong>. 아직 쓰지 않고 모아 둔 힘이며, 높이 있을수록 커집니다.", tip: "미끄럼틀 꼭대기에 앉아 있을 때 가진 힘" },
+                { word: "운동에너지", easy: "<strong>움직이고 있는 물체가 가진 힘</strong>. 빠를수록, 무거울수록 커집니다.", tip: "미끄럼틀을 쌩 하고 내려가는 중에 가진 힘" },
+                { word: "수차 터빈", easy: "<strong>물이 때려서 돌아가는 커다란 쇠 물레방아</strong>. 옛날 물레방아를 아주 튼튼한 금속으로 만든 것이라고 생각하면 됩니다.", tip: "水(물 수) + 車(수레 차) = 물이 돌리는 바퀴" }
+            ],
             physics: "<strong>이렇게 전기가 만들어져요 — 위치에너지가 운동에너지로 바뀜</strong><br>댐에 가두어 놓은 높은 곳의 물은 '위치에너지'라는 힘을 가지고 있어요. 수문을 열면 물이 관을 타고 아래로 세차게 떨어지면서 이 위치에너지가 빠르게 움직이는 힘인 '운동에너지'로 바뀝니다. 이 거센 물살이 아래에 있는 '수차 터빈'이라는 묵직한 쇠날개 바퀴를 세게 때려서 돌립니다. 수차가 돌면 그 위에 연결된 발전기 속 자석도 함께 돌면서 전기가 만들어집니다.",
             turbineInfo: "💡 <strong>터빈 종류:</strong> 프랜시스 / 카플란 수차 터빈 (Water Turbine)",
             video: { id: "h4ddyPwmHXo", title: "실제 수력 발전소는 어떻게 작동할까?", source: "Meridian Energy" },
@@ -226,6 +452,11 @@ function renderEnergyPrinciple(key) {
         },
         geo: {
             title: "🌋 지열 발전: 지하 마그마 열 ➔ 고온 고압 증기 팽창 ➔ 증기 터빈 초고속 회전",
+            terms: [
+                { word: "지열 (地熱)", easy: "<strong>땅속이 원래 가지고 있는 열</strong>. 땅은 100m 내려갈 때마다 약 3℃씩 뜨거워집니다.", tip: "地(땅 지) + 熱(열 열) = 땅의 열" },
+                { word: "고온 · 고압", easy: "<strong>매우 뜨겁고(고온) 세게 눌린(고압) 상태</strong>. 압력밥솥 뚜껑 사이로 뿜어져 나오는 김을 떠올리면 됩니다.", tip: "高溫(높은 온도) · 高壓(높은 압력)" },
+                { word: "시추", easy: "<strong>땅속 깊은 곳까지 구멍을 뚫는 일</strong>. 지열 발전은 보통 2~3km까지 뚫습니다.", tip: "試(시험할 시) + 錐(송곳 추) = 송곳으로 뚫어 보기" }
+            ],
             physics: "<strong>이렇게 전기가 만들어져요 — 뜨거운 물이 수증기로 팽창</strong><br>땅속 수 킬로미터 아래에는 마그마의 열 때문에 150~300°C나 되는 아주 뜨거운 곳이 있어요. 이곳까지 파이프를 뚫어 물을 넣으면 순식간에 뜨거워지면서 부피가 크게 부풀어 오른 고온·고압의 수증기가 생깁니다. 이 강한 수증기가 힘차게 뿜어져 나오면서 '증기 터빈'이라는 촘촘한 날개바퀴를 세게 밀어 아주 빠르게 돌립니다. 터빈과 연결된 발전기가 돌면서 전기를 만드는데, 땅속 열은 날씨와 상관없이 항상 있어서 하루 종일 쉬지 않고 발전할 수 있어요.",
             turbineInfo: "💡 <strong>터빈 종류:</strong> 고압 고속 증기 터빈 (Steam Turbine)",
             video: { id: "ZGTqMIy82t4", title: "세계 최대급 지열 발전소(아이슬란드 헬리스헤이디) 탐방", source: "Generation Atomic" },
@@ -250,6 +481,11 @@ function renderEnergyPrinciple(key) {
         },
         tidal_barrage: {
             title: "🌉 조력 발전: 밀물·썰물 바다 수위 차 ➔ 수문 수압 ➔ 수중 양방향 터빈 회전",
+            terms: [
+                { word: "밀물 · 썰물", easy: "달이 바닷물을 끌어당겨서 <strong>바닷물이 밀려 들어오는 것이 밀물, 빠져나가는 것이 썰물</strong>입니다. 하루에 두 번씩 되풀이됩니다.", tip: "밀려 들어온다 ➔ 밀물 / 쓸려 나간다 ➔ 썰물" },
+                { word: "수위차 (낙차)", easy: "<strong>방조제 안쪽과 바깥쪽 물 높이의 차이</strong>. 이 차이가 클수록 물이 세게 흘러 터빈을 힘차게 돌립니다.", tip: "水位(물 높이)의 差(차이)" },
+                { word: "방조제", easy: "<strong>바닷물을 막으려고 바다를 가로질러 길게 쌓은 둑</strong>. 그 아래에 터빈을 넣어 둡니다.", tip: "防(막을 방) + 潮(밀물 조) + 堤(둑 제) = 밀물을 막는 둑" }
+            ],
             physics: "<strong>이렇게 전기가 만들어져요 — 밀물과 썰물의 높이 차</strong><br>달이 지구를 끌어당기는 힘 때문에 바닷물 높이가 하루에도 오르락내리락하는 밀물과 썰물이 생겨요. 밀물 때 바닷물이 들어와 방조제 바깥쪽 수위가 안쪽보다 높아지면 수문을 열어 물을 세게 흘려보내고, 반대로 썰물 때는 안쪽 수위가 높아져 물이 밖으로 빠져나갑니다. 수문 사이에 누워 있는 특별한 터빈은 물이 들어올 때도 나갈 때도 똑같이 돌아가도록 만들어져서, 자연스러운 물의 오르내림만으로 전기를 계속 만들 수 있어요.",
             turbineInfo: "💡 <strong>터빈 종류:</strong> 양방향 수중 벌브 터빈 (Bulb Turbine)",
             video: { id: "s9TInMSVV6Q", title: "세계 최대 시화호 조력발전소 현장 방문", source: "기후에너지환경부" },
@@ -268,7 +504,12 @@ function renderEnergyPrinciple(key) {
             ]
         },
         tidal_current: {
-            title: "🌊 조류 발전: 댐 없는 빠르는 바닷물 유속 ➔ 수중 프로펠러 터빈 회전",
+            title: "🌊 조류 발전: 댐 없는 빠른 바닷물 유속 ➔ 수중 프로펠러 터빈 회전",
+            terms: [
+                { word: "조류 (潮流)", easy: "<strong>밀물과 썰물 때문에 바닷물이 한쪽으로 흘러가는 것</strong>. 하늘을 나는 새(鳥類)가 아니라 <em>바닷물의 흐름</em>입니다.", tip: "潮(밀물 조) + 流(흐를 류) = 바닷물의 흐름" },
+                { word: "유속", easy: "<strong>물이 흐르는 빠르기</strong>. 1초에 몇 미터를 가는지(m/s)로 나타냅니다.", tip: "流(흐를 유) + 速(빠를 속) = 흐르는 빠르기" },
+                { word: "울돌목", easy: "전남 진도와 육지 사이의 <strong>아주 좁고 물살이 빠른 바닷길</strong>. 우리나라에서 조류 발전에 가장 좋은 곳입니다.", tip: "좁은 곳을 지날수록 물살은 빨라집니다" }
+            ],
             physics: "<strong>이렇게 전기가 만들어져요 — 빠르게 흐르는 바닷물의 힘</strong><br>울돌목처럼 폭이 좁은 바닷길에서는 물살이 초속 2~4m나 될 정도로 매우 빠르게 흘러요. 조류 발전은 댐을 쌓지 않고 바다 밑바닥에 프로펠러처럼 생긴 터빈을 그대로 세워 놓습니다. 빠르게 흐르는 바닷물이 이 날개를 직접 밀어서 돌리는 거예요. 댐이 없어서 갯벌을 없애지 않고 물고기가 다니는 길도 막지 않는 깨끗한 발전 방식입니다.",
             turbineInfo: "💡 <strong>터빈 종류:</strong> 수중 해저 프로펠러 터빈 (Tidal Current Turbine)",
             video: { id: "7D-9XT1pyck", title: "세계 최강 조류 발전 터빈 'O2' 설치 실제 영상", source: "Orbital Marine Power" },
@@ -288,6 +529,11 @@ function renderEnergyPrinciple(key) {
         },
         wave: {
             title: "🌊 파력 발전: 파도 오르내림 파동 ➔ 공기 압축 ➔ 공기 터빈 회전",
+            terms: [
+                { word: "파고 (波高)", easy: "<strong>파도의 높이</strong>. 골짜기부터 꼭대기까지의 높이를 잽니다. 파고가 높을수록 힘이 셉니다.", tip: "波(물결 파) + 高(높을 고) = 물결의 높이" },
+                { word: "공기실", easy: "파도가 드나들 때 <strong>안쪽 공기가 밀려 나갔다 빨려 들어왔다 하도록 만든 빈 통</strong>입니다.", tip: "주사기를 밀고 당길 때 공기가 드나드는 것과 같아요" },
+                { word: "부표", easy: "<strong>바다 위에 둥둥 떠 있는 커다란 통</strong>. 파도를 따라 위아래로 오르내리며 그 움직임으로 발전기를 돌립니다.", tip: "浮(뜰 부) + 標(표시 표) = 물 위에 뜬 표시물" }
+            ],
             physics: "<strong>이렇게 전기가 만들어져요 — 파도가 만드는 공기의 흐름</strong><br>파도가 칠 때마다 바다 위에 뜬 부표나 통 안의 물 높이가 둥실둥실 위아래로 움직여요. 물이 올라올 때는 위쪽 공기실의 공기를 세게 밀어내고, 물이 내려갈 때는 공기를 다시 빨아들입니다. 신기하게도 이 특수한 터빈(웰스 터빈)은 공기가 나가든 들어오든 상관없이 항상 같은 방향으로 돌아가도록 만들어져 있어서, 파도가 칠 때마다 계속 전기를 만들 수 있어요.",
             turbineInfo: "💡 <strong>터빈 종류:</strong> 웰스 공기 터빈 (Wells Air Turbine)",
             video: { id: "9qu2OIw4-p8", title: "실제 파력 발전 부표는 바다에서 이렇게 움직여요", source: "CorPower Ocean" },
@@ -307,6 +553,11 @@ function renderEnergyPrinciple(key) {
         },
         fossil: {
             title: "🏭 화석연료 발전: 화석연료 연소 열 ➔ 보일러 물 끓임 ➔ 증기 터빈 회전",
+            terms: [
+                { word: "화석연료", easy: "<strong>수억 년 전 죽은 생물이 땅속에 묻혀 만들어진 연료</strong>. 석탄·석유·천연가스가 여기에 해당합니다. 한 번 쓰면 다시 만들어지지 않습니다.", tip: "화석(옛 생물의 흔적) + 연료(태우는 것)" },
+                { word: "연소", easy: "<strong>물질이 산소와 만나 불타면서 열을 내는 것</strong>. 쉽게 말해 '태우기'입니다.", tip: "燃(탈 연) + 燒(태울 소) = 타면서 태운다" },
+                { word: "온실가스", easy: "지구를 <strong>비닐하우스처럼 감싸 열을 가두는 기체</strong>. 이산화탄소가 대표적이며, 많아질수록 지구가 더워집니다.", tip: "온실(비닐하우스) 안이 바깥보다 따뜻한 것과 같은 원리" }
+            ],
             physics: "<strong>이렇게 전기가 만들어져요 — 연료를 태워 얻는 열</strong><br>석탄이나 석유, 가스 속에는 불에 탈 때 나오는 화학 에너지가 들어 있어요. 이것을 1,000°C가 넘는 뜨거운 보일러 안에서 태우면 엄청난 열이 나옵니다. 이 열로 보일러 속 물을 끓여 강한 수증기를 만들고, 이 수증기가 '증기 터빈'의 수많은 날개를 아주 빠르게(1분에 3,600바퀴) 돌립니다. 터빈이 돌면 발전기 자석도 함께 돌면서 많은 전기를 만들 수 있지만, 태우는 과정에서 이산화탄소와 미세먼지가 많이 나옵니다.",
             turbineInfo: "💡 <strong>터빈 종류:</strong> 초고속 대형 증기 터빈 (Steam Turbine)",
             video: { id: "RaRc0oHBk5M", title: "화력발전소 안 거대한 증기 터빈을 직접 들여다보다", source: "Smithsonian Channel" },
@@ -331,7 +582,33 @@ function renderEnergyPrinciple(key) {
         },
         nuclear: {
             title: "⚛️ 원자력 발전: 우라늄 핵분열 열 ➔ 증기발생기 물 끓임 ➔ 증기 터빈 회전",
-            physics: "<strong>이렇게 전기가 만들어져요 — 원자핵이 쪼개질 때 나오는 열</strong><br>원자로 안에서 우라늄이라는 물질의 원자핵에 작은 알갱이(중성자)를 부딪치면 원자핵이 쪼개지면서(핵분열) 아주 큰 열이 나옵니다. 아주 작은 질량이 사라지는 대신 엄청나게 큰 에너지로 바뀌는 것인데, 이것이 바로 아인슈타인이 밝혀낸 원리예요. 제어봉을 넣었다 뺐다 하면서 이 반응의 속도를 조절합니다. 이렇게 생긴 열로 물을 끓여 수증기를 만들고, 화력 발전과 똑같이 이 수증기가 증기 터빈을 돌려 전기를 만듭니다.",
+            terms: [
+                { word: "원자 · 원자핵", easy: "모든 물질을 이루는 <strong>아주 작은 알갱이가 원자</strong>이고, 그 <strong>한가운데 있는 단단한 심이 원자핵</strong>입니다.", tip: "원자를 야구공이라고 하면 원자핵은 그 안의 작은 콩알" },
+                { word: "핵분열", easy: "<strong>원자핵이 두 조각으로 쪼개지는 것</strong>. 쪼개질 때 어마어마한 열이 함께 나옵니다.", tip: "核(씨 핵) + 分裂(쪼개짐) = 핵이 쪼개짐" },
+                { word: "중성자", easy: "원자핵 속에 들어 있는 알갱이 중 하나. <strong>이것을 우라늄에 부딪쳐서 핵분열을 일으킵니다.</strong> 쪼개질 때 새 중성자가 또 튀어나와 옆 원자핵을 쪼개는 일이 줄줄이 이어집니다(연쇄 반응).", tip: "볼링공이 핀을 치면 그 핀이 또 옆 핀을 치는 것과 비슷해요" },
+                { word: "제어봉", easy: "<strong>튀어나온 중성자를 빨아들여 핵분열을 멈추게 하는 막대</strong>. 깊이 넣을수록 반응이 느려지므로 <strong>원자로의 브레이크</strong>입니다.", tip: "制御(다스릴 제어) + 棒(막대 봉) = 조절하는 막대" },
+                { word: "방사능 · 방사선", easy: "핵분열을 한 물질이 <strong>눈에 보이지 않는 위험한 빛(방사선)을 내뿜는 성질</strong>이 방사능입니다. 많이 쬐면 몸속 세포가 망가집니다.", tip: "放(내놓을 방) + 射(쏠 사) = 밖으로 쏘아 낸다" },
+                { word: "방사성 폐기물", easy: "<strong>다 쓰고 난 연료처럼 방사선을 내뿜는 쓰레기</strong>. 보통 쓰레기처럼 태우거나 묻을 수 없습니다.", tip: "廢棄物(폐기물) = 버려야 하는 물건" }
+            ],
+            physics: "<strong>이렇게 전기가 만들어져요 — 원자핵이 쪼개질 때 나오는 열</strong><br>원자로 안에서 우라늄이라는 물질의 원자핵에 작은 알갱이(중성자)를 부딪치면 원자핵이 쪼개지면서(핵분열) 아주 큰 열이 나옵니다. 아주 작은 질량이 사라지는 대신 엄청나게 큰 에너지로 바뀌는 것인데, 이것이 바로 아인슈타인이 밝혀낸 원리예요. 쪼개질 때 새로 튀어나온 중성자가 옆에 있는 원자핵을 또 쪼개기 때문에 반응이 저절로 줄줄이 이어지는데(연쇄 반응), 그대로 두면 열이 걷잡을 수 없이 올라갑니다. 그래서 <strong>중성자를 빨아들이는 제어봉</strong>을 넣었다 뺐다 하면서 속도를 조절합니다. 이렇게 생긴 열로 물을 끓여 수증기를 만들고, 화력 발전과 똑같이 이 수증기가 증기 터빈을 돌려 전기를 만듭니다.",
+            caution: {
+                title: "⚠️ 원자력을 쓸 때 꼭 함께 생각해야 할 점",
+                lead: "원자력은 <strong>이산화탄소를 거의 내보내지 않으면서 날씨와 상관없이 24시간</strong> 많은 전기를 만듭니다. 하지만 다른 발전소에는 없는 세 가지 무거운 문제가 함께 따라옵니다.",
+                items: [
+                    {
+                        head: "① 멈춰도 계속 뜨겁다 — 냉각이 끊기면 사고",
+                        body: "제어봉을 모두 넣어 핵분열을 멈춰도 연료봉은 한동안 스스로 열을 냅니다. 그래서 <strong>물을 계속 돌려 식혀 주어야</strong> 하는데, 지진이나 해일로 전기가 끊겨 이 냉각이 멈추면 연료가 녹아내리고(노심 용융) 방사성 물질이 밖으로 새어 나갈 수 있습니다. 1986년 체르노빌, 2011년 후쿠시마 사고가 이렇게 일어났고, 후쿠시마 주변은 지금도 사람이 돌아가 살기 어려운 곳이 남아 있습니다."
+                    },
+                    {
+                        head: "② 눈에 보이지 않는 방사선",
+                        body: "방사선은 색도 냄새도 없어서 <strong>사람의 감각으로는 전혀 알아챌 수 없습니다.</strong> 많이 쬐면 몸속 세포와 유전자가 망가져 병이 생길 수 있습니다. 그래서 원자로는 두꺼운 콘크리트와 강철로 몇 겹씩 감싸 두고, 일하는 사람은 늘 선량계를 차고 쬔 양을 기록합니다."
+                    },
+                    {
+                        head: "③ 방사성 폐기물 — 수만 년을 보관해야 하는 쓰레기",
+                        body: "다 쓴 연료봉(고준위 폐기물)은 꺼낸 뒤에도 <strong>수만 년 동안 방사선을 내뿜습니다.</strong> 태울 수도, 없앨 수도 없어서 물이 담긴 저장 수조에서 몇 년 식힌 다음 두꺼운 금속통에 넣어 보관합니다. 최종적으로는 땅속 수백 미터 아래 암반에 묻는 방법이 연구되고 있지만, <strong>우리나라는 아직 이 최종 처분장을 정하지 못했습니다.</strong> 장갑·작업복 같은 중저준위 폐기물은 경주 처분장에 보관하고 있습니다.<br><span class=\"caution-think\">💬 함께 생각해 볼 점: 지금 우리가 쓴 전기의 쓰레기를 <strong>수만 년 뒤 사람들에게 넘기는 것</strong>은 괜찮은 일일까요? 그 처분장은 누구네 동네에 지어야 할까요?</span>"
+                    }
+                ]
+            },
             turbineInfo: "💡 <strong>터빈 종류:</strong> 원자력 전용 대형 증기 터빈 (Steam Turbine)",
             video: { id: "JVROsxtjoCw", title: "세계 최초의 원자력 발전소를 직접 탐사하다", source: "Smarter Every Day" },
             steps: [
@@ -369,6 +646,39 @@ function renderEnergyPrinciple(key) {
         </div>
     `).join('');
 
+    // 원리를 읽기 전에 어려운 낱말부터 쉬운 말로 먼저 만난다 (선행 학습 단계)
+    const termsHTML = (target.terms && target.terms.length) ? `
+        <div class="p-terms-box">
+            <h5><i class="fa-solid fa-book-open text-blue"></i> 0단계 · 먼저 알아 둘 낱말</h5>
+            <p class="p-terms-lead">아래 원리 설명에 나오는 어려운 낱말입니다. <strong>낱말을 눌러 뜻을 먼저 확인한 다음</strong> 설명을 읽으면 훨씬 쉽습니다.</p>
+            <div class="term-cards">
+                ${target.terms.map(t => `
+                    <button type="button" class="term-card" aria-expanded="false">
+                        <span class="term-word">${t.word}<i class="fa-solid fa-chevron-down"></i></span>
+                        <span class="term-body">
+                            <span class="term-easy">${t.easy}</span>
+                            ${t.tip ? `<span class="term-tip">🔎 ${t.tip}</span>` : ''}
+                        </span>
+                    </button>
+                `).join('')}
+            </div>
+        </div>
+    ` : '';
+
+    // 위험·부담이 큰 발전원은 원리와 함께 그 문제도 같은 비중으로 다룬다
+    const cautionHTML = target.caution ? `
+        <div class="p-caution-box">
+            <h5><i class="fa-solid fa-triangle-exclamation"></i> ${target.caution.title}</h5>
+            <p class="caution-lead">${target.caution.lead}</p>
+            ${target.caution.items.map(it => `
+                <div class="caution-item">
+                    <h6>${it.head}</h6>
+                    <p>${it.body}</p>
+                </div>
+            `).join('')}
+        </div>
+    ` : '';
+
     const videoHTML = target.video ? `
         <div class="p-video-section">
             <h5><i class="fa-solid fa-video text-red"></i> 🎬 실제로 가동되는 모습 영상으로 보기</h5>
@@ -382,6 +692,7 @@ function renderEnergyPrinciple(key) {
     textPanel.innerHTML = `
         <div class="principle-main-card">
             <h3>${target.title}</h3>
+            ${termsHTML}
             <p class="p-physics-desc">${target.physics}</p>
             <div class="p-turbine-info">${target.turbineInfo}</div>
 
@@ -389,6 +700,8 @@ function renderEnergyPrinciple(key) {
                 <h5><i class="fa-solid fa-list-ol"></i> 단계별 발전 프로세스</h5>
                 <ol class="p-steps-list">${stepsHTML}</ol>
             </div>
+
+            ${cautionHTML}
 
             <!-- 학생들이 모르는 터빈/발전기 학습 사진 관찰 도감 -->
             <div class="p-components-section">
@@ -401,6 +714,14 @@ function renderEnergyPrinciple(key) {
             ${videoHTML}
         </div>
     `;
+
+    // 낱말은 눌러야 뜻이 펼쳐진다. 한꺼번에 다 보이면 글이 많아 부담스럽기 때문이다.
+    textPanel.querySelectorAll('.term-card').forEach(card => {
+        card.addEventListener('click', () => {
+            const opened = card.classList.toggle('term-open');
+            card.setAttribute('aria-expanded', opened ? 'true' : 'false');
+        });
+    });
 }
 function switchTab(targetTab, lessonNo) {
     try {
@@ -1350,10 +1671,13 @@ function updateLabSimulator() {
         const alertBox = document.getElementById('nuclear-alert');
         if (efficiency === 0) {
             alertBox.className = "info-alert";
-            alertBox.querySelector('span').textContent = "제어봉이 완전히 삽입되어 원자로 가동이 중단되었습니다.";
+            alertBox.querySelector('span').textContent = "제어봉이 완전히 삽입되어 중성자가 모두 흡수되었고 핵분열이 멈췄습니다. 하지만 연료봉은 한동안 스스로 열을 내기 때문에 물을 돌려 계속 식혀 주어야 합니다.";
+        } else if (efficiency === 100) {
+            alertBox.className = "info-alert info-active";
+            alertBox.querySelector('span').textContent = "제어봉을 완전히 뽑아 연쇄 반응이 가장 활발합니다. 발전량은 최대이지만, 실제 원자로에서는 이렇게 열이 오를수록 냉각이 조금이라도 멈추면 위험해집니다. 그리고 연료를 많이 태운 만큼 수만 년 보관해야 할 방사성 폐기물도 늘어납니다.";
         } else {
             alertBox.className = "info-alert info-active";
-            alertBox.querySelector('span').textContent = `우라늄 핵분열을 통해 막대한 에너지를 생산 중입니다. 제어봉을 빼낼수록(얕게 넣을수록) 발전량이 증가합니다.`;
+            alertBox.querySelector('span').textContent = `우라늄 핵분열로 막대한 에너지를 생산 중입니다. 제어봉을 빼낼수록(얕게 넣을수록) 중성자가 덜 흡수되어 발전량이 증가합니다.`;
         }
         
         startNuclearSteamParticles(efficiency);
@@ -2208,6 +2532,15 @@ function endGameSimulation(blackoutCount, avgCarbon, essCount, blackoutHours = [
         summaryText = `🌱 <strong>탄소는 0인데 전기가 끊겼습니다(${blackoutCount}회).</strong> 신재생에너지만으로 채우면 날씨가 나쁠 때 발전이 멈춥니다. <strong>지열·조력</strong>처럼 꾸준한 발전원이나 <strong>ESS</strong>로 간헐성을 메워 보세요.`;
     } else {
         summaryText = `🔧 <strong>정전 ${blackoutCount}회 · 평균 탄소 ${Math.round(avgCarbon)}%</strong> — 안정성과 환경 둘 다 아쉽습니다. 하단 막대그래프에서 정전이 난 시각에 어떤 발전소가 쉬고 있었는지 확인해 보세요.`;
+    }
+
+    // 목표를 못 채운 결과도 '틀린 답'이 아니라 '알아낸 사실'로 돌려준다
+    if (!(stabilityGrade === 'S' && ecoGrade === 'S')) {
+        summaryText += `<div class="result-encourage">
+            🙂 <strong>실패가 아닙니다.</strong> 정해진 예산 안에서 정전·탄소·비용을 <u>모두</u> 만족시키는 답은 없을 수도 있습니다.
+            지금 결과는 <strong>“이 조합으로는 여기까지”라는 사실을 알아낸 것</strong>이고, 그것이 이 실험의 목적입니다.
+            아래 <strong>[이 결과를 근거로 설계 수정하기]</strong>로 <strong>한 가지만 바꿔서</strong> 다시 돌려 보세요. 몇 번이든 괜찮습니다.
+        </div>`;
     }
 
     let detailHTML = `<div class="rd-row"><span class="rd-key">시나리오</span><span>${scenarioLabel}</span></div>`;
@@ -3139,7 +3472,7 @@ function sv(id) { return parseFloat(document.getElementById(id).value); }
 */
 const LAB_QUESTS = [
     {
-        id: 'hydro-max', group: 'max', energy: 'hydro', label: '수력',
+        id: 'hydro-max', group: 'max', energy: 'hydro', label: '수력', example: true,
         text: '수문을 끝까지 열어 효율 100%를 만들어 보자',
         reveal: '유량이 많을수록 수차를 더 세게 밀어 발전량이 늘어납니다.',
         check: () => activeEnergy === 'hydro' && sv('hydro-flow') === 100
@@ -3275,6 +3608,16 @@ function initLabExploration() {
         slider.addEventListener('input', checkLabQuests);
     });
 
+    // 1번 미션 풀이는 열어 둔 채 시작하고, 다 익힌 학생은 접어 둘 수 있게 한다
+    const qeToggle = document.getElementById('qe-toggle');
+    if (qeToggle) {
+        qeToggle.addEventListener('click', () => {
+            const box = qeToggle.closest('.quest-example');
+            const folded = box.classList.toggle('qe-folded');
+            qeToggle.setAttribute('aria-expanded', folded ? 'false' : 'true');
+        });
+    }
+
     markEnergyExplored('solar');   // 처음 화면에 열려 있는 태양광은 이미 만난 셈
     renderQuests();
     renderEnergyCompare();
@@ -3320,6 +3663,7 @@ function renderQuests() {
                     <i class="fa-solid ${isDone ? 'fa-circle-check' : 'fa-circle'}"></i>
                     <div>
                         <span class="quest-label">${escapeHTML(q.label)}</span>
+                        ${q.example ? `<span class="quest-example-tag">예시로 풀어 둔 미션</span>` : ''}
                         <p class="quest-text">${escapeHTML(q.text)}</p>
                         ${isDone ? `<p class="quest-reveal">${escapeHTML(q.reveal)}</p>` : ''}
                     </div>

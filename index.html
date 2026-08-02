@@ -154,7 +154,7 @@
                             </div>
 
                             <div class="ct-mission-callout" id="ct-mission-callout">
-                                <span><i class="fa-solid fa-bullhorn"></i> <strong>연구원 미션:</strong> 정전 없이 24시간 동안 탄소 배출 0%인 그린시티를 설계하여 지구의 잿빛 미래를 푸른빛으로 바꿔 주세요!</span>
+                                <span><i class="fa-solid fa-bullhorn"></i> <strong>연구원 미션:</strong> 정전 없이 24시간 동안 탄소 배출 0%인 그린시티를 설계하여 지구의 잿빛 미래를 푸른빛으로 바꿔 주세요!<br><em class="ct-mission-note">※ 이것은 <strong>도전 목표</strong>입니다. 예산이 정해져 있어 한 번에 이루지 못하는 것이 당연하며, 실제 연구원들도 그렇습니다. <strong>정전이 몇 시에 왜 났는지 설명할 수 있으면 그것으로 성공입니다.</strong></em></span>
                             </div>
                         </div>
                     </div>
@@ -166,23 +166,26 @@
                     <div class="news-ticker-card card">
                         <div class="nt-head">
                             <span class="nt-badge"><i class="fa-solid fa-newspaper"></i> 긴급 기후 뉴스 속보</span>
-                            <span class="nt-sub">실시간 기후 위기 보도 모음</span>
+                            <span class="nt-sub">카드를 누르면 기사 전문을 읽을 수 있습니다</span>
                         </div>
                         <div class="news-grid">
-                            <div class="news-item danger">
+                            <div class="news-item danger" data-news="heat" role="button" tabindex="0" aria-label="기사 전문 보기: 지구 평균 기온 사상 최고치 경신">
                                 <span class="news-tag red">환경 속보</span>
                                 <h4>"지구 평균 기온 사상 최고치 경신... UN '인류 빨간불'"</h4>
                                 <p>석탄·석유 등 화석연료 연소로 발생한 온실가스가 대기를 가두며 전 세계적인 이상 고온 현상이 심화되고 있습니다.</p>
+                                <span class="news-more">기사 전문 읽기 <i class="fa-solid fa-arrow-right"></i></span>
                             </div>
-                            <div class="news-item warning">
+                            <div class="news-item warning" data-news="re100" role="button" tabindex="0" aria-label="기사 전문 보기: RE100과 국가 경쟁력">
                                 <span class="news-tag orange">경제·산업</span>
                                 <h4>"RE100 전력 미달성 시 수출 규제... 신재생에너지는 국가 경쟁력"</h4>
                                 <p>100% 신재생에너지 전력만을 사용하는 글로벌 RE100 이니셔티브가 가속화되며 에너지 전환이 필수가 되었습니다.</p>
+                                <span class="news-more">기사 전문 읽기 <i class="fa-solid fa-arrow-right"></i></span>
                             </div>
-                            <div class="news-item info">
+                            <div class="news-item info" data-news="peak" role="button" tabindex="0" aria-label="기사 전문 보기: 저녁 피크타임 블랙아웃 경고">
                                 <span class="news-tag blue">전력망</span>
                                 <h4>"여름철 저녁 피크타임 블랙아웃 경고... 저장장치(ESS) 확보 긴급"</h4>
                                 <p>해거름 시각 태양광 발전 중단과 저녁 전력 수요 폭증이 겹치는 17~20시 전력 수급 불균형 대비책 마련이 시급합니다.</p>
+                                <span class="news-more">기사 전문 읽기 <i class="fa-solid fa-arrow-right"></i></span>
                             </div>
                         </div>
                     </div>
@@ -471,6 +474,16 @@
                             <div class="info-alert info-active" id="nuclear-alert">
                                 <i class="fa-solid fa-circle-info"></i>
                                 <span>제어봉을 인출할수록(삽입 깊이가 얕아질수록) 핵분열이 활발해져 열 에너지가 많이 발생합니다.</span>
+                            </div>
+                            <div class="risk-note">
+                                <h5><i class="fa-solid fa-radiation"></i> 슬라이더를 움직이기 전에 — 원자력의 두 얼굴</h5>
+                                <p><strong>제어봉은 원자로의 브레이크입니다.</strong> 우라늄 원자핵이 쪼개질 때 튀어나온 중성자가 옆 원자핵을 또 쪼개는 일이 줄줄이 이어지는데(연쇄 반응), 제어봉은 그 중성자를 빨아들여 속도를 늦춥니다. 그래서 뽑을수록 반응이 활발해지고 발전량이 늘어납니다.</p>
+                                <ul>
+                                    <li><strong>멈춰도 계속 뜨겁습니다.</strong> 제어봉을 100% 넣어 핵분열을 멈춰도 연료봉은 한동안 스스로 열을 냅니다. 물을 돌려 계속 식혀 주어야 하며, 지진·해일로 전기가 끊겨 냉각이 멈추면 연료가 녹아 방사성 물질이 새어 나갈 수 있습니다(체르노빌 1986, 후쿠시마 2011).</li>
+                                    <li><strong>방사선은 보이지도 냄새가 나지도 않습니다.</strong> 많이 쬐면 몸속 세포가 망가지기 때문에 원자로를 두꺼운 콘크리트와 강철로 몇 겹씩 감싸 둡니다.</li>
+                                    <li><strong>다 쓴 연료는 수만 년 동안 방사선을 냅니다.</strong> 태울 수도 없애 버릴 수도 없어 물속에서 식힌 뒤 두꺼운 금속통에 보관하는데, 우리나라는 이 <strong>최종 처분장을 아직 정하지 못했습니다.</strong></li>
+                                </ul>
+                                <p class="risk-think">💬 발전량 숫자만 보지 말고 함께 생각해 보세요. <strong>탄소를 내보내지 않는 대신 수만 년 뒤 사람들에게 쓰레기를 넘기는 것</strong>은 괜찮은 거래일까요? 자세한 내용은 <strong>[에너지 원리 도감 → 원자력]</strong>에서 볼 수 있습니다.</p>
                             </div>
                         </div>
 
@@ -800,12 +813,32 @@
                             <div class="record-head">
                                 <div>
                                     <h4><i class="fa-solid fa-binoculars"></i> 탐구 미션 — 10가지 비밀을 찾아라</h4>
-                                    <p class="subtitle">답을 알려주지 않습니다. 슬라이더를 직접 움직여 조건을 찾아내면 자동으로 체크됩니다.</p>
+                                    <p class="subtitle">답을 알려주지 않습니다. 슬라이더를 직접 움직여 조건을 찾아내면 자동으로 체크됩니다. <strong>어디서부터 할지 모르겠다면 아래 ‘1번 미션 같이 풀어 보기’부터 그대로 따라 해 보세요.</strong></p>
                                 </div>
                                 <div class="quest-score">
                                     <div class="progress-bar-container mini">
                                         <div class="progress-bar" id="quest-bar" style="width: 0%"></div>
                                     </div>
+                                </div>
+                            </div>
+
+                            <!-- 어디서부터 시작할지 막히지 않도록 첫 미션을 함께 풀어 본다 -->
+                            <div class="quest-example">
+                                <button type="button" class="qe-head" id="qe-toggle" aria-expanded="true">
+                                    <span><i class="fa-solid fa-hand-point-right"></i> 처음이라 막힌다면 — <strong>1번 미션을 같이 풀어 봅시다</strong></span>
+                                    <i class="fa-solid fa-chevron-up qe-chevron"></i>
+                                </button>
+                                <div class="qe-body" id="qe-body">
+                                    <p class="qe-quest">🎯 1번 미션 · 수력 — <strong>“수문을 끝까지 열어 효율 100%를 만들어 보자”</strong></p>
+                                    <ol class="qe-steps">
+                                        <li><strong>미션 문장에서 낱말 두 개를 찾습니다.</strong> <em>수력</em>(어떤 발전소인가)과 <em>수문</em>(무엇을 움직이는가). 미션 문장에는 늘 이 두 가지가 들어 있습니다.</li>
+                                        <li><strong>위 실험실로 올라가 <span class="qe-key">💧 수력</span> 탭을 누릅니다.</strong> 그러면 왼쪽 조절판이 ‘수력 발전 조건 조절’로 바뀝니다.</li>
+                                        <li><strong><span class="qe-key">댐 수문 개방 정도 (유량)</span> 슬라이더를 오른쪽 끝까지 밉니다.</strong> 옆 숫자가 <span class="qe-key">완전 개방 (100%)</span>이 되면 됩니다.</li>
+                                        <li><strong>오른쪽 화면을 봅니다.</strong> ‘현재 발전 효율’이 100%가 되고 물살이 빨라지며 전구에 불이 들어옵니다.</li>
+                                        <li><strong>바로 이 순간 미션이 저절로 체크됩니다.</strong> 화면에 초록색 알림이 뜨고 아래 목록의 동그라미가 ✔로 바뀌면서, 숨어 있던 <strong>발견 문장</strong>이 나타납니다.</li>
+                                    </ol>
+                                    <p class="qe-tip">💡 <strong>나머지 9개도 방법은 똑같습니다.</strong> ①미션에서 <u>에너지원</u>과 <u>바꿀 조건</u>을 찾고 → ②그 에너지 탭을 누르고 → ③슬라이더를 끝까지 또는 조금씩 움직이며 화면 숫자를 지켜보세요. <strong>답을 정확히 몰라도 됩니다.</strong> 슬라이더를 끝에서 끝까지 훑어보는 것 자체가 실험입니다.</p>
+                                    <p class="qe-tip qe-tip-stop">🧭 <strong>‘멈추는 조건 찾아내기’는 반대로 하세요.</strong> 발전량을 <u>0에 가깝게 만드는</u> 값을 찾는 미션입니다. 예를 들어 태양광은 시각을 새벽이나 밤으로 옮겨 보고, 풍력은 풍속을 아주 약하게 <em>그리고</em> 아주 세게 양쪽 끝으로 모두 밀어 보세요.</p>
                                 </div>
                             </div>
 
@@ -907,6 +940,22 @@
                 </header>
 
                 <div class="game-container">
+                    <!-- 실패를 전제로 한 활동임을 처음부터 분명히 알려 준다 -->
+                    <div class="fail-ok-notice">
+                        <i class="fa-solid fa-heart"></i>
+                        <div>
+                            <h4>정전이 나도 괜찮습니다. 오히려 그게 정상입니다.</h4>
+                            <p><strong>‘정전 0회 · 탄소 0%’는 반드시 달성해야 하는 합격선이 아니라 도전 목표입니다.</strong> 예산이 정해져 있기 때문에 <u>세 가지를 모두 만족시키는 완벽한 답은 없을 수도 있습니다.</u> 실제로 나라의 에너지 정책을 짜는 전문가들도 안정성·환경·비용 사이에서 늘 무언가를 포기하며 결정합니다.</p>
+                            <p class="fo-what">✅ 이 활동에서 진짜로 평가하는 것은 <strong>등급(S·A·B·C·F)이 아니라 다음 세 가지</strong>입니다.</p>
+                            <ul>
+                                <li><strong>정전이 난 시각을 찾아내고 그 이유를 설명했는가</strong> — “18시에 해가 져서 태양광이 멈췄는데 저녁에 전기를 제일 많이 써서 모자랐다.”</li>
+                                <li><strong>결과를 보고 설계를 고쳐서 다시 지어 봤는가</strong> — 시뮬레이션은 몇 번이든 다시 돌릴 수 있습니다.</li>
+                                <li><strong>무엇을 포기했는지 말할 수 있는가</strong> — “탄소를 줄이려고 화석연료를 뺐더니 정전이 3회 늘었다”도 훌륭한 결론입니다.</li>
+                            </ul>
+                            <p class="fo-tip">F 등급이 나왔다면 실패한 것이 아니라 <strong>“이 조합으로는 안 된다”는 사실을 알아낸 것</strong>입니다. 그대로 실험 기록에 남기고, 한 가지만 바꿔서 다시 돌려 보세요.</p>
+                        </div>
+                    </div>
+
                     <!-- 학습용 모형값 안내 -->
                     <div class="model-notice">
                         <i class="fa-solid fa-triangle-exclamation"></i>
@@ -1476,6 +1525,19 @@
 
     <!-- 안내 토스트 -->
     <div class="toast-area" id="toast-area"></div>
+
+    <!-- 뉴스 기사 전문 -->
+    <div class="modal-overlay hidden" id="news-modal">
+        <div class="modal-content card news-modal-box">
+            <button class="modal-close" id="btn-close-news" aria-label="닫기"><i class="fa-solid fa-xmark"></i></button>
+            <div class="news-article" id="news-article"></div>
+            <div class="modal-actions">
+                <button class="ghost-btn" id="btn-close-news-bottom">
+                    <i class="fa-solid fa-xmark"></i> 닫기
+                </button>
+            </div>
+        </div>
+    </div>
 
     <!-- 확인 대화상자 -->
     <div class="modal-overlay hidden" id="confirm-modal">

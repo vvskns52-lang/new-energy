@@ -428,6 +428,62 @@ input[type="range"]::-webkit-slider-thumb:hover {
     color: #0369a1;
 }
 
+/* 발전원의 위험·부담을 조작 전에 짚어 주는 칸 (원자력 등) */
+.risk-note {
+    background: #fffbeb;
+    border: 1px solid #fcd34d;
+    border-left: 4px solid #d97706;
+    border-radius: 12px;
+    padding: 0.9rem 1rem;
+    margin-top: -0.8rem;
+    margin-bottom: 1.5rem;
+}
+
+.risk-note h5 {
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: #92400e;
+    margin-bottom: 0.45rem;
+}
+
+.risk-note p {
+    font-size: 0.8rem;
+    color: #57534e;
+    line-height: 1.65;
+}
+
+.risk-note ul {
+    list-style: none;
+    margin: 0.6rem 0 0.2rem;
+    padding: 0;
+}
+
+.risk-note li {
+    position: relative;
+    padding-left: 0.95rem;
+    margin-bottom: 0.5rem;
+    font-size: 0.79rem;
+    color: #57534e;
+    line-height: 1.6;
+}
+
+.risk-note li::before {
+    content: "•";
+    position: absolute;
+    left: 0;
+    color: #d97706;
+    font-weight: 800;
+}
+
+.risk-note .risk-think {
+    margin-top: 0.6rem;
+    padding: 0.5rem 0.65rem;
+    background: #fef3c7;
+    border-radius: 8px;
+    font-size: 0.79rem;
+    color: #78350f;
+}
+
 /* 기술 설명 박스 및 Pros / Cons 보드 시각화 개편 */
 .tech-info-card {
     background: #ffffff;
@@ -2179,6 +2235,110 @@ input[type="range"]::-webkit-slider-thumb:hover {
     margin-bottom: 0.4rem;
 }
 
+/* 첫 미션 함께 풀기 — 시작점을 못 찾는 학생을 위한 안내 */
+.quest-example {
+    background: #f0fdf4;
+    border: 1px solid #86efac;
+    border-left: 4px solid #16a34a;
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+}
+
+.qe-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6rem;
+    width: 100%;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    text-align: left;
+    padding: 0.85rem 1rem;
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: #14532d;
+}
+
+.qe-chevron {
+    font-size: 0.75rem;
+    color: #16a34a;
+    transition: transform 0.2s;
+}
+
+.quest-example.qe-folded .qe-chevron { transform: rotate(180deg); }
+.quest-example.qe-folded .qe-body { display: none; }
+
+.qe-body {
+    padding: 0 1rem 1rem;
+}
+
+.qe-quest {
+    background: #ffffff;
+    border: 1px dashed #86efac;
+    border-radius: 8px;
+    padding: 0.55rem 0.75rem;
+    font-size: 0.84rem;
+    color: #166534;
+    margin-bottom: 0.8rem;
+}
+
+.qe-steps {
+    margin: 0 0 0.9rem;
+    padding-left: 1.3rem;
+}
+
+.qe-steps li {
+    font-size: 0.82rem;
+    color: #334155;
+    line-height: 1.7;
+    margin-bottom: 0.5rem;
+}
+
+.qe-key {
+    display: inline-block;
+    background: #dcfce7;
+    border: 1px solid #86efac;
+    border-radius: 5px;
+    padding: 0 0.35rem;
+    font-weight: 700;
+    color: #15803d;
+    white-space: nowrap;
+}
+
+.qe-tip {
+    background: #ffffff;
+    border: 1px solid #d1fae5;
+    border-radius: 8px;
+    padding: 0.6rem 0.75rem;
+    font-size: 0.81rem;
+    color: #475569;
+    line-height: 1.7;
+    margin-bottom: 0.5rem;
+}
+
+.qe-tip:last-child { margin-bottom: 0; }
+
+.qe-tip-stop {
+    background: #fff7ed;
+    border-color: #fed7aa;
+}
+
+.quest-example-tag {
+    display: inline-block;
+    font-size: 0.66rem;
+    font-weight: 800;
+    color: #15803d;
+    background: #dcfce7;
+    border: 1px solid #86efac;
+    padding: 0.1rem 0.4rem;
+    border-radius: 999px;
+    margin-left: 0.3rem;
+    margin-bottom: 0.3rem;
+}
+
 .quest-groups {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -2321,6 +2481,91 @@ input[type="range"]::-webkit-slider-thumb:hover {
 }
 
 .model-notice i { color: #d97706; margin-top: 0.15rem; }
+
+/* 실패해도 괜찮다는 것을 활동 시작 전에 분명히 알리는 칸 */
+.fail-ok-notice {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.9rem;
+    background: #f0fdf4;
+    border: 1px solid #86efac;
+    border-left: 5px solid #16a34a;
+    border-radius: 12px;
+    padding: 1.1rem 1.2rem;
+    margin-bottom: 1.2rem;
+}
+
+.fail-ok-notice > i {
+    color: #16a34a;
+    font-size: 1.15rem;
+    margin-top: 0.2rem;
+    flex-shrink: 0;
+}
+
+.fail-ok-notice h4 {
+    font-size: 0.98rem;
+    font-weight: 800;
+    color: #14532d;
+    margin-bottom: 0.5rem;
+}
+
+.fail-ok-notice p {
+    font-size: 0.85rem;
+    color: #3f6212;
+    line-height: 1.7;
+    margin-bottom: 0.6rem;
+}
+
+.fail-ok-notice .fo-what {
+    color: #166534;
+    font-weight: 600;
+    margin-bottom: 0.4rem;
+}
+
+.fail-ok-notice ul {
+    list-style: none;
+    margin: 0 0 0.7rem;
+    padding: 0;
+}
+
+.fail-ok-notice li {
+    position: relative;
+    padding-left: 1.1rem;
+    margin-bottom: 0.4rem;
+    font-size: 0.83rem;
+    color: #365314;
+    line-height: 1.65;
+}
+
+.fail-ok-notice li::before {
+    content: "▸";
+    position: absolute;
+    left: 0;
+    color: #16a34a;
+    font-weight: 800;
+}
+
+.fail-ok-notice .fo-tip {
+    background: #ffffff;
+    border: 1px dashed #86efac;
+    border-radius: 8px;
+    padding: 0.55rem 0.7rem;
+    margin-bottom: 0;
+    font-size: 0.83rem;
+}
+
+/* 결과 리포트에서 목표 미달을 '알아낸 사실'로 돌려주는 칸 */
+.result-encourage {
+    margin-top: 0.9rem;
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-left: 4px solid #16a34a;
+    border-radius: 10px;
+    padding: 0.7rem 0.85rem;
+    font-size: 0.85rem;
+    color: #14532d;
+    line-height: 1.7;
+}
 
 /* --- 시뮬레이션 제어 --- */
 .sim-control-cell { flex-direction: column; gap: 0.6rem; }
@@ -3762,6 +4007,19 @@ input[type="range"]::-webkit-slider-thumb:hover {
     font-size: 0.85rem;
 }
 
+.ct-mission-note {
+    display: block;
+    margin-top: 0.55rem;
+    padding-top: 0.5rem;
+    border-top: 1px dashed #475569;
+    font-size: 0.78rem;
+    font-style: normal;
+    color: #cbd5e1;
+    line-height: 1.65;
+}
+
+.ct-mission-note strong { color: #86efac; }
+
 /* ==========================================
    기후 뉴스 속보 & 인포그래픽 현황 시각자료 스타일
    ========================================== */
@@ -3831,6 +4089,215 @@ input[type="range"]::-webkit-slider-thumb:hover {
     font-size: 0.8rem;
     color: #64748b;
     line-height: 1.5;
+}
+
+/* --- 눌러서 기사 전문 읽기 --- */
+.news-item[data-news] {
+    cursor: pointer;
+    position: relative;
+}
+
+.news-item[data-news]:hover {
+    border-color: #94a3b8;
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.1);
+}
+
+.news-item[data-news]:focus-visible {
+    outline: 3px solid #2563eb;
+    outline-offset: 2px;
+}
+
+.news-more {
+    margin-top: auto;
+    padding-top: 0.6rem;
+    border-top: 1px dashed var(--border-color);
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: #2563eb;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.news-item[data-news]:hover .news-more i { transform: translateX(3px); }
+.news-more i { transition: transform 0.2s; font-size: 0.7rem; }
+
+.news-item.danger .news-more { color: #dc2626; }
+.news-item.warning .news-more { color: #ea580c; }
+
+/* --- 기사 전문 모달 --- */
+.news-modal-box {
+    width: min(720px, 92vw);
+    max-height: 88vh;
+    text-align: left;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    padding: 1.6rem;
+}
+
+.news-article {
+    overflow-y: auto;
+    padding-right: 0.4rem;
+}
+
+.na-title {
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: #0f172a;
+    line-height: 1.4;
+    margin: 0.6rem 0 0.8rem;
+    padding-right: 2rem;
+}
+
+.na-lead {
+    font-size: 0.95rem;
+    color: #334155;
+    line-height: 1.75;
+    font-weight: 600;
+    padding: 0.9rem 1rem;
+    background: #f8fafc;
+    border-left: 4px solid #94a3b8;
+    border-radius: 0 10px 10px 0;
+    margin-bottom: 1.2rem;
+}
+
+.na-figures {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.7rem;
+    margin-bottom: 1.4rem;
+}
+
+.na-fig {
+    background: #0f172a;
+    border-radius: 12px;
+    padding: 0.85rem 0.7rem;
+    text-align: center;
+}
+
+.na-fig strong {
+    display: block;
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: #7dd3fc;
+    margin-bottom: 0.3rem;
+}
+
+.na-fig span {
+    font-size: 0.71rem;
+    color: #cbd5e1;
+    line-height: 1.45;
+}
+
+.na-section { margin-bottom: 1.2rem; }
+
+.na-section h4 {
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: #1e293b;
+    margin-bottom: 0.45rem;
+    padding-left: 0.6rem;
+    border-left: 3px solid #2563eb;
+}
+
+.na-section p {
+    font-size: 0.87rem;
+    color: #475569;
+    line-height: 1.85;
+}
+
+.na-terms {
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 12px;
+    padding: 1rem 1.1rem;
+    margin-bottom: 1rem;
+}
+
+.na-terms h4 {
+    font-size: 0.9rem;
+    font-weight: 800;
+    color: #1e3a8a;
+    margin-bottom: 0.6rem;
+}
+
+.na-terms dl { margin: 0; }
+
+.na-terms dt {
+    font-size: 0.84rem;
+    font-weight: 800;
+    color: #1d4ed8;
+    margin-top: 0.55rem;
+}
+
+.na-terms dt:first-child { margin-top: 0; }
+
+.na-terms dd {
+    margin: 0.15rem 0 0;
+    font-size: 0.82rem;
+    color: #334155;
+    line-height: 1.65;
+}
+
+.na-think {
+    background: #f0fdf4;
+    border: 1px solid #86efac;
+    border-radius: 12px;
+    padding: 1rem 1.1rem;
+    margin-bottom: 1rem;
+}
+
+.na-think h4 {
+    font-size: 0.9rem;
+    font-weight: 800;
+    color: #14532d;
+    margin-bottom: 0.5rem;
+}
+
+.na-think ol {
+    margin: 0;
+    padding-left: 1.2rem;
+}
+
+.na-think li {
+    font-size: 0.85rem;
+    color: #365314;
+    line-height: 1.75;
+    margin-bottom: 0.45rem;
+}
+
+.na-think li:last-child { margin-bottom: 0; }
+
+.na-link {
+    background: #fffbeb;
+    border: 1px dashed #fcd34d;
+    border-radius: 10px;
+    padding: 0.7rem 0.9rem;
+    font-size: 0.84rem;
+    color: #78350f;
+    line-height: 1.65;
+    margin-bottom: 0.9rem;
+}
+
+.na-source {
+    font-size: 0.74rem;
+    color: #94a3b8;
+    line-height: 1.6;
+    padding-top: 0.7rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.news-modal-box .modal-actions {
+    margin-top: 1rem;
+    padding-top: 0.9rem;
+    border-top: 1px solid var(--border-color);
+    justify-content: center;
+}
+
+@media (max-width: 700px) {
+    .na-figures { grid-template-columns: 1fr; }
+    .na-title { font-size: 1.1rem; }
 }
 
 /* 인포그래픽 데이터 시각자료 보드 */
@@ -4014,6 +4481,160 @@ input[type="range"]::-webkit-slider-thumb:hover {
     color: #1e293b;
     font-weight: 800;
     margin-bottom: 0.8rem;
+}
+
+/* 0단계: 원리를 읽기 전에 어려운 낱말부터 쉬운 말로 먼저 만나는 칸 */
+.p-terms-box {
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-left: 4px solid #2563eb;
+    border-radius: 10px;
+    padding: 0.9rem;
+    margin-bottom: 1rem;
+}
+
+.p-terms-box h5 {
+    font-size: 0.88rem;
+    color: #1e3a8a;
+    font-weight: 800;
+    margin-bottom: 0.35rem;
+}
+
+.p-terms-lead {
+    font-size: 0.78rem;
+    color: #1e40af;
+    line-height: 1.55;
+    margin-bottom: 0.7rem;
+}
+
+.term-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.term-card {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: #ffffff;
+    border: 1px solid #bfdbfe;
+    border-radius: 8px;
+    padding: 0.6rem 0.75rem;
+    cursor: pointer;
+    font-family: inherit;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.term-card:hover {
+    border-color: #2563eb;
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.12);
+}
+
+.term-word {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: #1d4ed8;
+}
+
+.term-word i {
+    font-size: 0.7rem;
+    color: #93c5fd;
+    transition: transform 0.2s;
+}
+
+.term-card.term-open .term-word i {
+    transform: rotate(180deg);
+}
+
+.term-body {
+    display: none;
+    padding-top: 0.5rem;
+    margin-top: 0.5rem;
+    border-top: 1px dashed #dbeafe;
+}
+
+.term-card.term-open .term-body {
+    display: block;
+}
+
+.term-easy {
+    display: block;
+    font-size: 0.82rem;
+    color: #334155;
+    line-height: 1.65;
+}
+
+.term-tip {
+    display: block;
+    margin-top: 0.4rem;
+    font-size: 0.76rem;
+    color: #64748b;
+    background: #f8fafc;
+    border-radius: 6px;
+    padding: 0.35rem 0.5rem;
+}
+
+/* 위험·부담이 큰 발전원의 문제를 원리와 같은 비중으로 다루는 칸 */
+.p-caution-box {
+    margin-top: 1.2rem;
+    background: #fffbeb;
+    border: 1px solid #fcd34d;
+    border-left: 4px solid #d97706;
+    border-radius: 10px;
+    padding: 0.95rem;
+}
+
+.p-caution-box h5 {
+    font-size: 0.9rem;
+    color: #92400e;
+    font-weight: 800;
+    margin-bottom: 0.4rem;
+}
+
+.caution-lead {
+    font-size: 0.82rem;
+    color: #78350f;
+    line-height: 1.6;
+    margin-bottom: 0.8rem;
+}
+
+.caution-item {
+    background: #ffffff;
+    border: 1px solid #fde68a;
+    border-radius: 8px;
+    padding: 0.65rem 0.8rem;
+    margin-bottom: 0.55rem;
+}
+
+.caution-item:last-child {
+    margin-bottom: 0;
+}
+
+.caution-item h6 {
+    font-size: 0.83rem;
+    color: #b45309;
+    font-weight: 800;
+    margin-bottom: 0.3rem;
+}
+
+.caution-item p {
+    font-size: 0.81rem;
+    color: #44403c;
+    line-height: 1.65;
+}
+
+.caution-think {
+    display: block;
+    margin-top: 0.5rem;
+    padding: 0.45rem 0.6rem;
+    background: #fef3c7;
+    border-radius: 6px;
+    font-size: 0.79rem;
+    color: #78350f;
 }
 
 .p-physics-desc {
